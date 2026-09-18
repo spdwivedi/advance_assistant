@@ -1,0 +1,4 @@
+[2026-08-05 10:38:18.781] [VISION_ANALYST] [NAVIGATING_URL] {"url": "https://example.com"}
+[2026-08-05 10:38:19.404] [VISION_ANALYST] [SCREENSHOT_CAPTURED] {"path": "./logs/latest_screenshot.png"}
+[2026-08-05 10:38:19.407] [VISION_ANALYST] [SENDING_TO_GEMINI] {"model": "gemini-2.0-flash"}
+[2026-08-05 10:38:20.495] [VISION_ANALYST] [VISION_ERROR] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer available. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"}

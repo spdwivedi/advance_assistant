@@ -1,0 +1,775 @@
+[2026-08-05 13:17:24.044] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app.py"}
+[2026-08-05 13:17:29.117] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/.env"}
+[2026-08-05 13:17:29.141] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/env.py"}
+[2026-08-05 13:17:29.141] [MID] [EXECUTING_COMMAND] {"command": "RUN_COMMAND: pip install python-dotenv", "directory_context": null}
+[2026-08-05 13:17:48.666] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/project_structure.md"}
+[2026-08-05 13:17:48.686] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app/__init__.py"}
+[2026-08-05 13:17:48.712] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app/main.py"}
+[2026-08-05 13:17:48.740] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app/models.py"}
+[2026-08-05 13:17:48.765] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app/services/data_service.py"}
+[2026-08-05 13:17:48.790] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/app/utils/logger_utils.py"}
+[2026-08-05 13:17:48.813] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/config/__init__.py"}
+[2026-08-05 13:17:48.836] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/config/settings.py"}
+[2026-08-05 13:17:48.845] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/interface/__init__.py"}
+[2026-08-05 13:17:48.869] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/interface/ui.py"}
+[2026-08-05 13:17:48.893] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/logger/__init__.py"}
+[2026-08-05 13:17:48.921] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/logger/logger.py"}
+[2026-08-05 13:17:48.940] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/permissions/__init__.py"}
+[2026-08-05 13:17:48.969] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/permissions/permissions.py"}
+[2026-08-05 13:17:48.992] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/requirements.txt"}
+[2026-08-05 13:17:49.016] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/README.md"}
+[2026-08-05 13:17:51.200] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_app.py"}
+[2026-08-05 13:18:04.049] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/main.py"}
+[2026-08-05 13:18:26.822] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_basic_logging.py"}
+[2026-08-05 13:18:26.852] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_error_handling.py"}
+[2026-08-05 13:18:26.874] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_log_rotation.py"}
+[2026-08-05 13:18:26.892] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_custom_formatter.py"}
+[2026-08-05 13:18:26.903] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_multiple_handlers.py"}
+[2026-08-05 13:18:26.926] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/tests/test_contextual_information.py"}
+[2026-08-05 13:18:39.332] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/requirements.txt"}
+[2026-08-05 13:18:39.340] [MID] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/production_project/.gitignore"}
+[2026-08-05 13:18:43.992] [MID] [EXECUTING_COMMAND] {"command": "RUN_COMMAND: pytest", "directory_context": null}
+[2026-08-05 22:42:13.221] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:42:16.451] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:42:29.099] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/project_scope.md", "bytes_written": 1589}
+[2026-08-05 22:42:36.467] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/virtualenv_setup.sh", "bytes_written": 717}
+[2026-08-05 22:42:36.791] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 26}
+[2026-08-05 22:42:41.452] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:42:45.170] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:43:00.573] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:43:49.790] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.gitignore", "bytes_written": 36}
+[2026-08-05 22:43:50.044] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-05 22:43:50.051] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:43:50.053] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: pip install -r requirements.txt"}
+[2026-08-05 22:43:50.058] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 147}
+[2026-08-05 22:43:50.642] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/README.md", "bytes_written": 554}
+[2026-08-05 22:43:50.764] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py"}
+[2026-08-05 22:43:50.765] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 75}
+[2026-08-05 22:43:50.765] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/models.py", "bytes_written": 222}
+[2026-08-05 22:43:50.928] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 71}
+[2026-08-05 22:43:51.054] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/routes.py", "bytes_written": 541}
+[2026-08-05 22:43:51.600] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 3968}
+[2026-08-05 22:43:52.312] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: flask db init"}
+[2026-08-05 22:43:52.312] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: flask db migrate -m \"Initial migration.\""}
+[2026-08-05 22:43:52.312] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: flask db upgrade"}
+[2026-08-05 22:43:53.229] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py"}
+[2026-08-05 22:43:53.230] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 75}
+[2026-08-05 22:44:05.611] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:44:45.956] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 30}
+[2026-08-05 22:44:46.383] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-05 22:44:46.385] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:44:46.389] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/__init__.py", "bytes_written": 4}
+[2026-08-05 22:44:47.324] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/__init__.py"}
+[2026-08-05 22:44:47.325] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/__init__.py", "bytes_written": 75}
+[2026-08-05 22:44:47.325] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/main.py", "bytes_written": 194}
+[2026-08-05 22:44:47.577] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/models/__init__.py", "bytes_written": 4}
+[2026-08-05 22:44:54.131] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/models/__init__.py"}
+[2026-08-05 22:44:54.131] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/models/__init__.py", "bytes_written": 75}
+[2026-08-05 22:44:54.132] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/app/models/task.py", "bytes_written": 372}
+[2026-08-05 22:44:54.422] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env", "bytes_written": 608}
+[2026-08-05 22:44:55.432] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env"}
+[2026-08-05 22:44:55.433] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env", "bytes_written": 75}
+[2026-08-05 22:44:59.643] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:45:42.684] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: pip install -r requirements.txt\n\n### Step 2: Test Backend Endpoints\n\n#### 2.1 Set Up Environment Variables\nCreate a `.env` file and add any necessary environment variables."}
+[2026-08-05 22:45:42.687] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: django-admin startproject TaskVault_App ."}
+[2026-08-05 22:45:42.688] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: python manage.py startapp api\n\n#### 2.3 Define Models, Views, and Serializers\nDefine models, views, and serializers in your `api` app.\n\n##### models.py\n```python\nfrom django.db import models\n\nclass Task(models.Model):\n    title = models.CharField(max_length=255)\n    description = models.TextField()\n    completed = models.BooleanField(default=False)\n\n    def __str__(self):\n        return self.title\n```\n\n##### serializers.py\n```python\nfrom rest_framework import serializers\nfrom .models import Task\n\nclass TaskSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Task\n        fields = ['id', 'title', 'description', 'completed']\n```\n\n##### views.py\n```python\nfrom rest_framework import generics\nfrom .models import Task\nfrom .serializers import TaskSerializer\n\nclass TaskList(generics.ListCreateAPIView):\n    queryset = Task.objects.all()\n    serializer_class = TaskSerializer\n\nclass TaskDetail(generics.RetrieveUpdateDestroyAPIView):\n    queryset = Task.objects.all()\n    serializer_class = TaskSerializer\n```\n\n##### urls.py\n```python\nfrom django.urls import path\nfrom .views import TaskList, TaskDetail\n\nurlpatterns = [\n    path('tasks/', TaskList.as_view(), name='task-list'),\n    path('tasks/<int:pk>/', TaskDetail.as_view(), name='task-detail'),\n]\n```\n\n#### 2.4 Run the Development Server\nStart the Django development server."}
+[2026-08-05 22:45:42.690] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: python manage.py runserver\n\n#### 2.5 Test Endpoints Using curl or Postman\nTest the endpoints using curl or Postman.\n\n**Using curl to test the `TaskList` endpoint:**\n\n```sh\ncurl -X GET \"http://127.0.0.1:8000/tasks/\" -H \"accept: application/json\"\n```\n\n**Using curl to create a new task:**\n\n```sh\ncurl -X POST \"http://127.0.0.1:8000/tasks/\" -H \"Content-Type: application/json\" -d \"{\\\"title\\\": \\\"New Task\\\", \\\"description\\\": \\\"Description of the new task\\\"}\"\n```\n\n**Using curl to retrieve a single task:**\n\n```sh\ncurl -X GET \"http://127.0.0.1:8000/tasks/1/\" -H \"accept: application/json\"\n```\n\n**Using curl to update a task:**\n\n```sh\ncurl -X PUT \"http://127.0.0.1:8000/tasks/1/\" -H \"Content-Type: application/json\" -d \"{\\\"title\\\": \\\"Updated Task\\\", \\\"description\\\": \\\"Updated description of the task\\\"}\"\n```\n\n**Using curl to delete a task:**\n\n```sh\ncurl -X DELETE \"http://127.0.0.1:8000/tasks/1/\" -H \"accept: application/json\"\n```\n\n### Summary\nThis process ensures that your backend is set up correctly and that all necessary features are implemented. Test the endpoints using tools like curl or Postman to ensure they function as expected."}
+[2026-08-05 22:45:48.461] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:45:53.152] [MID] [AGENT_ROUTER] [CLOUD_GENERATE_SUCCESS] [ENV:LOCAL] {"model": "gemini-3.6-flash"}
+[2026-08-05 22:45:53.155] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/requirements.txt", "bytes_written": 128}
+[2026-08-05 22:46:53.811] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite.config.ts", "bytes_written": 168}
+[2026-08-05 22:46:53.999] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/__init__.py", "bytes_written": 44}
+[2026-08-05 22:46:54.334] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite.config.ts"}
+[2026-08-05 22:46:54.340] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite.config.ts", "bytes_written": 75}
+[2026-08-05 22:46:54.345] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.tsx", "bytes_written": 465}
+[2026-08-05 22:46:55.005] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/__init__.py"}
+[2026-08-05 22:46:55.005] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/__init__.py", "bytes_written": 75}
+[2026-08-05 22:46:55.006] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/__init__.py", "bytes_written": 40}
+[2026-08-05 22:46:55.152] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.tsx"}
+[2026-08-05 22:46:55.154] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.tsx", "bytes_written": 75}
+[2026-08-05 22:46:55.154] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.css", "bytes_written": 272}
+[2026-08-05 22:46:55.252] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/__init__.py"}
+[2026-08-05 22:46:55.252] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/__init__.py", "bytes_written": 75}
+[2026-08-05 22:46:55.253] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/__init__.py", "bytes_written": 36}
+[2026-08-05 22:46:55.617] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.css"}
+[2026-08-05 22:46:55.620] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.css", "bytes_written": 75}
+[2026-08-05 22:46:55.622] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/index.tsx", "bytes_written": 246}
+[2026-08-05 22:46:56.144] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/__init__.py"}
+[2026-08-05 22:46:56.145] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/__init__.py", "bytes_written": 75}
+[2026-08-05 22:46:56.145] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/config.py", "bytes_written": 509}
+[2026-08-05 22:46:56.326] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/main.ts", "bytes_written": 188}
+[2026-08-05 22:46:56.509] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/database.py", "bytes_written": 511}
+[2026-08-05 22:46:56.612] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/main.ts"}
+[2026-08-05 22:46:56.612] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/main.ts", "bytes_written": 75}
+[2026-08-05 22:46:56.612] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/index.css", "bytes_written": 105}
+[2026-08-05 22:46:57.129] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/models.py", "bytes_written": 2486}
+[2026-08-05 22:46:57.569] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite-env.d.ts", "bytes_written": 310}
+[2026-08-05 22:46:58.010] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/schemas.py", "bytes_written": 1931}
+[2026-08-05 22:46:58.685] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite-env.d.ts"}
+[2026-08-05 22:46:58.687] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/vite-env.d.ts", "bytes_written": 75}
+[2026-08-05 22:46:58.690] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components", "bytes_written": 20}
+[2026-08-05 22:46:59.221] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/auth.py", "bytes_written": 2072}
+[2026-08-05 22:46:59.653] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components"}
+[2026-08-05 22:46:59.656] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components", "bytes_written": 75}
+[2026-08-05 22:46:59.658] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:46:59.660] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:46:59.661] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:46:59.662] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:46:59.664] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.tsx", "bytes_written": 796}
+[2026-08-05 22:47:00.308] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/user.py", "bytes_written": 935}
+[2026-08-05 22:47:01.324] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/note.py", "bytes_written": 1726}
+[2026-08-05 22:47:05.670] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:47:05.990] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/crud/task.py", "bytes_written": 2046}
+[2026-08-05 22:47:40.627] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_node.sh", "bytes_written": 177}
+[2026-08-05 22:47:41.555] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/auth.py", "bytes_written": 2268}
+[2026-08-05 22:47:41.702] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_node.sh"}
+[2026-08-05 22:47:41.703] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_node.sh", "bytes_written": 75}
+[2026-08-05 22:47:41.703] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_tailwind.sh", "bytes_written": 218}
+[2026-08-05 22:47:42.557] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/notes.py", "bytes_written": 2456}
+[2026-08-05 22:47:42.696] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_tailwind.sh"}
+[2026-08-05 22:47:42.696] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/install_tailwind.sh", "bytes_written": 75}
+[2026-08-05 22:47:42.696] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/init_tailwind.sh", "bytes_written": 275}
+[2026-08-05 22:47:43.621] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/routers/tasks.py", "bytes_written": 2579}
+[2026-08-05 22:47:43.769] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/init_tailwind.sh"}
+[2026-08-05 22:47:43.769] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/init_tailwind.sh", "bytes_written": 75}
+[2026-08-05 22:47:43.769] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/tailwind.config.js", "bytes_written": 264}
+[2026-08-05 22:47:44.455] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/app/main.py", "bytes_written": 923}
+[2026-08-05 22:47:44.951] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/tailwind.config.js"}
+[2026-08-05 22:47:44.951] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/tailwind.config.js", "bytes_written": 75}
+[2026-08-05 22:47:44.951] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/styles.css", "bytes_written": 221}
+[2026-08-05 22:47:45.428] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/styles.css"}
+[2026-08-05 22:47:45.430] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/styles.css", "bytes_written": 75}
+[2026-08-05 22:47:45.433] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js", "bytes_written": 466}
+[2026-08-05 22:47:51.041] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js"}
+[2026-08-05 22:47:51.042] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js", "bytes_written": 75}
+[2026-08-05 22:47:51.042] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/index.js", "bytes_written": 345}
+[2026-08-05 22:47:51.611] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/start_project.sh", "bytes_written": 123}
+[2026-08-05 22:47:52.000] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/start_project.sh"}
+[2026-08-05 22:47:52.000] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/start_project.sh", "bytes_written": 75}
+[2026-08-05 22:47:53.245] [MID] [AGENT_ROUTER] [CLOUD_CANDIDATE_FAILED] [ENV:LOCAL] {"model": "gemini-3.6-flash", "error": "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand "}
+[2026-08-05 22:47:58.139] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:48:25.004] [MID] [AGENT_ROUTER] [CLOUD_GENERATE_SUCCESS] [ENV:LOCAL] {"model": "gemini-3.5-flash"}
+[2026-08-05 22:48:25.007] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 24}
+[2026-08-05 22:48:35.070] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.js", "bytes_written": 155}
+[2026-08-05 22:48:35.200] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-05 22:48:35.201] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:48:35.432] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.js", "bytes_written": 377}
+[2026-08-05 22:48:40.983] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Home.js", "bytes_written": 100}
+[2026-08-05 22:48:41.098] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:48:41.224] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Home.js"}
+[2026-08-05 22:48:41.225] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Home.js", "bytes_written": 75}
+[2026-08-05 22:48:41.225] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js", "bytes_written": 103}
+[2026-08-05 22:49:36.511] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/api/handlers.py", "bytes_written": 4699}
+[2026-08-05 22:49:36.993] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js"}
+[2026-08-05 22:49:36.994] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js", "bytes_written": 75}
+[2026-08-05 22:49:36.994] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AddTask.js", "bytes_written": 110}
+[2026-08-05 22:49:38.417] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AddTask.js"}
+[2026-08-05 22:49:38.418] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AddTask.js", "bytes_written": 75}
+[2026-08-05 22:49:38.418] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/EditTask.js", "bytes_written": 248}
+[2026-08-05 22:49:43.077] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.js", "bytes_written": 563}
+[2026-08-05 22:49:43.086] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:49:43.433] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/package.json", "bytes_written": 416}
+[2026-08-05 22:50:27.470] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/views.py", "bytes_written": 1330}
+[2026-08-05 22:50:28.465] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/forms.py", "bytes_written": 175}
+[2026-08-05 22:50:34.369] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:50:34.378] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/forms.py"}
+[2026-08-05 22:50:34.378] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/forms.py", "bytes_written": 75}
+[2026-08-05 22:50:34.378] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/templates/taskvault/task_list.html", "bytes_written": 500}
+[2026-08-05 22:51:13.329] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:51:13.964] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/templates/taskvault/task_form.html", "bytes_written": 243}
+[2026-08-05 22:51:14.286] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-05 22:51:14.286] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-05 22:51:14.286] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/index.js", "bytes_written": 320}
+[2026-08-05 22:51:14.449] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/templates/taskvault/task_confirm_delete.html", "bytes_written": 284}
+[2026-08-05 22:51:14.564] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/index.js"}
+[2026-08-05 22:51:14.564] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/index.js", "bytes_written": 75}
+[2026-08-05 22:51:14.564] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/reducers/index.js", "bytes_written": 517}
+[2026-08-05 22:51:15.403] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/templates/taskvault/task_confirm_delete.html"}
+[2026-08-05 22:51:15.403] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/templates/taskvault/task_confirm_delete.html", "bytes_written": 75}
+[2026-08-05 22:51:15.403] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/urls.py", "bytes_written": 338}
+[2026-08-05 22:51:15.549] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/reducers/index.js"}
+[2026-08-05 22:51:15.550] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/store/reducers/index.js", "bytes_written": 75}
+[2026-08-05 22:51:15.550] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/components/Tasks.js", "bytes_written": 879}
+[2026-08-05 22:51:15.668] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/models.py", "bytes_written": 364}
+[2026-08-05 22:51:16.288] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/actions/index.js", "bytes_written": 227}
+[2026-08-05 22:51:16.765] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/models.py"}
+[2026-08-05 22:51:16.765] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskvault/models.py", "bytes_written": 75}
+[2026-08-05 22:51:16.912] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/actions/index.js"}
+[2026-08-05 22:51:16.912] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/actions/index.js", "bytes_written": 75}
+[2026-08-05 22:51:16.912] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/index.js", "bytes_written": 432}
+[2026-08-05 22:51:22.473] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:51:28.133] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:52:46.219] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/performance_analysis.md", "bytes_written": 690}
+[2026-08-05 22:52:49.239] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:52:49.426] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/code_optimization.md", "bytes_written": 704}
+[2026-08-05 22:53:36.305] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/__init__.py", "bytes_written": 72}
+[2026-08-05 22:53:36.640] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/code_optimization.md"}
+[2026-08-05 22:53:36.641] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/code_optimization.md", "bytes_written": 75}
+[2026-08-05 22:53:36.641] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/responsive_design.md", "bytes_written": 643}
+[2026-08-05 22:53:36.722] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/__init__.py"}
+[2026-08-05 22:53:36.722] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/__init__.py", "bytes_written": 75}
+[2026-08-05 22:53:36.723] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/test_api.py", "bytes_written": 4256}
+[2026-08-05 22:53:36.940] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/missing_features.md", "bytes_written": 750}
+[2026-08-05 22:53:37.805] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/test_api.py"}
+[2026-08-05 22:53:37.805] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/test_api.py", "bytes_written": 75}
+[2026-08-05 22:53:37.978] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/milestone_17_status.md", "bytes_written": 731}
+[2026-08-05 22:53:41.757] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:53:57.426] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:53:57.426] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:53:57.426] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/components'"}
+[2026-08-05 22:54:02.078] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:54:06.044] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:54:24.050] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/deploy.sh", "bytes_written": 344}
+[2026-08-05 22:55:13.253] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.github/workflows/ci.yml**\n```yaml\nname: CI\n\non: [push, pull_request]\n\njobs:\n  build:\n\n    runs-on: ubuntu-latest\n\n    steps:\n    - uses: actions/checkout@v2\n    - name: Set up Python 3.9\n      uses: actions/setup-python@v2\n      with:\n        python-version: '3.9'\n    - name: Install dependencies\n      run:", "bytes_written": 631}
+[2026-08-05 22:55:13.605] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 279}
+[2026-08-05 22:55:13.800] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.github/workflows/cd.yml**\n```yaml\nname: CD\n\non:\n  push:\n    tags:\n      - 'v*.*.*'\n\njobs:\n  deploy:\n\n    runs-on: ubuntu-latest\n\n    steps:\n    - name: Checkout code\n      uses: actions/checkout@v2\n\n    - name: Set up Python 3.9\n      uses: actions/setup-python@v2\n      with:\n        python-version: '3.9'\n\n    - name: Build the Docker image\n      run: docker build . -t taskvault-app:${{ github.ref_name }}\n\n    - name: Log in to Docker Hub\n      uses: docker/login-action@v1\n      with:\n        username: ${{ secrets.DOCKER_USERNAME }}\n        password: ${{ secrets.DOCKER_PASSWORD }}\n\n    - name: Push the Docker image\n      run:", "bytes_written": 261}
+[2026-08-05 22:55:14.281] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 93}
+[2026-08-05 22:55:14.808] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/docker-compose.yml", "bytes_written": 401}
+[2026-08-05 22:55:19.117] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:55:19.261] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env", "bytes_written": 68}
+[2026-08-05 22:55:45.945] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/docs/project_status.md", "bytes_written": 319}
+[2026-08-05 22:55:46.061] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env"}
+[2026-08-05 22:55:46.061] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/.env", "bytes_written": 75}
+[2026-08-05 22:55:46.281] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/monitoring.py", "bytes_written": 473}
+[2026-08-05 22:55:47.010] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/features.py", "bytes_written": 228}
+[2026-08-05 22:55:48.818] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/features.py"}
+[2026-08-05 22:55:48.818] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/features.py", "bytes_written": 75}
+[2026-08-05 22:55:48.819] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/main.py", "bytes_written": 299}
+[2026-08-05 22:55:49.066] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/main.py"}
+[2026-08-05 22:55:49.066] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/main.py", "bytes_written": 75}
+[2026-08-05 22:55:49.067] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/docs/maintenance_log.md", "bytes_written": 461}
+[2026-08-05 22:56:03.232] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:56:19.686] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/task_management.py", "bytes_written": 1928}
+[2026-08-05 22:56:26.104] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:56:38.479] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/seed_script.py", "bytes_written": 1245}
+[2026-08-05 22:56:44.077] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:56:49.866] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: curl -X GET \"http://localhost:8000/api/analytics/summary\"\n```\n\nIf you are using a programming language like Python, you can use the `requests` library to make the same request:\n\n```python\nimport requests\n\nurl = \"http://localhost:8000/api/analytics/summary\"\n\nresponse = requests.get(url)\nprint(response.json())\n```\n\nMake sure your API is running and accessible at the specified URL. If you need further assistance with handling the data or formatting, please provide more details."}
+[2026-08-05 22:56:53.573] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:57:14.772] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:57:41.670] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/App.js", "bytes_written": 624}
+[2026-08-05 22:57:42.394] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Sidebar.js", "bytes_written": 449}
+[2026-08-05 22:57:42.700] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Dashboard.js", "bytes_written": 216}
+[2026-08-05 22:57:43.003] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Dashboard.js"}
+[2026-08-05 22:57:43.003] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Dashboard.js", "bytes_written": 75}
+[2026-08-05 22:57:43.003] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js", "bytes_written": 184}
+[2026-08-05 22:57:43.294] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js"}
+[2026-08-05 22:57:43.295] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Tasks.js", "bytes_written": 75}
+[2026-08-05 22:57:43.295] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Notes.js", "bytes_written": 195}
+[2026-08-05 22:57:43.588] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Notes.js"}
+[2026-08-05 22:57:43.589] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Notes.js", "bytes_written": 75}
+[2026-08-05 22:57:43.589] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Analytics.js", "bytes_written": 217}
+[2026-08-05 22:57:43.870] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Analytics.js"}
+[2026-08-05 22:57:43.870] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/Analytics.js", "bytes_written": 75}
+[2026-08-05 22:57:43.871] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AdminPanel.js", "bytes_written": 210}
+[2026-08-05 22:57:44.133] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AdminPanel.js"}
+[2026-08-05 22:57:44.133] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/frontend/src/AdminPanel.js", "bytes_written": 75}
+[2026-08-05 22:57:48.401] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:58:03.932] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskboard.py", "bytes_written": 1309}
+[2026-08-05 22:58:04.425] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: bash /home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/taskboard.py"}
+[2026-08-05 22:58:09.665] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:58:53.613] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:59:01.523] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/middleware/cors.ts", "bytes_written": 287}
+[2026-08-05 22:59:01.908] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/app.ts", "bytes_written": 339}
+[2026-08-05 22:59:02.192] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/app.ts"}
+[2026-08-05 22:59:02.192] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/src/app.ts", "bytes_written": 75}
+[2026-08-05 22:59:07.020] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-05 22:59:21.622] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/D:/Project_Files/Assistant_Projects/TaskVault_App/backend/tests/test_main.py", "bytes_written": 1895}
+[2026-08-06 00:16:31.876] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:16:42.127] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:16:45.064] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:16:49.327] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory", "bytes_written": 39}
+[2026-08-06 00:16:54.704] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.gitignore", "bytes_written": 3}
+[2026-08-06 00:16:54.800] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory"}
+[2026-08-06 00:16:54.807] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory", "bytes_written": 0}
+[2026-08-06 00:16:54.814] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory/src'"}
+[2026-08-06 00:16:54.820] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory/tests'"}
+[2026-08-06 00:16:54.827] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/project_directory/docs'"}
+[2026-08-06 00:16:54.954] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.gitignore"}
+[2026-08-06 00:16:54.967] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.gitignore", "bytes_written": 0}
+[2026-08-06 00:16:54.980] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 151}
+[2026-08-06 00:16:57.612] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:16:57.820] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 61}
+[2026-08-06 00:16:58.559] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:16:58.584] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:17:01.629] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:17:04.500] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:17:55.396] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.gitignore", "bytes_written": 223}
+[2026-08-06 00:17:59.360] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.gitignore", "bytes_written": 27}
+[2026-08-06 00:17:59.771] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/README.md", "bytes_written": 522}
+[2026-08-06 00:17:59.976] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/package.json", "bytes_written": 222}
+[2026-08-06 00:18:00.110] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 39}
+[2026-08-06 00:18:00.445] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:18:00.467] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:00.488] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 1061}
+[2026-08-06 00:18:04.691] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:05.372] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:07.223] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:10.371] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:10.649] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py"}
+[2026-08-06 00:18:10.760] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 39}
+[2026-08-06 00:18:10.789] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:11.612] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:11.650] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py"}
+[2026-08-06 00:18:11.686] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 39}
+[2026-08-06 00:18:11.809] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:12.350] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:18:12.366] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:12.429] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:15.333] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:15.417] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 383}
+[2026-08-06 00:18:17.859] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 14}
+[2026-08-06 00:18:17.934] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 369}
+[2026-08-06 00:18:18.162] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:18:18.179] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:18.308] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 369}
+[2026-08-06 00:18:21.614] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:21.776] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 369}
+[2026-08-06 00:18:22.855] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:22.906] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py"}
+[2026-08-06 00:18:22.929] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/migrations/env.py", "bytes_written": 39}
+[2026-08-06 00:18:23.153] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:18:23.163] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:27.253] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:30.725] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:40.556] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:41.350] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 21] Is a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App'"}
+[2026-08-06 00:18:41.434] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:18:41.450] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:18:41.477] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 378}
+[2026-08-06 00:18:44.264] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/run.sh", "bytes_written": 250}
+[2026-08-06 00:18:54.895] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:18:57.128] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:19:30.796] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py", "bytes_written": 33}
+[2026-08-06 00:19:33.566] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py"}
+[2026-08-06 00:19:33.588] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py", "bytes_written": 40}
+[2026-08-06 00:20:09.153] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:20:32.272] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 165}
+[2026-08-06 00:20:33.524] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile"}
+[2026-08-06 00:20:33.534] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 0}
+[2026-08-06 00:20:33.549] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.dockerignore", "bytes_written": 114}
+[2026-08-06 00:20:33.811] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.dockerignore"}
+[2026-08-06 00:20:33.820] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/.dockerignore", "bytes_written": 0}
+[2026-08-06 00:20:33.838] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 69}
+[2026-08-06 00:20:38.569] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:20:38.660] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:20:38.674] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:20:38.697] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/docker-compose.yml", "bytes_written": 519}
+[2026-08-06 00:20:46.406] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/backend/Dockerfile", "bytes_written": 147}
+[2026-08-06 00:20:46.560] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 1260}
+[2026-08-06 00:20:46.693] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/backend/app.py", "bytes_written": 528}
+[2026-08-06 00:20:46.970] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py"}
+[2026-08-06 00:20:46.989] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 39}
+[2026-08-06 00:20:47.132] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/backend/requirements.txt", "bytes_written": 19}
+[2026-08-06 00:20:50.222] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:20:50.330] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/backend/requirements.txt"}
+[2026-08-06 00:20:50.363] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/backend/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:20:51.143] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 21] Is a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App'"}
+[2026-08-06 00:20:55.766] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:20:57.944] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:14.688] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/docker-compose.yml", "bytes_written": 143}
+[2026-08-06 00:21:17.738] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:19.585] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 85}
+[2026-08-06 00:21:22.178] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:27.724] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:21:27.741] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:21:31.194] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:34.827] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:35.039] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 11}
+[2026-08-06 00:21:43.810] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/vite.config.ts", "bytes_written": 168}
+[2026-08-06 00:21:43.896] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend"}
+[2026-08-06 00:21:43.906] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 0}
+[2026-08-06 00:21:44.126] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/src/main.tsx", "bytes_written": 246}
+[2026-08-06 00:21:46.821] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:46.977] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/src/App.tsx", "bytes_written": 212}
+[2026-08-06 00:21:47.866] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 44}
+[2026-08-06 00:21:47.966] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html", "bytes_written": 223}
+[2026-08-06 00:21:48.151] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend"}
+[2026-08-06 00:21:48.165] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 0}
+[2026-08-06 00:21:48.305] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html"}
+[2026-08-06 00:21:48.329] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html", "bytes_written": 0}
+[2026-08-06 00:21:51.644] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:21:55.344] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:22:21.699] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/package.json", "bytes_written": 285}
+[2026-08-06 00:22:30.526] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:22:30.538] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:22:30.552] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:22:30.684] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/postcss.config.js", "bytes_written": 164}
+[2026-08-06 00:22:33.299] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/tailwind.config.js", "bytes_written": 291}
+[2026-08-06 00:22:33.642] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/src/index.css", "bytes_written": 153}
+[2026-08-06 00:22:33.730] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:22:33.934] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html", "bytes_written": 458}
+[2026-08-06 00:22:53.462] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js", "bytes_written": 447}
+[2026-08-06 00:22:55.531] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:22:55.677] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js"}
+[2026-08-06 00:22:55.693] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/vite.config.js", "bytes_written": 0}
+[2026-08-06 00:22:55.716] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html", "bytes_written": 497}
+[2026-08-06 00:22:57.768] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:22:57.950] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html"}
+[2026-08-06 00:22:57.963] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/public/index.html", "bytes_written": 0}
+[2026-08-06 00:22:57.980] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/package.json", "bytes_written": 443}
+[2026-08-06 00:23:00.810] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:23:03.398] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:23:12.990] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:23:13.015] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:23:13.031] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:23:13.931] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:23:16.905] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:23:19.783] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:23:26.650] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/package.json", "bytes_written": 703}
+[2026-08-06 00:23:28.283] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:23:31.921] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:23:34.356] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:07.534] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 13}
+[2026-08-06 00:24:10.245] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:10.349] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend"}
+[2026-08-06 00:24:10.367] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 0}
+[2026-08-06 00:24:26.925] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:29.466] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:30.373] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:24:47.576] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:50.547] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:24:51.545] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:24:59.969] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:25:02.754] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:25:06.666] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:25:08.870] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:25:19.765] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:25:22.658] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:25:24.274] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:25:46.689] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/install_nginx.sh", "bytes_written": 242}
+[2026-08-06 00:25:46.695] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/install_nginx.sh"}
+[2026-08-06 00:25:46.783] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/install_nginx.sh", "bytes_written": 0}
+[2026-08-06 00:25:46.807] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-available/taskvault", "bytes_written": 381}
+[2026-08-06 00:25:46.816] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-available/taskvault"}
+[2026-08-06 00:25:46.866] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-available/taskvault", "bytes_written": 0}
+[2026-08-06 00:25:46.886] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-enabled/taskvault", "bytes_written": 1802}
+[2026-08-06 00:25:46.898] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-enabled/taskvault"}
+[2026-08-06 00:25:46.941] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/  /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/nginx_config/sites-enabled/taskvault", "bytes_written": 0}
+[2026-08-06 00:25:52.966] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:26:21.187] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:26:49.198] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:26:53.071] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:26:59.441] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:01.567] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:04.486] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:07.418] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:08.314] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:09.347] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:11.773] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:14.486] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:15.479] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:16.392] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:20.474] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:23.059] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:27.570] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/docker-compose.yml", "bytes_written": 223}
+[2026-08-06 00:27:29.765] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:27:29.939] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile.dev", "bytes_written": 116}
+[2026-08-06 00:27:33.183] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:35.860] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:27:53.543] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 41}
+[2026-08-06 00:27:55.405] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/taskvault.py", "bytes_written": 152}
+[2026-08-06 00:27:55.613] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:27:55.633] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:27:58.464] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:28:01.963] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:28:11.632] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/task_manager.py", "bytes_written": 581}
+[2026-08-06 00:28:13.830] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/new_file.txt", "bytes_written": 26}
+[2026-08-06 00:28:14.070] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/new_file.txt"}
+[2026-08-06 00:28:14.091] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/new_file.txt", "bytes_written": 0}
+[2026-08-06 00:28:17.656] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:28:37.540] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 289}
+[2026-08-06 00:28:40.006] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py"}
+[2026-08-06 00:28:40.026] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 39}
+[2026-08-06 00:28:40.042] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/templates/index.html", "bytes_written": 279}
+[2026-08-06 00:28:40.333] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/templates/index.html"}
+[2026-08-06 00:28:40.359] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/templates/index.html", "bytes_written": 0}
+[2026-08-06 00:28:40.385] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py", "bytes_written": 700}
+[2026-08-06 00:28:43.529] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py"}
+[2026-08-06 00:28:43.544] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py", "bytes_written": 42}
+[2026-08-06 00:28:43.874] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:28:47.261] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:28:51.977] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: CREATE_DIRECTORY: /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/new_subdirectory\n\nAfter creating a new directory, you can then navigate into it and create your file. For example:\n\n```bash\ncd /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/new_subdirectory"}
+[2026-08-06 00:28:51.983] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: CREATE_FILE: my_file.py | print(\"Hello, World!\")\n```\n\nIf you want to create a file in the existing `TaskVault_App` directory, please specify a valid filename and path within that directory."}
+[2026-08-06 00:28:54.372] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py", "bytes_written": 226}
+[2026-08-06 00:28:57.646] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py"}
+[2026-08-06 00:28:57.670] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py", "bytes_written": 40}
+[2026-08-06 00:29:03.484] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:29:05.855] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 147}
+[2026-08-06 00:29:08.811] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:29:08.916] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile"}
+[2026-08-06 00:29:08.939] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 0}
+[2026-08-06 00:29:11.040] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/Dockerfile", "bytes_written": 168}
+[2026-08-06 00:29:14.166] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:29:38.594] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/app.py", "bytes_written": 263}
+[2026-08-06 00:29:42.006] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:29:42.136] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py", "bytes_written": 491}
+[2026-08-06 00:29:46.535] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/main.py", "bytes_written": 112}
+[2026-08-06 00:29:46.653] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py"}
+[2026-08-06 00:29:46.672] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/models.py", "bytes_written": 42}
+[2026-08-06 00:29:46.682] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/utils.py", "bytes_written": 455}
+[2026-08-06 00:29:47.043] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/config.py", "bytes_written": 148}
+[2026-08-06 00:29:50.345] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:29:50.461] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/templates/index.html", "bytes_written": 1253}
+[2026-08-06 00:30:05.504] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:05.517] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:05.530] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:05.747] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/static/style.css", "bytes_written": 627}
+[2026-08-06 00:30:08.461] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:30:08.676] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/static/style.css"}
+[2026-08-06 00:30:08.700] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/static/style.css", "bytes_written": 0}
+[2026-08-06 00:30:17.496] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:17.513] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:17.528] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:20.431] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:30:23.753] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:30:30.756] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 642}
+[2026-08-06 00:30:32.598] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:30:32.788] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend"}
+[2026-08-06 00:30:32.808] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 0}
+[2026-08-06 00:30:36.335] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:30:38.551] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:06.118] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:31:06.137] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:31:06.152] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:31:09.422] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:31:09.481] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:31:12.800] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:16.022] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:17.113] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend", "bytes_written": 105}
+[2026-08-06 00:31:32.090] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:31:32.101] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:31:32.112] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:31:34.617] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:37.597] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:39.530] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:31:48.981] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/create_frontend_dir.py", "bytes_written": 514}
+[2026-08-06 00:31:51.510] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:31:54.535] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:31:59.488] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:32:10.774] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/create_frontend_directory.py", "bytes_written": 630}
+[2026-08-06 00:32:13.066] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:32:15.047] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:32:17.239] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:32:19.541] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:32:36.650] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:32:36.657] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:32:36.665] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:32:38.504] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:32:40.884] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:32:45.545] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:33:02.134] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:33:04.668] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:33:06.136] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 00:33:13.323] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/scripts/check_and_create_directory.py", "bytes_written": 321}
+[2026-08-06 00:33:15.858] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:33:44.849] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: rm -rf /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend\n   ```\n\n2. **Create the Directory Again:**\n   ```bash"}
+[2026-08-06 00:33:44.849] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: CREATE_DIRECTORY: /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend\n   ```\n\n3. **Navigate to the New Directory:**\n   ```bash"}
+[2026-08-06 00:33:44.849] [MID] [GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: cd /mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend\n   ```\n\n4. **Initialize a New Node.js Project (if using React):**\n   ```bash"}
+[2026-08-06 00:33:44.849] [MID] [GATEKEEPER] [EXECUTING_COMMAND] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: npm init -y\n   ```\n\n5. **Install Required Packages (e.g., React, TypeScript, etc.):**\n   ```bash", "directory_context": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App"}
+[2026-08-06 00:33:45.215] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 211}
+[2026-08-06 00:33:48.026] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:33:48.133] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt"}
+[2026-08-06 00:33:48.159] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/requirements.txt", "bytes_written": 0}
+[2026-08-06 00:33:48.159] [MID] [GATEKEEPER] [EXECUTING_COMMAND] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: npm install --save-dev webpack-dev-server html-webpack-plugin\n     ```\n   - Update `webpack.config.js`:\n     ```js\n     const path = require('path');\n     const HtmlWebpackPlugin = require('html-webpack-plugin');\n\n     module.exports = {\n       entry: './src/index.tsx',\n       output: {\n         filename: 'bundle.js',\n         path: path.resolve(__dirname, 'dist'),\n       },\n       module: {\n         rules: [\n           {\n             test: /\\.tsx?$/,\n             use: 'babel-loader',\n             exclude: /node_modules/,\n           },\n         ],\n       },\n       resolve: {\n         extensions: ['.tsx', '.ts', '.js'],\n       },\n       plugins: [\n         new HtmlWebpackPlugin({\n           template: './public/index.html',\n         }),\n       ],\n       devServer: {\n         static: path.join(__dirname, 'dist'),\n         compress: true,\n         port: 9000,\n       },\n     };\n     ```\n   - Update `package.json`:\n     ```json\n     \"scripts\": {\n       \"start\": \"webpack serve --open\",\n       \"build\": \"webpack\"\n     }\n     ```\n\n10. **Run the Development Server:**\n    ```bash", "directory_context": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App"}
+[2026-08-06 00:33:49.064] [MID] [GATEKEEPER] [EXECUTING_COMMAND] [ENV:LOCAL] {"command": "EXECUTE: RUN_COMMAND: npm start\n    ```\n\nThis setup should give you a basic React application ready for further development. If you have any specific requirements or need additional configurations, please let me know!", "directory_context": "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App"}
+[2026-08-06 00:33:50.083] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 20] Not a directory: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend/src'"}
+[2026-08-06 00:33:53.015] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 00:33:55.684] [MID] [GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 17] File exists: '/mnt/d/Project_Files/Assistant_Projects/TaskVault_App/frontend'"}
+[2026-08-06 10:39:12.334] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:39:15.798] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:39:20.908] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app/main.py", "bytes_written": 160}
+[2026-08-06 10:39:21.252] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/index.js", "bytes_written": 171}
+[2026-08-06 10:39:21.585] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app/config.py", "bytes_written": 49}
+[2026-08-06 10:39:21.888] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.js", "bytes_written": 98}
+[2026-08-06 10:39:27.123] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:39:50.623] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:39:54.642] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:40:08.943] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/main.py", "bytes_written": 929}
+[2026-08-06 10:40:15.102] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:41:18.081] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:41:20.904] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/App.tsx", "bytes_written": 278}
+[2026-08-06 10:42:47.817] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:43:46.655] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:44:00.333] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/app.js\nconst express = require('express');\nconst cors = require('cors');\n\nconst app = express();\n\n/ Define the allowed origins\nconst allowedOrigins = ['http:/localhost:5173'];\n\napp.use(cors({\n  origin: function (origin, callback) {\n    if (allowedOrigins.indexOf(origin) !== -1", "bytes_written": 1315}
+[2026-08-06 10:59:02.077] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:25.827] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env", "bytes_written": 73}
+[2026-08-06 10:59:26.187] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 0}
+[2026-08-06 10:59:26.397] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt"}
+[2026-08-06 10:59:28.285] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 137}
+[2026-08-06 10:59:28.307] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 274}
+[2026-08-06 10:59:28.595] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/database.py", "bytes_written": 323}
+[2026-08-06 10:59:28.882] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/vite.config.ts", "bytes_written": 231}
+[2026-08-06 10:59:29.183] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 305}
+[2026-08-06 10:59:29.521] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/components/Home.tsx", "bytes_written": 257}
+[2026-08-06 10:59:29.843] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/health_check.py", "bytes_written": 305}
+[2026-08-06 10:59:30.175] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/metrics.py", "bytes_written": 329}
+[2026-08-06 10:59:30.461] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/middleware/cors_middleware.py", "bytes_written": 276}
+[2026-08-06 10:59:30.786] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/containers/Metrics.tsx", "bytes_written": 544}
+[2026-08-06 10:59:31.128] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 241}
+[2026-08-06 10:59:31.428] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 406}
+[2026-08-06 10:59:34.169] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:45.096] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:48.787] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:50.760] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:53.148] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:55.075] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:57.071] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 10:59:59.455] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:00:01.311] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:00:03.329] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:00:05.680] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:00:07.785] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 275}
+[2026-08-06 11:00:09.589] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/database.py", "bytes_written": 329}
+[2026-08-06 11:00:11.014] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env", "bytes_written": 74}
+[2026-08-06 11:00:13.209] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/components/Home.tsx", "bytes_written": 232}
+[2026-08-06 11:00:14.563] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 241}
+[2026-08-06 11:00:16.416] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/health_check.py", "bytes_written": 306}
+[2026-08-06 11:00:18.360] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/metrics.py", "bytes_written": 330}
+[2026-08-06 11:00:23.538] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/containers/Metrics.tsx", "bytes_written": 561}
+[2026-08-06 11:00:25.617] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 308}
+[2026-08-06 11:00:25.704] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py"}
+[2026-08-06 11:00:25.830] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/database.py"}
+[2026-08-06 11:00:25.958] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env"}
+[2026-08-06 11:00:26.215] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py"}
+[2026-08-06 11:00:26.339] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/health_check.py"}
+[2026-08-06 11:00:26.631] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/containers/Metrics.tsx"}
+[2026-08-06 11:00:29.717] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 451}
+[2026-08-06 11:00:39.585] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/database.py", "bytes_written": 1956}
+[2026-08-06 11:00:43.053] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env", "bytes_written": 441}
+[2026-08-06 11:00:49.524] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 447}
+[2026-08-06 11:00:50.491] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/health_check.py", "bytes_written": 148}
+[2026-08-06 11:00:57.652] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/containers/Metrics.tsx", "bytes_written": 492}
+[2026-08-06 11:01:09.617] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:15.962] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:26.623] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:29.018] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:34.898] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:38.580] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 407}
+[2026-08-06 11:01:40.878] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:44.344] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:53.042] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/domain_task_12.txt", "bytes_written": 1498}
+[2026-08-06 11:01:55.020] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:01:57.365] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env", "bytes_written": 97}
+[2026-08-06 11:02:00.718] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 350}
+[2026-08-06 11:02:07.071] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/vite.config.ts", "bytes_written": 168}
+[2026-08-06 11:02:09.711] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 336}
+[2026-08-06 11:02:12.984] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/components/Home.tsx", "bytes_written": 254}
+[2026-08-06 11:02:16.217] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/health_check.py", "bytes_written": 323}
+[2026-08-06 11:02:16.316] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env"}
+[2026-08-06 11:02:22.969] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/.env", "bytes_written": 333}
+[2026-08-06 11:02:37.972] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:02:57.142] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:03:11.176] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/metrics.py", "bytes_written": 514}
+[2026-08-06 11:03:23.959] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/containers/Metrics.tsx", "bytes_written": 553}
+[2026-08-06 11:03:34.653] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/metrics.py"}
+[2026-08-06 11:03:48.672] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/routers/metrics.py", "bytes_written": 1649}
+[2026-08-06 11:04:39.405] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:04:42.424] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:04:50.243] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:05:07.904] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app/main.py", "bytes_written": 674}
+[2026-08-06 11:05:08.512] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.js", "bytes_written": 378}
+[2026-08-06 11:05:08.885] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/Home.js", "bytes_written": 254}
+[2026-08-06 11:05:09.218] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/Metrics.js", "bytes_written": 553}
+[2026-08-06 11:05:09.543] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/requirements.txt", "bytes_written": 58}
+[2026-08-06 11:05:17.582] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:06:23.946] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:06:52.396] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/auth.py", "bytes_written": 3639}
+[2026-08-06 11:06:53.006] [MID] [VERIFICATION] [CODE_CHECK_FAILED] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/auth.py"}
+[2026-08-06 11:07:00.776] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/auth.py", "bytes_written": 1171}
+[2026-08-06 11:07:00.819] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 39}
+[2026-08-06 11:07:10.767] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:08:11.041] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:08:30.085] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/init_db.py", "bytes_written": 2479}
+[2026-08-06 11:08:50.392] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:09:09.472] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/vite.config.ts", "bytes_written": 189}
+[2026-08-06 11:09:09.976] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/App.tsx", "bytes_written": 378}
+[2026-08-06 11:09:10.339] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/Home.tsx", "bytes_written": 393}
+[2026-08-06 11:09:10.705] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/Metrics.tsx", "bytes_written": 553}
+[2026-08-06 11:09:11.072] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/index.tsx", "bytes_written": 271}
+[2026-08-06 11:09:18.698] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:09:21.686] [MID] [GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/shell_layout.json", "bytes_written": 290}
+[2026-08-06 11:10:29.063] [MID] [AGENT_ROUTER] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-06 11:35:27.232] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_AGENTIC", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:35:33.858] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:35:37.303] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:35:40.803] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:35:54.735] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app", "bytes_written": 11}
+[2026-08-06 11:35:58.909] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app", "bytes_written": 742}
+[2026-08-06 11:35:58.956] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src", "bytes_written": 59}
+[2026-08-06 11:36:00.222] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src", "bytes_written": 186}
+[2026-08-06 11:36:00.316] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app/requirements.txt", "bytes_written": 45}
+[2026-08-06 11:36:00.594] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/package.json", "bytes_written": 613}
+[2026-08-06 11:36:05.889] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/package.json", "bytes_written": 700}
+[2026-08-06 11:36:05.972] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/index.js", "bytes_written": 373}
+[2026-08-06 11:36:09.414] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:36:49.875] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:36:58.238] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/models.py", "bytes_written": 1392}
+[2026-08-06 11:37:12.111] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "MEDIUM", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:37:53.816] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 73}
+[2026-08-06 11:37:54.217] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/app.py", "bytes_written": 5553}
+[2026-08-06 11:39:44.102] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "HYBRID_CLOUD", "profile": "MEDIUM", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:43:58.987] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/package.json", "bytes_written": 631}
+[2026-08-06 11:44:02.143] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/package.json", "bytes_written": 323}
+[2026-08-06 11:44:02.195] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/tailwind.config.js", "bytes_written": 322}
+[2026-08-06 11:44:02.535] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/index.css", "bytes_written": 190}
+[2026-08-06 11:44:02.812] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/App.jsx", "bytes_written": 3707}
+[2026-08-06 11:44:03.467] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/components/Sidebar.jsx", "bytes_written": 2124}
+[2026-08-06 11:44:03.959] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 100}
+[2026-08-06 11:44:05.326] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/requirements.txt", "bytes_written": 78}
+[2026-08-06 11:44:12.559] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:44:42.310] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "MEDIUM", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:44:59.742] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/AuthContext.js", "bytes_written": 1114}
+[2026-08-06 11:45:00.246] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/App.js", "bytes_written": 618}
+[2026-08-06 11:45:03.165] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/App.js", "bytes_written": 464}
+[2026-08-06 11:45:03.203] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/Login.js", "bytes_written": 810}
+[2026-08-06 11:45:03.557] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/Metrics.js", "bytes_written": 532}
+[2026-08-06 11:45:29.025] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:47:43.790] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:47:46.492] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:47:49.867] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:47:50.412] [MODEL:MID] [CAT:GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: CREATE_DIRECTORY: backend/app/"}
+[2026-08-06 11:47:50.412] [MODEL:MID] [CAT:GATEKEEPER] [EXECUTION_DENIED] [ENV:LOCAL] {"command": "EXECUTE: CREATE_DIRECTORY: frontend/src/"}
+[2026-08-06 11:48:10.090] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:04.688] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:06.492] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:08.630] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:13.032] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:15.230] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 77}
+[2026-08-06 11:56:19.209] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:21.088] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:56:23.682] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/.env", "bytes_written": 137}
+[2026-08-06 11:56:29.678] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 1100}
+[2026-08-06 11:56:45.129] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/domain_task_6.txt", "bytes_written": 1149}
+[2026-08-06 11:56:50.156] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/components/Metrics.tsx", "bytes_written": 516}
+[2026-08-06 11:57:03.706] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 1364}
+[2026-08-06 11:57:08.467] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:57:15.272] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/.env", "bytes_written": 578}
+[2026-08-06 11:57:19.664] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/main.py", "bytes_written": 685}
+[2026-08-06 11:57:23.101] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/frontend/src/components/Home.tsx", "bytes_written": 220}
+[2026-08-06 11:58:12.630] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:58:21.189] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:58:24.541] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:58:29.170] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:58:31.468] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/app/main.py", "bytes_written": 233}
+[2026-08-06 11:59:04.903] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 11:59:24.435] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/database/models.py", "bytes_written": 1456}
+[2026-08-06 11:59:25.063] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/database/__init__.py", "bytes_written": 338}
+[2026-08-06 11:59:25.369] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/database/setup.py", "bytes_written": 1047}
+[2026-08-06 11:59:48.325] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "MEDIUM", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:01:01.592] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 77}
+[2026-08-06 12:01:04.990] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/db/seeds/time_series_data.sql", "bytes_written": 171}
+[2026-08-06 12:01:11.819] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:01:16.691] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/devpulse_orchestrator_frontend/src/App.tsx", "bytes_written": 378}
+[2026-08-06 12:01:21.925] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:01:28.107] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/src/components/SidebarNavigation.js", "bytes_written": 786}
+[2026-08-06 12:01:35.443] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:02:00.402] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/ui/widgets/health_cards.html", "bytes_written": 978}
+[2026-08-06 12:02:09.901] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/ui/widgets/health_cards.html", "bytes_written": 1159}
+[2026-08-06 12:02:09.998] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/ui/widgets/styles.css", "bytes_written": 908}
+[2026-08-06 12:02:18.670] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/ui/widgets/styles.css", "bytes_written": 831}
+[2026-08-06 12:02:18.723] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/ui/widgets/script.js", "bytes_written": 1055}
+[2026-08-06 12:02:29.589] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:03:19.918] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 0}
+[2026-08-06 12:03:22.221] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/cors_config.json", "bytes_written": 166}
+[2026-08-06 13:18:25.281] [MODEL:MID] [CAT:MID] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "HYBRID_CLOUD", "profile": "MAX", "workspace": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator", "search_len": 6011, "target_model": "gemini-3.5-flash"}
+[2026-08-06 13:19:00.568] [MODEL:MID] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/backend/utils/health_client.py", "bytes_written": 10178}

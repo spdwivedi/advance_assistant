@@ -1,0 +1,26 @@
+[2026-08-07 23:56:46.535] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-07 23:56:46.538] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 00:55:34.777] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 00:55:34.780] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 01:17:55.224] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:17:55.228] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 01:18:17.124] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 01:23:10.634] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:23:10.635] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 01:23:28.461] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:02:48.858 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:02:48.863 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 05:03:04.652 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:03:04.654 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:10:57.689 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:10:57.691 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:45:08.819 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-08-08 05:45:08.824 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
+[2026-08-08 05:45:24.148 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
+[2026-08-08 05:45:24.153 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}
+[2026-08-08 06:00:23.493 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-08-08 06:00:23.498 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
+[2026-08-08 06:00:39.815 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
+[2026-08-08 06:00:39.825 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}

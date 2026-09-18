@@ -1,0 +1,2 @@
+[2026-08-08 05:45:08.824 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
+[2026-08-08 06:00:23.498 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}

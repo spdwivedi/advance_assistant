@@ -1,0 +1,14 @@
+[2026-08-05 13:17:10.693] [HIGH_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Decompose this engineering goal into explicit, independent tasks (one per line)."}
+[2026-08-05 13:17:11.493] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-pro", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-pro is no longer ava"}
+[2026-08-05 13:17:12.284] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:12.532] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-pro", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API versio"}
+[2026-08-05 13:17:12.533] [HIGH_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:18:49.726] [HIGH_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "The automated test run returned errors:\nEEEEE\n=================================="}
+[2026-08-05 13:18:50.925] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-pro", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-pro is no longer ava"}
+[2026-08-05 13:18:51.345] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:18:51.580] [HIGH_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-pro", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-pro is not found for API versio"}
+[2026-08-05 13:18:51.580] [HIGH_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 15:58:14.010] [HIGH_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Decompose this engineering goal into explicit, independent tasks (one per line)."}
+[2026-08-05 15:58:25.260] [HIGH_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-pro-preview"}
+[2026-08-05 17:38:17.817] [HIGH_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Decompose this engineering goal into explicit, independent tasks (one per line)."}
+[2026-08-05 17:38:25.495] [HIGH_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-pro-preview"}

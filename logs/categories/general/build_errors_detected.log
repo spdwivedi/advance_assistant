@@ -1,0 +1,1 @@
+[2026-08-05 22:55:49.835] [SUPERVISOR] [GENERAL] [BUILD_ERRORS_DETECTED] [ENV:LOCAL] {"trace_snippet": "E\n======================================================================\nERROR: app (unittest.loader._FailedTest.app)\n--------------------------------"}

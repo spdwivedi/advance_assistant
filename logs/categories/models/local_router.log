@@ -1,0 +1,10 @@
+[2026-08-04 15:27:06.323] [LOCAL_ROUTER] [PROMPT_RECEIVED] {"prompt": "show my current files"}
+[2026-08-04 15:27:16.306] [LOCAL_ROUTER] [RESPONSE_GENERATED] {"reply_snippet": "To provide you with an accurate list of your current files, I would need to access your local file system. However, since I am operating within the co"}
+[2026-08-04 15:27:25.271] [LOCAL_ROUTER] [EXECUTING_COMMAND] {"command": "`ls -l` (on Linux/Mac) or"}
+[2026-08-04 15:27:25.273] [LOCAL_ROUTER] [COMMAND_RESULT] {"returncode": 2, "output": "/bin/sh: 1: Syntax error: word unexpected (expecting \")\")\n"}
+[2026-08-04 15:28:03.287] [LOCAL_ROUTER] [PROMPT_RECEIVED] {"prompt": "remember that we use FastApi for backend services"}
+[2026-08-04 15:28:05.000] [LOCAL_ROUTER] [RESPONSE_GENERATED] {"reply_snippet": "LEARN: We are using FastAPI for our backend services.\n\nGoing forward, this will be noted in all relevant tasks and development activities. Is there a "}
+[2026-08-05 10:24:43.386] [LOCAL_ROUTER] [PROMPT_RECEIVED] {"prompt": "hi who are you"}
+[2026-08-05 10:24:48.345] [LOCAL_ROUTER] [RESPONSE_GENERATED] {"reply_snippet": "Hello! I am LOCAL_ROUTER, an advanced AI assistant component. How can I assist you today?"}
+[2026-08-05 10:37:56.522] [LOCAL_ROUTER] [PROMPT_RECEIVED] {"prompt": "remember that our primary API port is 8000"}
+[2026-08-05 10:38:01.016] [LOCAL_ROUTER] [RESPONSE_GENERATED] {"reply_snippet": "Understood, we are using the port 8000 for our primary API. Please remember this while making any updates or configurations to prevent potential issue"}

@@ -1,0 +1,105 @@
+[2026-08-06 13:20:02.220] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 2}
+[2026-08-06 13:20:41.186] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/boilerplate_configs.md"}
+[2026-08-06 13:21:27.503] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/api_and_frontend_development.md"}
+[2026-08-07 20:22:33.688] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-07 20:22:33"}
+[2026-08-07 20:22:33.697] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_2.txt.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.698] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "sqlalchemy_framework.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.699] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "api_and_frontend_development.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.699] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_basics.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.700] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_sqlalchemy_user_profile.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.700] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_60.txt.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.700] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_sqlalchemy_health_check.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.701] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "backend_frontend_separation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.701] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "shell_layout_design.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.701] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "authentication_and_routing.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.701] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "db_connection_management.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.702] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "javascript fundamentals.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.702] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "async_test_frameworks.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.703] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_46.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.703] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "task_class_template.md", "into": "python_async.md"}
+[2026-08-07 20:22:33.703] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "high_throughput_metrics_engine.py.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.704] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_routing_implementation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.704] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "backend_main.py.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.704] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "sqlalchemy_database_interaction.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.705] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "development_environment_setup.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.705] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "vite_react_config.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.705] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "shell_layout_implementation.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.705] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "metrics_class_implementation.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.706] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "devpulse_orchestrator_setup.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.706] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_auth_with_jwt.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.706] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_and_axios_cookbook.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.706] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_healthcheck.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.707] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_routing.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.707] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "async_sqlalchemy.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.707] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react-routing-template.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.707] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_82.md", "into": "python_async.md"}
+[2026-08-07 20:22:33.708] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "home.tsx_code_insight.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.708] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_project_setup.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.708] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_cors_middleware.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.709] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_tutorial.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.709] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_axios_metrics_compilation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.709] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_users_management.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.709] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_52_code_snippet.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.710] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "async_sqlalchemy_postgresql.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.710] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_health_check_route.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.710] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "async sqlalchemy integration.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.710] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_sidebar_navigation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.711] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_coding_insights.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.711] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "home_component.tsx.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.711] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "cors_configuration_explained.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.711] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_85_template.md", "into": "python_async.md"}
+[2026-08-07 20:22:33.711] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "pytest_tutorial.md", "into": "python_async.md"}
+[2026-08-07 20:22:33.712] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "backend_database_setup.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.712] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "devpulse_orchestrator_code_implementation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.712] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "devpulse_orchestrator_backend.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.712] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "frontend_coding.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.713] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_17.txt.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.713] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "sqlalchemy_asyncsession_tutorial.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.713] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "app.tsx_insight.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.713] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "devpulse_orchestrator_frontend.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.714] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "unit_tests_and_automation.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.714] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_testclient_implementation.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.714] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "init_db.py.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.714] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_introduction.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.715] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "devpulse_orchestrator_implementation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.715] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "database_setup_in_fastapi.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.715] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "test_services.py.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.715] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_routing_and_components.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.716] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "async_functions_in_python.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.716] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_sqlalchemy_tasks.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.716] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "database_seeding.md", "into": "sqlalchemy.md"}
+[2026-08-07 20:22:33.716] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_and_sqlalchemy_health_check.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.716] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_metrics_implementation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.717] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "react_router_documentation.md", "into": "react_typescript.md"}
+[2026-08-07 20:22:33.717] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "boilerplate_configs.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.717] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "coding_library.md", "into": "general_coding.md"}
+[2026-08-07 20:22:33.717] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "backend_routers_health_check.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.718] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "sqlalchemy_and_fastapi_implementation.md", "into": "fastapi.md"}
+[2026-08-07 20:22:33.718] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "app.js.md", "into": "general_coding.md"}
+[2026-08-07 23:56:46.536] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-07 23:56:46"}
+[2026-08-07 23:56:46.537] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi.md", "into": "fastapi.md"}
+[2026-08-07 23:56:46.537] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "sqlalchemy.md", "into": "sqlalchemy.md"}
+[2026-08-07 23:56:46.538] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 00:55:34.778] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 00:55:34"}
+[2026-08-08 00:55:34.779] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 01:17:55.225] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 01:17:55"}
+[2026-08-08 01:17:55.228] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 01:23:10"}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_health_check_implementation.md", "into": "fastapi.md"}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 01:23:28.461] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "Expecting ',' delimiter: line 5 column 24 (char 106)"}
+[2026-08-08 05:02:48.859 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:02:48"}
+[2026-08-08 05:02:48.862 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:03:04.647 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_health_check.md", "project_name": null}
+[2026-08-08 05:10:57.689 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:10:57"}
+[2026-08-08 05:10:57.690 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_health_check.md", "into": "fastapi.md"}
+[2026-08-08 05:10:57.690 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:11:11.672 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_guide.md", "project_name": null}
+[2026-08-08 05:11:12.956 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}
+[2026-08-08 05:45:08.820 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:45:08"}
+[2026-08-08 05:45:08.822 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_guide.md", "into": "fastapi.md"}
+[2026-08-08 05:45:08.823 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:45:25.577 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}
+[2026-08-08 06:00:23.495 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 06:00:23"}
+[2026-08-08 06:00:23.497 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 06:00:41.349 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}

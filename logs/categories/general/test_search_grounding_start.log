@@ -1,0 +1,4 @@
+[2026-08-08 05:03:04.654 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:45:24.153 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}
+[2026-08-08 06:00:39.825 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}

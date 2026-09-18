@@ -1,0 +1,82 @@
+[2026-08-08 00:55:34.773] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 00:55:34.777] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 00:55:34.778] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 00:55:34"}
+[2026-08-08 00:55:34.779] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 00:55:34.780] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 00:55:34.784] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null}
+[2026-08-08 00:55:34.785] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-08 00:55:42.816] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 117}
+[2026-08-08 01:17:55.215] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 01:17:55.224] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:17:55.225] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 01:17:55"}
+[2026-08-08 01:17:55.228] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 01:17:55.228] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 01:17:55.233] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null}
+[2026-08-08 01:17:55.233] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-08 01:18:17.124] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 01:23:10.633] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 01:23:10.634] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 01:23:10"}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_health_check_implementation.md", "into": "fastapi.md"}
+[2026-08-08 01:23:10.634] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 01:23:10.635] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 01:23:10.635] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null}
+[2026-08-08 01:23:10.635] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b"}
+[2026-08-08 01:23:17.282] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 153}
+[2026-08-08 01:23:28.461] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "Expecting ',' delimiter: line 5 column 24 (char 106)"}
+[2026-08-08 01:23:28.461] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:02:48.855 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:02:48.858 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:02:48.859 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:02:48"}
+[2026-08-08 05:02:48.862 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:02:48.863 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 05:02:48.866 IST] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "constraining_profile": "HIGH_RPM_TPM", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null, "project_name": null, "test_name": null}
+[2026-08-08 05:02:48.866 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": null}
+[2026-08-08 05:02:57.485 IST] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 123, "project_name": null, "test_name": null}
+[2026-08-08 05:03:04.647 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_health_check.md", "project_name": null}
+[2026-08-08 05:03:04.652 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:03:04.654 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:03:04.654 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [WEB_SEARCH_INITIATED] [ENV:LOCAL] {"query": "FastAPI async background tasks pydantic v2 implementation", "profile_level": "MEDIUM", "project_name": "test_search_suite", "test_name": "test_search_grounding", "current_ddg_count": 0, "current_grounding_count": 0}
+[2026-08-08 05:03:06.869 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [CACHE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.search_data/fastapi_async_background_tasks_pydantic_v2_impleme.json", "project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:10:57.689 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:10:57.689 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:10:57.689 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:10:57"}
+[2026-08-08 05:10:57.690 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_health_check.md", "into": "fastapi.md"}
+[2026-08-08 05:10:57.690 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:10:57.691 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true}
+[2026-08-08 05:10:57.691 IST] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "constraining_profile": "HIGH_RPM_TPM", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null, "project_name": null, "test_name": null}
+[2026-08-08 05:10:57.691 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": null}
+[2026-08-08 05:11:04.748 IST] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 160, "project_name": null, "test_name": null}
+[2026-08-08 05:11:11.672 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_guide.md", "project_name": null}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:11:11.673 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [WEB_SEARCH_INITIATED] [ENV:LOCAL] {"query": "FastAPI async background tasks pydantic v2 implementation", "profile_level": "MEDIUM", "project_name": "test_search_suite", "test_name": "test_search_grounding", "current_ddg_count": 0, "current_grounding_count": 0}
+[2026-08-08 05:11:12.955 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [CACHE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.search_data/fastapi_async_background_tasks_pydantic_v2_impleme.json", "project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:11:12.956 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}
+[2026-08-08 05:45:08.815 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:45:08.819 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-08-08 05:45:08.820 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 05:45:08"}
+[2026-08-08 05:45:08.822 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "fastapi_guide.md", "into": "fastapi.md"}
+[2026-08-08 05:45:08.823 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 05:45:08.824 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
+[2026-08-08 05:45:08.827 IST] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "constraining_profile": "HIGH_RPM_TPM", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null, "project_name": null, "test_name": "test_offline_pipeline"}
+[2026-08-08 05:45:08.828 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": null}
+[2026-08-08 05:45:17.517 IST] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 158, "project_name": null, "test_name": "test_offline_pipeline"}
+[2026-08-08 05:45:24.148 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
+[2026-08-08 05:45:24.153 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}
+[2026-08-08 05:45:24.155 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [WEB_SEARCH_INITIATED] [ENV:LOCAL] {"query": "FastAPI async background tasks pydantic v2 implementation", "profile_level": "MEDIUM", "project_name": "test_search_suite", "test_name": "test_search_grounding", "current_ddg_count": 0, "current_grounding_count": 0}
+[2026-08-08 05:45:25.572 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [CACHE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.search_data/fastapi_async_background_tasks_pydantic_v2_impleme.json", "project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 05:45:25.577 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}
+[2026-08-08 06:00:23.489 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 06:00:23.493 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-08-08 06:00:23.495 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 06:00:23"}
+[2026-08-08 06:00:23.497 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
+[2026-08-08 06:00:23.498 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
+[2026-08-08 06:00:23.501 IST] [MODEL:FAST] [CAT:FAST] [PIPELINE_ACTIVATED] [ENV:LOCAL] {"mode": "OFFLINE_ONLY", "profile": "BASIC", "constraining_profile": "HIGH_RPM_TPM", "workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "search_len": 0, "target_model": null, "project_name": null, "test_name": "test_offline_pipeline"}
+[2026-08-08 06:00:23.502 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:FAST] [OFFLINE_CORE_FALLBACK] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": null}
+[2026-08-08 06:00:31.868 IST] [MODEL:FAST] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/test/test_data/test_project/main.py", "bytes_written": 160, "project_name": null, "test_name": "test_offline_pipeline"}
+[2026-08-08 06:00:39.815 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
+[2026-08-08 06:00:39.825 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}
+[2026-08-08 06:00:39.829 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [WEB_SEARCH_INITIATED] [ENV:LOCAL] {"query": "FastAPI async background tasks pydantic v2 implementation", "profile_level": "MEDIUM", "project_name": "test_search_suite", "test_name": "test_search_grounding", "current_ddg_count": 0, "current_grounding_count": 0}
+[2026-08-08 06:00:41.342 IST] [MODEL:RESEARCH_TOOL] [CAT:GENERAL] [CACHE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.search_data/fastapi_async_background_tasks_pydantic_v2_impleme.json", "project_name": "test_search_suite", "test_name": "test_search_grounding"}
+[2026-08-08 06:00:41.349 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}

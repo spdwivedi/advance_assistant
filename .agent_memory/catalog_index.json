@@ -1,0 +1,147 @@
+{
+    "last_updated": "2026-08-08 06:00:23",
+    "root_docs": [
+        {
+            "filename": "LEARNINGS.md",
+            "path": "/home/assistantuser/advance_assistant/.agent_memory/LEARNINGS.md",
+            "size_bytes": 178
+        },
+        {
+            "filename": "ARCHITECTURE.md",
+            "path": "/home/assistantuser/advance_assistant/.agent_memory/ARCHITECTURE.md",
+            "size_bytes": 166
+        },
+        {
+            "filename": "TASKS.md",
+            "path": "/home/assistantuser/advance_assistant/.agent_memory/TASKS.md",
+            "size_bytes": 261
+        }
+    ],
+    "categories": {
+        "environment": [],
+        "tech_stack": [],
+        "tools": [],
+        "cs_fundamentals": [],
+        "frameworks": [
+            {
+                "title": "Sqlalchemy Asyncio Implementation",
+                "filename": "sqlalchemy_asyncio_implementation.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/frameworks/sqlalchemy_asyncio_implementation.md",
+                "size_bytes": 1453
+            }
+        ],
+        "cloud": [],
+        "history": [],
+        "design_patterns": [],
+        "coding": [
+            {
+                "title": "Computation Robustness And Verification",
+                "filename": "computation_robustness_and_verification.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/computation_robustness_and_verification.md",
+                "size_bytes": 1734
+            },
+            {
+                "title": "Fastapi Async Sqlalchemy",
+                "filename": "fastapi_async_sqlalchemy.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_async_sqlalchemy.md",
+                "size_bytes": 1334
+            },
+            {
+                "title": "Sqlalchemy Database Setup",
+                "filename": "sqlalchemy_database_setup.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_database_setup.md",
+                "size_bytes": 927
+            },
+            {
+                "title": "Auth Implementation",
+                "filename": "auth_implementation.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/auth_implementation.md",
+                "size_bytes": 819
+            },
+            {
+                "title": "Fastapi Sqlalchemy Postgresql",
+                "filename": "fastapi_sqlalchemy_postgresql.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_sqlalchemy_postgresql.md",
+                "size_bytes": 1342
+            },
+            {
+                "title": "Python Async",
+                "filename": "python_async.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/python_async.md",
+                "size_bytes": 3757
+            },
+            {
+                "title": "React Metrics Component",
+                "filename": "react_metrics_component.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_metrics_component.md",
+                "size_bytes": 1235
+            },
+            {
+                "title": "User Authentication Service",
+                "filename": "user_authentication_service.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/user_authentication_service.md",
+                "size_bytes": 2683
+            },
+            {
+                "title": "Fastapi And Sqlalchemy Example",
+                "filename": "fastapi_and_sqlalchemy_example.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_and_sqlalchemy_example.md",
+                "size_bytes": 1171
+            },
+            {
+                "title": "Sqlalchemy",
+                "filename": "sqlalchemy.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy.md",
+                "size_bytes": 10138
+            },
+            {
+                "title": "Flask Backend Setup",
+                "filename": "flask_backend_setup.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/flask_backend_setup.md",
+                "size_bytes": 899
+            },
+            {
+                "title": "Reactmetricscomponent",
+                "filename": "reactmetricscomponent.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/reactmetricscomponent.md",
+                "size_bytes": 1027
+            },
+            {
+                "title": "Sqlalchemy Async Postgresql",
+                "filename": "sqlalchemy_async_postgresql.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_async_postgresql.md",
+                "size_bytes": 973
+            },
+            {
+                "title": "General Coding",
+                "filename": "general_coding.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/general_coding.md",
+                "size_bytes": 8890
+            },
+            {
+                "title": "React Typescript",
+                "filename": "react_typescript.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_typescript.md",
+                "size_bytes": 11675
+            },
+            {
+                "title": "Fastapi",
+                "filename": "fastapi.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi.md",
+                "size_bytes": 14835
+            },
+            {
+                "title": "Sqlalchemy Orm Cheatsheet",
+                "filename": "sqlalchemy_orm_cheatsheet.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_orm_cheatsheet.md",
+                "size_bytes": 1489
+            },
+            {
+                "title": "Fastapi Sqlalchemy",
+                "filename": "fastapi_sqlalchemy.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_sqlalchemy.md",
+                "size_bytes": 1597
+            }
+        ]
+    }
+}

@@ -1,0 +1,2 @@
+[2026-08-06 13:20:41.186] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/boilerplate_configs.md"}
+[2026-08-06 13:21:27.503] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/api_and_frontend_development.md"}

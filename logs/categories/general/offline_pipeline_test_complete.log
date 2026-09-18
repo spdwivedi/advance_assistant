@@ -1,0 +1,6 @@
+[2026-08-08 01:18:17.124] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 01:23:28.461] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:03:04.652 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:11:11.673 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project"}
+[2026-08-08 05:45:24.148 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
+[2026-08-08 06:00:39.815 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}

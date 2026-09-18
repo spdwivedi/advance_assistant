@@ -1,0 +1,35 @@
+[2026-08-05 13:17:20.617] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Create directory structure for the project."}
+[2026-08-05 13:17:20.619] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Initialize FastAPI application in `app.py`."}
+[2026-08-05 13:17:20.621] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Set up environment variables for configurat"}
+[2026-08-05 13:17:20.622] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Write unit tests for the FastAPI applicatio"}
+[2026-08-05 13:17:21.305] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:21.406] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:21.407] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:21.504] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:21.700] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:21.804] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:21.806] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:21.901] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:21.937] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:21.937] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:22.017] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:22.017] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:22.044] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:22.044] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:22.140] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:22.141] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:24.047] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Implement routes and endpoints as per requi"}
+[2026-08-05 13:17:24.492] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:24.868] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:25.088] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:25.088] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:29.424] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Write test cases to cover different scenari"}
+[2026-08-05 13:17:29.841] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:30.240] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:30.474] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:30.474] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}
+[2026-08-05 13:17:49.019] [MID_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this specific milestone: - Run tests to ensure everything is working a"}
+[2026-08-05 13:17:50.075] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer a"}
+[2026-08-05 13:17:50.484] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2.0-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.0-flash is no longer a"}
+[2026-08-05 13:17:50.726] [MID_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-1.5-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API vers"}
+[2026-08-05 13:17:50.726] [MID_TIER] [LOCAL_FALLBACK_TRIGGERED] {}

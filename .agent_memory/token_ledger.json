@@ -1,0 +1,22 @@
+{
+    "last_reset_date": "2026-08-07",
+    "model_usage": {
+        "gemini-3.5-flash": {
+            "rpd": 8
+        }
+    },
+    "rolling_window": {
+        "gemini-3.5-flash": [
+            1786149023.1890483
+        ]
+    },
+    "rolling_tokens": {
+        "gemini-3.5-flash": [
+            [
+                1786149023.1890483,
+                100000
+            ]
+        ]
+    },
+    "project_usage": {}
+}

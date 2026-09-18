@@ -1,0 +1,12 @@
+[2026-08-06 04:54:15.960] [GOVERNOR] [GENERAL] [TIME_SYNC_FAILED] [ENV:LOCAL] {"error": "Command '['sudo', 'hwclock', '-s']' timed out after 5 seconds"}
+[2026-08-06 04:54:21.041] [GOVERNOR] [GENERAL] [TIME_SYNC_FAILED] [ENV:LOCAL] {"error": "Command '['sudo', 'hwclock', '-s']' timed out after 5 seconds"}
+[2026-08-06 04:54:24.217] [GOVERNOR] [GENERAL] [TIME_SYNC_SUCCESS] [ENV:LOCAL] {"method": "hwclock"}
+[2026-08-06 10:41:35.915] [GOVERNOR] [GENERAL] [RPM_COOLING_ACTIVATED] [ENV:LOCAL] {"model": "gemini-2.5-pro", "current_rpm": 1}
+[2026-08-07 23:56:46.529] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 00:55:34.773] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 01:17:55.215] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 01:23:10.633] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:02:48.855 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:10:57.689 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 05:45:08.815 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-08-08 06:00:23.489 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}

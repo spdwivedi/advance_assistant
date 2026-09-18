@@ -1,0 +1,30 @@
+[2026-08-05 15:58:25.265] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Define backend dependencies in backend/requirements.tx"}
+[2026-08-05 15:58:25.267] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Create backend directory structure. Write all required"}
+[2026-08-05 15:58:25.268] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Implement Analytic Hierarchy Process algorithm for wei"}
+[2026-08-05 15:58:25.269] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Create FastAPI endpoints in backend/app/main.py for de"}
+[2026-08-05 15:58:25.515] [FAST_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-2-flash is not found for API versio"}
+[2026-08-05 15:58:25.872] [FAST_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-2-flash is not found for API versio"}
+[2026-08-05 15:58:25.876] [FAST_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-2-flash is not found for API versio"}
+[2026-08-05 15:58:25.901] [FAST_TIER] [MODEL_CANDIDATE_FAILED] {"model": "gemini-2-flash", "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-2-flash is not found for API versio"}
+[2026-08-05 15:58:27.749] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:27.751] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:27.751] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:27.797] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Initialize a new Vite React frontend application in th"}
+[2026-08-05 15:58:27.813] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Install and configure Tailwind CSS in the Vite React a"}
+[2026-08-05 15:58:27.836] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Build interactive user decision matrix input component"}
+[2026-08-05 15:58:27.848] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:27.974] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Develop live ranking visual display components in the "}
+[2026-08-05 15:58:29.740] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:29.879] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Integrate frontend components with backend FastAPI end"}
+[2026-08-05 15:58:29.933] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:30.132] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:30.329] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 15:58:31.737] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 17:38:25.504] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Delete package-lock.json file. Write all required code"}
+[2026-08-05 17:38:25.506] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Run npm install with --legacy-peer-deps flag to resolv"}
+[2026-08-05 17:38:25.508] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Update package.json to lock vite version to ^5.4.14. W"}
+[2026-08-05 17:38:25.509] [FAST_TIER] [PROMPT_DISPATCHED] {"prompt_snippet": "Implement this milestone: Delete node_modules directory. Write all required code"}
+[2026-08-05 17:38:26.994] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 17:38:27.105] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 17:38:28.170] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}
+[2026-08-05 17:38:28.384] [FAST_TIER] [CLOUD_SUCCESS] {"model": "gemini-3.1-flash-lite"}

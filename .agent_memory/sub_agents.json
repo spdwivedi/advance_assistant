@@ -1,0 +1,102 @@
+{
+    "System_Demediator_Agent": {
+        "model": "gemini-3.1-pro-preview",
+        "complexity_level": "CRITICAL",
+        "strengths": ["Deep operational engineering logic", "Advanced architectural blueprints", "Algorithmic path routing"],
+        "weaknesses": ["Extremely tight daily caps (25 RPM / 250 RPD)", "High turn latency"],
+        "ideal_for": ["Core system decomposition", "Percentile distribution logic models", "Async pooling strategy"],
+        "rpm": 25,
+        "tpm": 2000000,
+        "rpd": 250
+    },
+    "Enterprise_Architect_Agent": {
+        "model": "gemini-2.5-pro",
+        "complexity_level": "CRITICAL",
+        "strengths": ["Deep context code tracking", "Security framework mapping", "Multi-table relational schema math"],
+        "weaknesses": ["Moderate rate caps (150 RPM)"],
+        "ideal_for": ["Database migrations", "Role-based identity guards", "JWT authorization brokers"],
+        "rpm": 150,
+        "tpm": 2000000,
+        "rpd": 1000
+    },
+    "High_Performance_Developer_Agent": {
+        "model": "gemini-3.6-flash",
+        "complexity_level": "HIGH",
+        "strengths": ["Next-gen token processing speed", "Excellent dependency linking", "Robust structural syntax compliance"],
+        "weaknesses": ["May overlook deep code refactoring rules if task is split poorly"],
+        "ideal_for": ["Asynchronous FastAPI controllers", "Tailwind CSS v4 structural implementation", "Complex state transitions"],
+        "rpm": 1000,
+        "tpm": 2000000,
+        "rpd": 10000
+    },
+    "Core_Feature_Writer_Agent": {
+        "model": "gemini-3.5-flash",
+        "complexity_level": "HIGH",
+        "strengths": ["Fast turn-around latency", "High instruction compliance", "Excellent documentation tracking"],
+        "weaknesses": ["Moderate token throughput budget handling"],
+        "ideal_for": ["REST endpoint implementation", "React TypeScript view dashboards", "Schema seed data initialization"],
+        "rpm": 1000,
+        "tpm": 2000000,
+        "rpd": 10000
+    },
+    "Legacy_Feature_Writer_Agent": {
+        "model": "gemini-2.5-flash",
+        "complexity_level": "HIGH",
+        "strengths": ["Proven code structure compilation", "Solid fallback reliability"],
+        "weaknesses": ["Smaller TPM window ceiling (1M total limit)"],
+        "ideal_for": ["Standard service methods", "Basic utilities handlers", "Middleware parameter checks"],
+        "rpm": 1000,
+        "tpm": 1000000,
+        "rpd": 10000
+    },
+    "Beta_Prototyper_Agent": {
+        "model": "gemini-3-flash-preview",
+        "complexity_level": "MEDIUM",
+        "strengths": ["Highly creative functional suggestions", "Experimental code layout maps"],
+        "weaknesses": ["Slightly higher chance of minor syntax cutoff bugs"],
+        "ideal_for": ["Interactive operational mock indicators", "CSS flickering animations", "Interface shell structures"],
+        "rpm": 1000,
+        "tpm": 2000000,
+        "rpd": 10000
+    },
+    "Rapid_UI_Scaffolder_Agent": {
+        "model": "gemini-3.5-flash-lite",
+        "complexity_level": "MEDIUM",
+        "strengths": ["Massive parallel execution capabilities (4000 RPM)", "Extremely high request density ceilings"],
+        "weaknesses": ["Lacks abstract system conceptualization math"],
+        "ideal_for": ["Tailwind component layout grids", "Modular sidebar navigation trees", "Static UI widgets"],
+        "rpm": 4000,
+        "tpm": 4000000,
+        "rpd": 150000
+    },
+    "High_Volume_Scaffolder_Agent": {
+        "model": "gemini-3.1-flash-lite",
+        "complexity_level": "MEDIUM",
+        "strengths": ["Ultra-fast raw text-out generations", "Massive request per day ceilings"],
+        "weaknesses": ["Lower deep technical edge case reasoning"],
+        "ideal_for": ["Basic script templates", "Type definitions", "Route registration arrays"],
+        "rpm": 4000,
+        "tpm": 4000000,
+        "rpd": 150000
+    },
+    "Boilerplate_Optimizer_Agent": {
+        "model": "gemini-2.5-flash-lite",
+        "complexity_level": "LOW",
+        "strengths": ["Unlimited request density threshold per day", "Instant baseline structure outputs"],
+        "weaknesses": ["Simplistic code generation patterns"],
+        "ideal_for": ["Initial project setup", "Mock telemetry payloads", "Basic package structures"],
+        "rpm": 4000,
+        "tpm": 4000000,
+        "rpd": 999999
+    },
+    "Local_Janitor_Agent": {
+        "model": "qwen2.5-coder:7b",
+        "complexity_level": "LOCAL",
+        "strengths": ["Zero internet latency dependencies", "No cloud token usage costs", "Instant local OS file writes"],
+        "weaknesses": ["Bound to local hardware resources"],
+        "ideal_for": ["Config scripts (.env, requirements.txt)", "Syntax correction loops", "File tree path validation checks"],
+        "rpm": 999,
+        "tpm": 9900000,
+        "rpd": 999999
+    }
+}

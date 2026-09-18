@@ -1,0 +1,1 @@
+[2026-08-05 22:47:53.245] [MID] [AGENT_ROUTER] [CLOUD_CANDIDATE_FAILED] [ENV:LOCAL] {"model": "gemini-3.6-flash", "error": "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand "}

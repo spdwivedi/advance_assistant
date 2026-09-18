@@ -1,0 +1,58 @@
+[2026-08-05 10:56:14.126] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Prompt: Create a file named app.py with a basic fastapi server at path /mnt/c/Users/ACER/Desktop/app"}
+[2026-08-05 10:56:44.426] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: WRITE_FILE: /mnt/c/Users/ACER/Desktop/app.py | from fastapi import FastAPI\n\napp = FastAPI(t"}
+[2026-08-05 10:56:44.427] [MID_TIER_FLASH] [FILE_WRITE_FAILED] {"error": "not enough values to unpack (expected 3, got 2)"}
+[2026-08-05 11:39:52.949] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Create a file named app.py with a basic fastapi server at path /mnt/c/Users/ACER/Desktop/app.py"}
+[2026-08-05 11:39:56.980] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: WRITE_FILE: /mnt/c/Users/ACER/Desktop/app.py | from fastapi import FastAPI\n\napp = FastAPI(t"}
+[2026-08-05 11:39:56.995] [MID_TIER_FLASH] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/app.py"}
+[2026-08-05 11:44:28.141] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute the next phase of our engineering roadmap. Milestone details: Error executing pipeline layer"}
+[2026-08-05 11:44:53.378] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: ls -la"}
+[2026-08-05 11:44:53.378] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "ls -la"}
+[2026-08-05 11:57:05.791] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute the next phase of our engineering roadmap. Milestone details: Error executing pipeline layer"}
+[2026-08-05 11:57:06.384] [MID_TIER_FLASH] [PIPELINE_ERROR] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use a newer model for the latest features and improvements.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:02:56.227] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 1: EXECUTE: mkdir -p /mnt/c/Users/ACER/Desktop/my_app. Write files to disk or run "}
+[2026-08-05 12:02:57.020] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:02:57.603] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: mkdir -p /mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:02:57.603] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "mkdir -p /mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:02:57.615] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 2: EXECUTE: cd /mnt/c/Users/ACER/Desktop/my_app. Write files to disk or run termin"}
+[2026-08-05 12:02:57.866] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:02:58.373] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "```\nEXECUTE: cd /mnt/c/Users/ACER/Desktop/my_app\n```"}
+[2026-08-05 12:03:02.723] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "cd /mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:03:02.729] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 3: EXECUTE: touch app.py. Write files to disk or run terminal commands as required"}
+[2026-08-05 12:03:02.959] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:03.518] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: touch app.py"}
+[2026-08-05 12:03:07.373] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "touch app.py"}
+[2026-08-05 12:03:07.380] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 4: EXECUTE: echo 'from fastapi import FastAPI\\napp = FastAPI()' > app.py. Write fi"}
+[2026-08-05 12:03:07.613] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:08.454] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "```plaintext\nEXECUTE: WRITE_FILE: app.py | from fastapi import FastAPI\\napp = FastAPI()\n```"}
+[2026-08-05 12:03:08.459] [MID_TIER_FLASH] [FILE_WRITE_SUCCESS] {"path": "app.py"}
+[2026-08-05 12:03:08.460] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 5: EXECUTE: touch test_app.py. Write files to disk or run terminal commands as req"}
+[2026-08-05 12:03:08.683] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:08.958] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: touch test_app.py"}
+[2026-08-05 12:03:11.058] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "touch test_app.py"}
+[2026-08-05 12:03:11.061] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 6: EXECUTE: echo 'from fastapi.testclient import TestClient\\nfrom main import app\\"}
+[2026-08-05 12:03:11.289] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:12.839] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: WRITE_FILE: test_app.py | from fastapi.testclient import TestClient  \nfrom main import app "}
+[2026-08-05 12:03:12.839] [MID_TIER_FLASH] [FILE_WRITE_SUCCESS] {"path": "test_app.py"}
+[2026-08-05 12:03:12.839] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 7: [Action Output Validation]:. Write files to disk or run terminal commands as re"}
+[2026-08-05 12:03:13.066] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:13.602] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "Please provide the details of what needs to be written or executed so that I can assist you accordin"}
+[2026-08-05 12:03:13.603] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Execute Milestone 8: Command executed successfully with no output.. Write files to disk or run termi"}
+[2026-08-05 12:03:13.829] [MID_TIER_FLASH] [CLOUD_FAILOVER_TO_LOCAL] {"error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}"}
+[2026-08-05 12:03:14.330] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "No action is required for this milestone. Please proceed to the next task in the backlog."}
+[2026-08-05 12:09:04.322] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Complete this milestone: Create a backend app directory at /mnt/c/Users/ACER/Desktop/my_app containi"}
+[2026-08-05 12:09:16.108] [MID_TIER_FLASH] [RESPONSE_RECEIVED] {"snippet": "EXECUTE: mkdir -p /mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:09:16.108] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "mkdir -p /mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:15:24.764] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Create a backend app directory at /mnt/c/Users/ACER/Desktop/my_app containing an app.py with a compl", "working_directory": "/home/assistantuser/advance_assistant"}
+[2026-08-05 12:15:39.107] [MID_TIER_FLASH] [RESPONSE_PARSED] {"snippet": "EXECUTE: mkdir -p /mnt/c/Users/ACER/Desktop/my_app\n\nEXECUTE: WRITE_FILE: /mnt/c/Users/ACER/Desktop/m"}
+[2026-08-05 12:15:39.107] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "mkdir -p /mnt/c/Users/ACER/Desktop/my_app", "directory_context": "/home/assistantuser/advance_assistant"}
+[2026-08-05 12:19:50.469] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Create a backend app directory at /mnt/c/Users/ACER/Desktop/my_app containing an app.py with a compl", "working_directory": "/home/assistantuser/advance_assistant"}
+[2026-08-05 12:20:01.438] [MID_TIER_FLASH] [CLOUD_FAILOVER] {"error": "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"}
+[2026-08-05 12:20:10.996] [MID_TIER_FLASH] [RESPONSE_PARSED] {"snippet": "EXECUTE: cd /mnt/c/Users/ACER/Desktop\n\nEXECUTE: mkdir my_app\nEXECUTE: cd my_app\n\nEXECUTE: WRITE_FILE"}
+[2026-08-05 12:20:10.996] [MID_TIER_FLASH] [DIRECTORY_STATE_UPDATED] {"cwd": "/mnt/c/Users/ACER/Desktop"}
+[2026-08-05 12:20:10.997] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "mkdir my_app", "directory_context": "/mnt/c/Users/ACER/Desktop"}
+[2026-08-05 12:20:11.011] [MID_TIER_FLASH] [DIRECTORY_STATE_UPDATED] {"cwd": "/mnt/c/Users/ACER/Desktop/my_app"}
+[2026-08-05 12:20:11.039] [MID_TIER_FLASH] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/my_app/app.py"}
+[2026-08-05 12:20:11.069] [MID_TIER_FLASH] [FILE_WRITE_SUCCESS] {"path": "/mnt/c/Users/ACER/Desktop/my_app/test_app.py"}
+[2026-08-05 13:06:17.510] [MID_TIER_FLASH] [PROMPT_DISPATCHED] {"prompt_snippet": "Based on this blueprint:\nTo design a microservice backend architecture with FastAPI, we need to foll", "working_directory": "/home/assistantuser/advance_assistant"}
+[2026-08-05 13:08:43.166] [MID_TIER_FLASH] [RESPONSE_PARSED] {"snippet": "EXECUTE: ls -la"}
+[2026-08-05 13:08:43.166] [MID_TIER_FLASH] [EXECUTING_COMMAND] {"command": "ls -la", "directory_context": "/home/assistantuser/advance_assistant"}

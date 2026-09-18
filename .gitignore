@@ -1,0 +1,30 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Secrets & Environment Variables (CRITICAL)
+.env
+.env.*
+*.env
+*.pem
+*.key
+secrets.json
+
+# Temporary Inspection Files
+project_tree.txt
+all_file_paths.txt
+
+# IDE / System metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

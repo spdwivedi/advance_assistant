@@ -1,0 +1,2 @@
+[2026-08-06 04:54:15.960] [GOVERNOR] [GENERAL] [TIME_SYNC_FAILED] [ENV:LOCAL] {"error": "Command '['sudo', 'hwclock', '-s']' timed out after 5 seconds"}
+[2026-08-06 04:54:21.041] [GOVERNOR] [GENERAL] [TIME_SYNC_FAILED] [ENV:LOCAL] {"error": "Command '['sudo', 'hwclock', '-s']' timed out after 5 seconds"}

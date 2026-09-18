@@ -1,0 +1,8 @@
+[2026-08-07 23:56:46.535] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 00:55:34.777] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:17:55.224] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 01:23:10.634] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:02:48.858 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:10:57.689 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true}
+[2026-08-08 05:45:08.819 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-08-08 06:00:23.493 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
