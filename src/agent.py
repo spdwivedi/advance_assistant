@@ -18,12 +18,13 @@ from src.logger import log_action
 from src.permissions import execute_command, normalize_cross_platform_path
 from src.tools import search_web_documentation
 from src.token_governor import TokenGovernor
+from src.key_manager import key_manager
 
 # Initialize Financial Governor & Token Ledger
 governor = TokenGovernor()
 
-# Initialize Google GenAI client if API key is present
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) if os.getenv("GEMINI_API_KEY") else None
+# Dynamic Google GenAI client reference backed by key pool
+client, _ = key_manager.get_client_for_request()
 
 # Active model cache per tier
 ACTIVE_WORKING_MODELS = {"HIGH": None, "MID": None, "FAST": None, "LIGHT": None}
@@ -104,13 +105,17 @@ def execute_autonomous_spec_expansion(user_prompt: str, profile_level: str, proj
         features_context.append(f"=== QWEN 32B SPEC BRAINSTORM ===\n{res['message']['content']}")
     except Exception:
         pass
-    if client:
+    active_client, key_id = key_manager.get_client_for_request(tier_preference="PAID")
+    if active_client:
         try:
             cloud_prompt = f"Analyze these requirements and suggest deep backend security structures, performance limits, and advanced ui/ux parameters for: {user_prompt}"
-            response = client.models.generate_content(model="gemini-2.5-pro", contents=[cloud_prompt])
+            response = active_client.models.generate_content(model="gemini-2.5-pro", contents=[cloud_prompt])
             if response.text:
                 features_context.append(f"=== GEMINI PRO SYSTEM INSIGHTS ===\n{response.text}")
+                key_manager.mark_success(key_id)
         except Exception as e:
+            if "429" in str(e) or "quota" in str(e).lower():
+                key_manager.mark_exhausted(key_id)
             log_action("SYSTEM", "CLOUD_INSIGHT_PASS_FAILED", {"error": str(e), "project_name": project_name}, model_name=LOCAL_ORCHESTRATOR_MODEL)
     return "\n\n".join(features_context)
 
@@ -188,10 +193,11 @@ def run_agent_pipeline(
         if profile_level == "MAX" or "error" in user_prompt.lower() or "fix" in user_prompt.lower() or "decompose" in user_prompt.lower():
             search_query = user_prompt[:140].replace("Implement milestone:", "").replace("Decompose this goal into discrete tasks mapped to independent specific filenames.", "").strip()
             if search_query:
+                search_client, _ = key_manager.get_client_for_request(tier_preference="FREE")
                 research_context = search_web_documentation(
                     query=search_query, 
                     profile_level=profile_level, 
-                    client_ref=client,
+                    client_ref=search_client,
                     project_name=project_name,
                     test_name=test_name
                 )
@@ -241,13 +247,16 @@ EXECUTE: WRITE_FILE: <path_or_filename> | <full_raw_code_content>
 
     reply = None
 
-    if "HYBRID" in active_mode and client and tier != "LOW" and constraining_profile != "OFFLINE_PURE":
+    has_cloud_keys = key_manager.get_pool_status()["active_keys"] > 0 or bool(os.getenv("GEMINI_API_KEY"))
+    if "HYBRID" in active_mode and has_cloud_keys and tier != "LOW" and constraining_profile != "OFFLINE_PURE":
         primary_candidates = TIER_POOLS.get(tier, [])
         fast_fallback_candidates = TIER_POOLS.get("FAST", [])
         full_candidate_queue = primary_candidates + [m for m in fast_fallback_candidates if m not in primary_candidates]
 
         if selected_target_model and selected_target_model in full_candidate_queue:
             full_candidate_queue = [selected_target_model] + [m for m in full_candidate_queue if m != selected_target_model]
+
+        tier_pref = "PAID" if tier in ["HIGH", "MID"] else "FREE"
 
         for model_id in full_candidate_queue:
             if "qwen" in model_id.lower():
@@ -266,26 +275,40 @@ EXECUTE: WRITE_FILE: <path_or_filename> | <full_raw_code_content>
                 log_action(tier, "GOVERNOR_LOCKOUT_OR_CONSTRAINED", {"model": model_id, "constraining_profile": constraining_profile, "project_name": project_name}, model_name=model_id)
                 continue
 
-            attempts = 0
-            while attempts < 2:
+            # Multi-key rotation loop: try active keys in pool before abandoning candidate model
+            pool_status = key_manager.get_pool_status()
+            max_key_attempts = max(2, pool_status["active_keys"])
+            key_attempts = 0
+
+            while key_attempts < max_key_attempts:
+                curr_client, curr_key_id = key_manager.get_client_for_request(model_name=model_id, tier_preference=tier_pref)
+                if not curr_client:
+                    break
+
                 try:
-                    response = client.models.generate_content(
+                    response = curr_client.models.generate_content(
                         model=model_id,
                         config={"temperature": 0.2},
                         contents=[system_prompt, user_prompt]
                     )
                     reply = response.text
                     ACTIVE_WORKING_MODELS[tier] = model_id
-                    log_action(tier, "CLOUD_GENERATE_SUCCESS", {"model": model_id, "project_name": project_name}, model_name=model_id)
+                    key_manager.mark_success(curr_key_id)
+                    log_action(tier, "CLOUD_GENERATE_SUCCESS", {"model": model_id, "key_id": curr_key_id, "project_name": project_name}, model_name=model_id)
                     break
                 except Exception as e:
-                    attempts += 1
+                    key_attempts += 1
                     err_str = str(e)
-                    log_action(tier, "CLOUD_CANDIDATE_ATTEMPT_FAILED", {"model": model_id, "attempt": attempts, "error": err_str[:120], "project_name": project_name}, model_name=model_id)
-                    if "429" in err_str or "quota" in err_str.lower() or "503" in err_str:
+                    log_action(tier, "CLOUD_CANDIDATE_ATTEMPT_FAILED", {"model": model_id, "key_id": curr_key_id, "attempt": key_attempts, "error": err_str[:120], "project_name": project_name}, model_name=model_id)
+                    if "429" in err_str or "quota" in err_str.lower() or "resourceexhausted" in err_str.lower() or "503" in err_str:
+                        key_manager.mark_exhausted(curr_key_id, cooldown_seconds=60)
+                        log_action(tier, "KEY_ROTATION_TRIGGERED", {"exhausted_key": curr_key_id, "reason": "HTTP 429 Quota Exhaustion"}, model_name=model_id)
+                        continue
+                    else:
                         break
             if reply:
                 break
+
 
     if not reply:
         log_action(tier, "OFFLINE_CORE_FALLBACK", {"model": LOCAL_WORKER_MODEL, "project_name": project_name}, model_name=LOCAL_WORKER_MODEL)

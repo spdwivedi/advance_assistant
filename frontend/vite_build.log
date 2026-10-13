@@ -1,0 +1,93 @@
+X [ERROR] Failed to resolve entry for package "vite". The package may have incorrect main/module/exports specified in its package.json. [plugin externalize-deps]
+
+    node_modules/esbuild/lib/main.js:1217:27:
+      1217 │         let result = await callback({
+           ╵                            ^
+
+    at packageEntryFailure (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16198:15)
+    at resolvePackageEntry (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16195:3)
+    at tryNodeResolve (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16060:18)
+    at resolveByViteResolver (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49662:20)
+    at file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49696:28
+    at requestCallbacks.on-resolve (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1217:28)
+    at handleRequest (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:628:17)
+    at handleIncomingPacket (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:653:7)
+    at Socket.readFromStdout (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:20)
+
+  This error came from the "onResolve" callback registered here:
+
+    node_modules/esbuild/lib/main.js:1141:20:
+      1141 │       let promise = setup({
+           ╵                     ^
+
+    at setup (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49684:18)
+    at handlePlugins (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1141:21)
+    at buildOrContextImpl (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:854:5)
+    at Object.buildOrContext (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:680:5)
+    at \\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:2026:15
+    at new Promise (<anonymous>)
+    at Object.build (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:2025:25)
+    at build (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1876:51)
+    at bundleConfigFile (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49636:24)
+
+  The plugin "externalize-deps" was triggered by this import
+
+    vite.config.ts:1:475:
+      1 │ ...istant/frontend/vite.config.ts";import { defineConfig } from 'vite'
+        ╵                                                                 ~~~~~~
+
+X [ERROR] Failed to resolve entry for package "@vitejs/plugin-react". The package may have incorrect main/module/exports specified in its package.json. [plugin externalize-deps]
+
+    node_modules/esbuild/lib/main.js:1217:27:
+      1217 │         let result = await callback({
+           ╵                            ^
+
+    at packageEntryFailure (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16198:15)
+    at resolvePackageEntry (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16195:3)
+    at tryNodeResolve (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:16060:18)
+    at resolveByViteResolver (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49662:20)
+    at file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49696:28
+    at requestCallbacks.on-resolve (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1217:28)
+    at handleRequest (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:628:17)
+    at handleIncomingPacket (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:653:7)
+    at Socket.readFromStdout (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:20)
+
+  This error came from the "onResolve" callback registered here:
+
+    node_modules/esbuild/lib/main.js:1141:20:
+      1141 │       let promise = setup({
+           ╵                     ^
+
+    at setup (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49684:18)
+    at handlePlugins (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1141:21)
+    at buildOrContextImpl (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:854:5)
+    at Object.buildOrContext (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:680:5)
+    at \\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:2026:15
+    at new Promise (<anonymous>)
+    at Object.build (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:2025:25)
+    at build (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1876:51)
+    at bundleConfigFile (file://wsl.localhost/Ubuntu-AdvanceAssistant/home/assistantuser/advance_assistant/frontend/node_modules/vite/dist/node/chunks/dep-3O3b9SCF.js:49636:24)
+
+  The plugin "externalize-deps" was triggered by this import
+
+    vite.config.ts:2:18:
+      2 │ import react from '@vitejs/plugin-react'
+        ╵                   ~~~~~~~~~~~~~~~~~~~~~~
+
+[31mfailed to load config from \\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\vite.config.ts[39m
+[31merror during build:
+Error: Build failed with 2 errors:
+node_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: externalize-deps] Failed to resolve entry for package "@vitejs/plugin-react". The package may have incorrect main/module/exports specified in its package.json.
+node_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: externalize-deps] Failed to resolve entry for package "vite". The package may have incorrect main/module/exports specified in its package.json.
+    at failureErrorWithLog (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1467:15)
+    at \\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:926:25
+    at runOnEndCallbacks (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:1307:45)
+    at buildResponseToResult (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:924:7)
+    at \\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:951:16
+    at responseCallbacks.<computed> (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:20)
+    at addChunk (node:internal/streams/readable:564:12)[39m

@@ -1,0 +1,8 @@
+
+> advance-assistant-frontend@6.0.0 build
+> tsc -b && vite build
+
+'\\wsl.localhost\Ubuntu-AdvanceAssistant\home\assistantuser\advance_assistant\frontend'
+CMD.EXE was started with the above path as the current directory.
+UNC paths are not supported.  Defaulting to Windows directory.
+error TS5083: Cannot read file 'C:/Windows/tsconfig.json'.
