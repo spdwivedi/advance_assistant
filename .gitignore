@@ -1,29 +1,48 @@
-# Python artifacts
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Python & Bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
 .mypy_cache/
+*.log
 
-# Virtual Environment
-venv/
-.venv/
-env/
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
 
-# Secrets & Environment Variables (CRITICAL)
+# Secrets & Credentials (CRITICAL)
 .env
+.env.local
 .env.*
+!.env.example
 *.env
 *.pem
 *.key
 secrets.json
+api_keys.json
+.agent_memory/api_keys.json
+
+# Build & Test Scratches
+.staging_temp/
+test/test_data/
+logs/projects/
+build_test.log
+vite_build.log
+tsc_test.log
 
 # Temporary Inspection Files
 project_tree.txt
 all_file_paths.txt
 
-# IDE / System metadata
+# IDE & System Metadata
 .vscode/
 .idea/
 .DS_Store

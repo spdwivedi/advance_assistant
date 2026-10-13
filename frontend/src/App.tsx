@@ -6,6 +6,7 @@ import { SwarmMonitor } from './pages/SwarmMonitor';
 import { KnowledgeBase } from './pages/KnowledgeBase';
 import { TokenGovernor } from './pages/TokenGovernor';
 import { ApiKeyManager } from './pages/ApiKeyManager';
+import { AgentHub } from './pages/AgentHub';
 import { ToolBridges } from './pages/ToolBridges';
 
 export const App: React.FC = () => {
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
         <Route path="/" element={<Layout />}>
           <Route index element={<ExecutionStudio />} />
           <Route path="swarm" element={<SwarmMonitor />} />
+          <Route path="agents" element={<AgentHub />} />
           <Route path="knowledge" element={<KnowledgeBase />} />
           <Route path="governor" element={<TokenGovernor />} />
           <Route path="keys" element={<ApiKeyManager />} />

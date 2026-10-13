@@ -14,6 +14,9 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 8.1: Backend Key Matrix & Smart Dispatcher
 - [x] Prompt 8.2: Frontend Dedicated API Key Manager & Navigation Integration
 - [x] Prompt 8.3: Live Key Allocation Telemetry & Swarm Monitor Integration
+- [x] Prompt 9.1: Testing Bridge Adapter (`src/testing_bridge.py`)
+- [x] Prompt 9.2: Server REST Endpoints & Dynamic Swarm Config (`src/server.py`)
+- [x] Prompt 10.1: Agent Hub UI (Capability Matrix & Scores) & Repo Hygiene
 
 ## Execution Records
 
@@ -268,5 +271,76 @@ This document tracks all prompt executions, file additions, architecture extensi
   * Strict Terminal Ban: Zero bash, terminal, npm, node, or timer commands executed.
 - Suite Status: PRODUCTION READY - MULTI-KEY ENABLED.
 
+---
 
+### Prompt 9.1: Testing Bridge Adapter (`src/testing_bridge.py`)
+- Timestamp: 2026-10-13 19:30:00 IST
+- Objective: Create read-only testing bridge connecting Advance Assistant OS to empirical benchmark data in `Ollama_Models_Testing` (`/mnt/d/Project_Files/Ollama_Models_Testing`).
+- Files Created:
+  * `src/testing_bridge.py`
+- Core Capabilities Implemented:
+  * Read-only resolution of benchmark models and profiles.
+  * Ingestion of `best_in_class.json` and `gemini_tier1_matrix.json`.
+  * RTX 4060 8GB VRAM safety tier classifier (Pure GPU Safe <=5.2GB, Hybrid Paged 5.3-16GB, OOM Hazard >16GB).
+  * Real-time Ollama `/api/ps` memory inspector computing active VRAM usage and headroom.
+  * Idle VRAM scavenger endpoint (`keep_alive: 0`).
+- System Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * External directory `/mnt/d/Project_Files/Ollama_Models_Testing`: 100% UNTOUCHED (Strict Read-Only)
+- Stage Status: COMPLETED. Ready for Prompt 9.2 (Server REST Endpoints & Ollama Tag Discovery).
 
+---
+
+### Prompt 9.2: Server REST Endpoints & Dynamic Swarm Config (`src/server.py`)
+- Timestamp: 2026-10-13 19:38:00 IST
+- Objective: Expose testing bridge intelligence, VRAM allocator telemetry, live Ollama tags discovery, and customizable swarm profile rosters via FastAPI REST endpoints.
+- Files Updated:
+  * `src/server.py`
+- Files Created:
+  * `.agent_memory/swarm_profiles.json`
+- Endpoints Added:
+  * `GET /api/bridge/status`
+  * `GET /api/bridge/models`
+  * `GET /api/bridge/vram`
+  * `POST /api/bridge/vram/scavenge`
+  * `GET /api/bridge/ollama/tags`
+  * `GET /api/swarms/profiles`
+  * `POST /api/swarms/profiles`
+- System Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * Existing routes in `src/server.py`: Fully preserved
+- Stage Status: COMPLETED. Ready for Phase 2: Prompt 10.1 (Agent & Model Hub UI - Matrix & Profiles).
+
+---
+
+### Prompt 10.1: Agent Hub UI (Capability Matrix & Scores) & Repo Hygiene
+- Timestamp: 2026-10-13 20:15:00 IST
+- Objective: Scaffold the 3-tab Agent & Model Intelligence Hub (`/agents`), implement Tab 1 Model Capability Matrix with empirical test scores and RTX 4060 hardware safety tiers, register route in Sidebar & App, and enforce repository secrets hygiene.
+- Files Created:
+  * `frontend/src/pages/AgentHub.tsx`
+- Files Updated:
+  * `.gitignore`
+  * `.env.example`
+  * `frontend/src/components/Sidebar.tsx`
+  * `frontend/src/App.tsx`
+  * `ANTIGRAVITY_BUILD_LOG.md`
+- Features Implemented:
+  * Complete repository secret isolation in `.gitignore` (virtualenvs, tokens, keys, logs, build scratch).
+  * Upgraded `.env.example` with host endpoints, webhooks, and MCP parameters.
+  * 3-Tab Architecture in `AgentHub.tsx`: Capability Matrix (Active), VRAM Arbitrator (Stage 10.2 preview), Swarm Rosters (Stage 10.2 preview).
+  * Best-in-Class Empirical Champions Banner highlighting primary and fallback models across 5 tracks (`AGENTIC_CODE_FIM`, `SQL_DATABASE`, `TOOL_CALLING`, `COT_REASONING`, `FAST_BOILERPLATE`).
+  * Provider filter buttons (`All Models`, `Google Cloud`, `Local Ollama`) and search filter.
+  * Hardware Safety Tier tags based on RTX 4060 8GB limits (`Pure GPU Safe`, `Hybrid CPU/GPU Paged`, `OOM Hazard`, `Cloud Hosted`).
+  * Model cards with parameter metrics, benchmark TPS, primary track pills, evaluation score badges, and capabilities tags.
+  * Registered `/agents` route in `App.tsx` and added "Agent Hub" with `Bot` icon and `Matrix` badge in `Sidebar.tsx`.
+- Architectural Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * `src/token_governor.py`: 100% UNTOUCHED
+  * Backend Python files: Zero runtime mutations
+- Stage Status: COMPLETED. Ready for Prompt 10.2 (VRAM Arbitrator UI, Idle Scavenger, & Swarm Role Builder).

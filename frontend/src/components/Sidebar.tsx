@@ -12,7 +12,8 @@ import {
   Zap,
   Server,
   ShieldCheck,
-  Key
+  Key,
+  Bot
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -73,6 +74,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       icon: Activity,
       id: 'nav-swarm-monitor',
       badge: 'Realtime'
+    },
+    {
+      to: '/agents',
+      label: 'Agent Hub',
+      icon: Bot,
+      id: 'nav-agent-hub',
+      badge: 'Matrix'
     },
     {
       to: '/knowledge',
