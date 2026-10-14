@@ -18,6 +18,7 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 9.2: Server REST Endpoints & Dynamic Swarm Config (`src/server.py`)
 - [x] Prompt 10.1: Agent Hub UI (Capability Matrix & Scores) & Repo Hygiene
 - [x] Prompt 10.2: Agent Hub UI (VRAM Arbitrator & Swarm Role Builder)
+- [x] Prompt 11.1: Backend Multi-Stream Log Parser & Live WebSocket Tail (`src/server.py`)
 
 ## Execution Records
 
@@ -389,3 +390,39 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/server.py`: 100% UNTOUCHED
   * Tab 1 in `AgentHub.tsx` (Model Capability Matrix & Empirical Champions): 100% PRESERVED
 - Stage Status: COMPLETED.
+
+---
+
+### Prompt 11.1: Backend Multi-Stream Log Parser & Live WebSocket Tail (`src/server.py`)
+- Timestamp: 2026-10-15 02:30:00 IST
+- Objective: Implement high-throughput multi-stream log parser, discovery engine, filtered query API with facets and severity derivation, and live WebSocket log tail in `src/server.py` across all 6 log streams (`master_timeline.log`, daily logs, category logs, model logs, project traces, test logs).
+- Files Updated:
+  * `src/server.py`
+  * `ANTIGRAVITY_BUILD_LOG.md`
+- Features Implemented:
+  * **Structured Log Line Parser (`_parse_log_line`)**:
+    - High-performance regex parser extracting timestamp, active model, category, action type, execution environment, and JSON details.
+    - Automatic severity inference (`ERROR`, `WARNING`, `SUCCESS`, `INFO`) mapping fault indicators, warning thresholds, completion states, and error payloads.
+    - Graceful fallback for unstructured or raw logs.
+  * **Log Sources Discovery Endpoint (`GET /api/logs/sources`)**:
+    - Discovers and enumerates all available log streams: `master` (`master_timeline.log`), `daily_logs` (`YYYY-MM-DD.log`), `categories` (excluding models), `models` (`logs/categories/models/*.log`), `projects` (detecting `execution_trace.log` and `blueprint_ledger.json`), and `test_logs` (`test/test_logs/*.log`).
+  * **Multi-Dimensional Log Query Engine (`GET /api/logs/query`)**:
+    - Path-traversal safe resolver (`_resolve_log_path`) preventing directory escape outside `logs/` and `test/test_logs/`.
+    - Real-time filtering across `source_type`, `source_name`, `model`, `category`, `severity` (`INFO`, `SUCCESS`, `WARNING`, `ERROR`), and case-insensitive substring search.
+    - Aggregated facet telemetry returning distinct available models, categories, and severity distribution counts alongside clamped tail/head limits (1 to 2000).
+  * **Project Blueprint Ledger Endpoint (`GET /api/logs/project/{project_name}/ledger`)**:
+    - Exposes historical project file mutation blueprints from `logs/projects/<project_name>/blueprint_ledger.json`.
+  * **Live Log Tail WebSocket (`WebSocket /ws/logs`)**:
+    - Supports dynamic `source_type` and `source_name` query parameters.
+    - Sends initial batch of last 100 parsed entries upon connection.
+    - Real-time incremental file-growth polling (every 1.0s) streaming new log lines (`new_entries`), rotation notices (`file_rotated`), and keep-alive heartbeats.
+- Architectural Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/logger.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * `src/token_governor.py`: 100% UNTOUCHED
+  * `src/key_manager.py`: 100% UNTOUCHED
+  * `src/testing_bridge.py`: 100% UNTOUCHED
+  * Existing routes in `src/server.py`: 100% PRESERVED
+- Stage Status: COMPLETED. Ready for Phase 2: Prompt 11.2 (Frontend Multi-Stream Log Viewer UI).

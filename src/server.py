@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import json
@@ -525,6 +526,477 @@ async def websocket_telemetry(websocket: WebSocket):
 
             await websocket.send_json(payload)
             await asyncio.sleep(1.0)
+    except (WebSocketDisconnect, ConnectionResetError):
+        pass
+    except Exception:
+        pass
+
+
+
+# ==============================================================================
+# MULTI-STREAM LOG PARSER, QUERY ENGINE & LIVE WEBSOCKET TAIL
+# ==============================================================================
+
+LOGS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "logs"))
+TEST_LOGS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test", "test_logs"))
+
+LOG_LINE_REGEX = re.compile(
+    r"^\[(?P<timestamp>[^\]]+)\]\s+\[MODEL:(?P<model>[^\]]+)\]\s+\[CAT:(?P<category>[^\]]+)\]\s+\[(?P<action>[^\]]+)\]\s+\[ENV:(?P<env>[^\]]+)\]\s+(?P<details>.*)$"
+)
+
+
+def _parse_log_line(line: str, line_num: int) -> Dict[str, Any]:
+    """
+    Parses a single formatted log line produced by src/logger.py:
+    [YYYY-MM-DD HH:MM:SS.mmm IST] [MODEL:<MODEL>] [CAT:<CATEGORY>] [<ACTION_TYPE>] [ENV:<ENV>] <JSON_DETAILS>
+    Derives severity (ERROR, WARNING, SUCCESS, INFO) automatically.
+    """
+    stripped = line.strip()
+    match = LOG_LINE_REGEX.match(stripped)
+    if not match:
+        return {
+            "id": line_num,
+            "timestamp": "",
+            "model": "SYSTEM",
+            "category": "GENERAL",
+            "action": "RAW_LOG",
+            "env": "LOCAL",
+            "severity": "INFO",
+            "details": {"raw_message": stripped},
+            "raw": stripped
+        }
+
+    timestamp = match.group("timestamp")
+    model = match.group("model")
+    category = match.group("category")
+    action = match.group("action")
+    env = match.group("env")
+    raw_details = match.group("details").strip()
+
+    try:
+        details = json.loads(raw_details) if raw_details else {}
+    except Exception:
+        details = {"raw_message": raw_details}
+
+    action_upper = action.upper()
+    severity = "INFO"
+
+    err_keywords = ["FAILED", "ERROR", "EXCEPT", "CRASH", "DENIED", "BLOCKED", "TIMEOUT", "HAZARD"]
+    warn_keywords = ["WARN", "FALLBACK", "LOCKOUT", "CONSTRAINED", "COOLING", "SHIELD", "CAP", "ANOMALY", "EXHAUSTED"]
+    succ_keywords = ["SUCCESS", "COMPLETE", "DONE", "READY", "ALLOWED", "INITIALIZED", "MUTATED"]
+
+    has_error = False
+    if isinstance(details, dict):
+        if details.get("error"):
+            has_error = True
+        elif any("error" in str(k).lower() for k in details.keys()):
+            has_error = True
+
+    if any(w in action_upper for w in err_keywords) or has_error:
+        severity = "ERROR"
+    elif any(w in action_upper for w in warn_keywords):
+        severity = "WARNING"
+    elif any(w in action_upper for w in succ_keywords):
+        severity = "SUCCESS"
+    else:
+        severity = "INFO"
+
+    return {
+        "id": line_num,
+        "timestamp": timestamp,
+        "model": model,
+        "category": category,
+        "action": action,
+        "env": env,
+        "severity": severity,
+        "details": details,
+        "raw": stripped
+    }
+
+
+def _resolve_log_path(source_type: str, source_name: Optional[str] = None) -> str:
+    """
+    Resolves log file path across all 6 streams and prevents path traversal outside
+    LOGS_DIR and TEST_LOGS_DIR.
+    """
+    source_type = (source_type or "master").lower().strip()
+    clean_source_name = source_name.strip() if source_name else None
+
+    if source_type == "master":
+        target_path = os.path.join(LOGS_DIR, "master_timeline.log")
+
+    elif source_type == "daily":
+        if clean_source_name:
+            fname = os.path.basename(clean_source_name)
+            if not fname.endswith(".log"):
+                fname += ".log"
+            target_path = os.path.join(LOGS_DIR, "daily", fname)
+        else:
+            daily_dir = os.path.join(LOGS_DIR, "daily")
+            files = sorted([f for f in os.listdir(daily_dir) if f.endswith(".log")], reverse=True) if os.path.exists(daily_dir) else []
+            fname = files[0] if files else f"{time.strftime('%Y-%m-%d')}.log"
+            target_path = os.path.join(LOGS_DIR, "daily", fname)
+
+    elif source_type == "category":
+        if clean_source_name:
+            parts = clean_source_name.replace("\\", "/").strip("/").split("/")
+            cat = os.path.basename(parts[0])
+            act = os.path.basename(parts[1]) if len(parts) > 1 else ""
+            if act and not act.endswith(".log"):
+                act += ".log"
+            target_path = os.path.join(LOGS_DIR, "categories", cat, act)
+        else:
+            target_path = os.path.join(LOGS_DIR, "categories", "general", "system_initialized.log")
+
+    elif source_type == "model":
+        if clean_source_name:
+            mf = os.path.basename(clean_source_name)
+            if not mf.endswith(".log"):
+                mf += ".log"
+            target_path = os.path.join(LOGS_DIR, "categories", "models", mf)
+        else:
+            target_path = os.path.join(LOGS_DIR, "categories", "models", "gateway.log")
+
+    elif source_type == "project":
+        pname = os.path.basename((clean_source_name or "default_project").replace("\\", "/").strip("/"))
+        target_path = os.path.join(LOGS_DIR, "projects", pname, "execution_trace.log")
+
+    elif source_type == "test":
+        if clean_source_name:
+            tf = os.path.basename(clean_source_name)
+            if not tf.endswith(".log"):
+                tf += ".log"
+            target_path = os.path.join(TEST_LOGS_DIR, tf)
+        else:
+            target_path = os.path.join(TEST_LOGS_DIR, "test_offline_pipeline.log")
+
+    else:
+        target_path = os.path.join(LOGS_DIR, "master_timeline.log")
+
+    abs_target = os.path.abspath(target_path)
+    if not (abs_target.startswith(LOGS_DIR) or abs_target.startswith(TEST_LOGS_DIR)):
+        raise HTTPException(status_code=400, detail="Path traversal forbidden.")
+
+    return abs_target
+
+
+@app.get("/api/logs/sources")
+def get_log_sources() -> Dict[str, Any]:
+    """
+    Discovers and returns all available multi-stream log files across master,
+    daily, categories, models, projects, and test logs.
+    """
+    master_path = os.path.join(LOGS_DIR, "master_timeline.log")
+    master_info = {
+        "exists": os.path.exists(master_path),
+        "size_bytes": os.path.getsize(master_path) if os.path.exists(master_path) else 0,
+        "path": "logs/master_timeline.log"
+    }
+
+    daily_dir = os.path.join(LOGS_DIR, "daily")
+    daily_logs = []
+    if os.path.exists(daily_dir):
+        for f in sorted(os.listdir(daily_dir), reverse=True):
+            if f.endswith(".log"):
+                fp = os.path.join(daily_dir, f)
+                daily_logs.append({
+                    "name": f,
+                    "size_bytes": os.path.getsize(fp),
+                    "path": f"logs/daily/{f}"
+                })
+
+    cat_dir = os.path.join(LOGS_DIR, "categories")
+    categories = {}
+    if os.path.exists(cat_dir):
+        for c in sorted(os.listdir(cat_dir)):
+            if c.lower() == "models":
+                continue
+            cp = os.path.join(cat_dir, c)
+            if os.path.isdir(cp):
+                action_files = []
+                for af in sorted(os.listdir(cp)):
+                    if af.endswith(".log"):
+                        afp = os.path.join(cp, af)
+                        action_files.append({
+                            "name": af,
+                            "action": af[:-4],
+                            "size_bytes": os.path.getsize(afp),
+                            "path": f"logs/categories/{c}/{af}"
+                        })
+                categories[c] = action_files
+
+    models_dir = os.path.join(LOGS_DIR, "categories", "models")
+    models = []
+    if os.path.exists(models_dir):
+        for mf in sorted(os.listdir(models_dir)):
+            if mf.endswith(".log"):
+                mfp = os.path.join(models_dir, mf)
+                models.append({
+                    "name": mf,
+                    "model": mf[:-4],
+                    "size_bytes": os.path.getsize(mfp),
+                    "path": f"logs/categories/models/{mf}"
+                })
+
+    projects_dir = os.path.join(LOGS_DIR, "projects")
+    projects = []
+    if os.path.exists(projects_dir):
+        for pf in sorted(os.listdir(projects_dir)):
+            pfp = os.path.join(projects_dir, pf)
+            if os.path.isdir(pfp):
+                trace_path = os.path.join(pfp, "execution_trace.log")
+                ledger_path = os.path.join(pfp, "blueprint_ledger.json")
+                has_trace = os.path.exists(trace_path)
+                has_ledger = os.path.exists(ledger_path)
+                projects.append({
+                    "name": pf,
+                    "has_trace": has_trace,
+                    "has_ledger": has_ledger,
+                    "trace_size": os.path.getsize(trace_path) if has_trace else 0,
+                    "path": f"logs/projects/{pf}"
+                })
+
+    test_logs = []
+    if os.path.exists(TEST_LOGS_DIR):
+        for tf in sorted(os.listdir(TEST_LOGS_DIR)):
+            if tf.endswith(".log"):
+                tfp = os.path.join(TEST_LOGS_DIR, tf)
+                test_logs.append({
+                    "name": tf,
+                    "test_name": tf[:-4],
+                    "size_bytes": os.path.getsize(tfp),
+                    "path": f"test/test_logs/{tf}"
+                })
+
+    return {
+        "status": "success",
+        "sources": {
+            "master": master_info,
+            "daily_logs": daily_logs,
+            "categories": categories,
+            "models": models,
+            "projects": projects,
+            "test_logs": test_logs
+        }
+    }
+
+
+@app.get("/api/logs/query")
+def query_logs(
+    source_type: str = "master",
+    source_name: Optional[str] = None,
+    model: Optional[str] = None,
+    category: Optional[str] = None,
+    severity: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 300,
+    tail: bool = True
+) -> Dict[str, Any]:
+    """
+    Multi-dimensional query engine filtering structured log streams with facets,
+    severity counts, substring search, and tail limits.
+    """
+    target_path = _resolve_log_path(source_type, source_name)
+    clamped_limit = min(max(1, limit), 2000)
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    if not os.path.exists(target_path):
+        return {
+            "status": "not_found",
+            "source_type": source_type,
+            "source_name": source_name,
+            "resolved_path": os.path.relpath(target_path, repo_root),
+            "total_matched": 0,
+            "entries": [],
+            "facets": {
+                "models": [],
+                "categories": [],
+                "counts": {"INFO": 0, "SUCCESS": 0, "WARNING": 0, "ERROR": 0}
+            }
+        }
+
+    try:
+        with open(target_path, "r", encoding="utf-8", errors="replace") as f:
+            raw_lines = f.readlines()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read log stream: {str(e)}")
+
+    parsed_entries = []
+    seen_models = set()
+    seen_categories = set()
+    counts = {"INFO": 0, "SUCCESS": 0, "WARNING": 0, "ERROR": 0}
+
+    for idx, line in enumerate(raw_lines, start=1):
+        entry = _parse_log_line(line, idx)
+        parsed_entries.append(entry)
+        if entry["model"] and entry["model"] != "UNKNOWN":
+            seen_models.add(entry["model"])
+        if entry["category"]:
+            seen_categories.add(entry["category"])
+        sev = entry["severity"]
+        if sev in counts:
+            counts[sev] += 1
+        else:
+            counts[sev] = 1
+
+    # Apply active filters
+    model_filter = model.strip().lower() if model and model.strip().upper() != "ALL" else None
+    cat_filter = category.strip().lower() if category and category.strip().upper() != "ALL" else None
+    sev_filter = severity.strip().upper() if severity and severity.strip().upper() != "ALL" else None
+    search_filter = search.strip().lower() if search and search.strip() else None
+
+    filtered = []
+    for entry in parsed_entries:
+        if model_filter and model_filter not in entry["model"].lower():
+            continue
+        if cat_filter and cat_filter not in entry["category"].lower():
+            continue
+        if sev_filter and entry["severity"] != sev_filter:
+            continue
+        if search_filter:
+            haystack = f"{entry['action']} {entry['model']} {entry['category']} {entry['raw']}".lower()
+            if search_filter not in haystack:
+                continue
+        filtered.append(entry)
+
+    total_matched = len(filtered)
+    if tail:
+        limited_entries = filtered[-clamped_limit:]
+    else:
+        limited_entries = filtered[:clamped_limit]
+
+    rel_path = os.path.relpath(target_path, repo_root)
+
+    return {
+        "status": "success",
+        "source_type": source_type,
+        "source_name": source_name,
+        "resolved_path": rel_path,
+        "total_matched": total_matched,
+        "entries": limited_entries,
+        "facets": {
+            "models": sorted(list(seen_models)),
+            "categories": sorted(list(seen_categories)),
+            "counts": counts
+        }
+    }
+
+
+@app.get("/api/logs/project/{project_name}/ledger")
+def get_project_blueprint_ledger(project_name: str) -> Dict[str, Any]:
+    """
+    Reads and returns logs/projects/<project_name>/blueprint_ledger.json if present.
+    """
+    clean_pname = os.path.basename(project_name.replace("\\", "/").strip("/"))
+    ledger_path = os.path.join(LOGS_DIR, "projects", clean_pname, "blueprint_ledger.json")
+
+    if not os.path.exists(ledger_path):
+        return {
+            "status": "not_found",
+            "project_name": clean_pname,
+            "ledger": None,
+            "message": f"No blueprint ledger exists for project '{clean_pname}'."
+        }
+
+    try:
+        with open(ledger_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {
+            "status": "success",
+            "project_name": clean_pname,
+            "ledger": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read project ledger: {str(e)}")
+
+
+@app.websocket("/ws/logs")
+async def websocket_logs(
+    websocket: WebSocket,
+    source_type: Optional[str] = "master",
+    source_name: Optional[str] = None
+):
+    """
+    Live log tail WebSocket.
+    Pushes initial batch of last 100 parsed entries, then polls for file growth
+    every 1.0s and streams newly appended lines in real-time.
+    """
+    await websocket.accept()
+    st = source_type or websocket.query_params.get("source_type") or "master"
+    sn = source_name or websocket.query_params.get("source_name")
+
+    try:
+        target_path = _resolve_log_path(st, sn)
+    except Exception as e:
+        await websocket.send_json({"type": "error", "message": str(e)})
+        await websocket.close()
+        return
+
+    try:
+        initial_entries = []
+        last_size = 0
+        total_lines = 0
+
+        if os.path.exists(target_path):
+            last_size = os.path.getsize(target_path)
+            try:
+                with open(target_path, "r", encoding="utf-8", errors="replace") as f:
+                    all_lines = f.readlines()
+                total_lines = len(all_lines)
+                start_idx = max(1, total_lines - 99)
+                for idx, line in enumerate(all_lines[-100:], start=start_idx):
+                    initial_entries.append(_parse_log_line(line, idx))
+            except Exception:
+                pass
+
+        await websocket.send_json({
+            "type": "initial_batch",
+            "source_type": st,
+            "source_name": sn,
+            "resolved_path": os.path.basename(target_path),
+            "total_file_lines": total_lines,
+            "entries": initial_entries
+        })
+
+        while True:
+            await asyncio.sleep(1.0)
+            if not os.path.exists(target_path):
+                await websocket.send_json({"type": "heartbeat", "timestamp": time.time()})
+                continue
+
+            current_size = os.path.getsize(target_path)
+            if current_size > last_size:
+                new_entries = []
+                try:
+                    with open(target_path, "r", encoding="utf-8", errors="replace") as f:
+                        f.seek(last_size)
+                        new_text = f.read()
+                    last_size = current_size
+
+                    lines = [l for l in new_text.splitlines() if l.strip()]
+                    for l in lines:
+                        total_lines += 1
+                        new_entries.append(_parse_log_line(l, total_lines))
+
+                    if new_entries:
+                        await websocket.send_json({
+                            "type": "new_entries",
+                            "source_type": st,
+                            "source_name": sn,
+                            "entries": new_entries,
+                            "timestamp": time.time()
+                        })
+                    else:
+                        await websocket.send_json({"type": "heartbeat", "timestamp": time.time()})
+                except Exception:
+                    await websocket.send_json({"type": "heartbeat", "timestamp": time.time()})
+            elif current_size < last_size:
+                last_size = 0
+                total_lines = 0
+                await websocket.send_json({"type": "file_rotated", "timestamp": time.time()})
+            else:
+                await websocket.send_json({"type": "heartbeat", "timestamp": time.time()})
+
     except (WebSocketDisconnect, ConnectionResetError):
         pass
     except Exception:
