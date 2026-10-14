@@ -627,7 +627,7 @@ export const AgentHub: React.FC = () => {
       if (res.ok && data.status === 'success') {
         const count = data.scavenged_models?.length || 0;
         setScavengeMsg({
-          text: Flushed  active model from GPU VRAM. Headroom fully restored.,
+          text: `Flushed ${count} active model(s) from GPU VRAM. Headroom fully restored.`,
           success: true
         });
         const vRes = await fetch('/api/bridge/vram');
@@ -642,7 +642,7 @@ export const AgentHub: React.FC = () => {
         });
       }
     } catch (err: any) {
-      setScavengeMsg({ text: Scavenge error: , success: false });
+      setScavengeMsg({ text: `Scavenge error: ${err.message || err}`, success: false });
     } finally {
       setScavenging(false);
     }
@@ -651,12 +651,12 @@ export const AgentHub: React.FC = () => {
   // Unload single model from VRAM
   const handleUnloadModel = async (modelName: string) => {
     try {
-      const res = await fetch(/api/bridge/vram/scavenge?model_name=, {
+      const res = await fetch(`/api/bridge/vram/scavenge?model_name=${encodeURIComponent(modelName)}`, {
         method: 'POST'
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        setScavengeMsg({ text: Unloaded  from GPU VRAM., success: true });
+        setScavengeMsg({ text: `Unloaded ${modelName} from GPU VRAM.`, success: true });
         const vRes = await fetch('/api/bridge/vram');
         if (vRes.ok) {
           const vData = await vRes.json();
@@ -664,7 +664,7 @@ export const AgentHub: React.FC = () => {
         }
       }
     } catch (err: any) {
-      setScavengeMsg({ text: Failed to unload : , success: false });
+      setScavengeMsg({ text: `Failed to unload ${modelName}: ${err.message || err}`, success: false });
     }
   };
 
@@ -798,7 +798,7 @@ export const AgentHub: React.FC = () => {
         });
       }
     } catch (err: any) {
-      setSwarmSaveMsg({ text: Error updating swarm profiles: , success: false });
+      setSwarmSaveMsg({ text: `Error updating swarm profiles: ${err.message || err}`, success: false });
     } finally {
       setSwarmSaving(false);
     }
@@ -815,7 +815,7 @@ export const AgentHub: React.FC = () => {
       return;
     }
     if (customSwarms.some((s) => s.id === id)) {
-      setCreateSwarmError(Swarm ID "" already exists.);
+      setCreateSwarmError(`Swarm ID "${id}" already exists.`);
       return;
     }
 
@@ -850,7 +850,7 @@ export const AgentHub: React.FC = () => {
         })
       });
       setSwarmSaveMsg({
-        text: Custom Swarm "" created and activated!,
+        text: `Custom Swarm "${name}" created and activated!`,
         success: true
       });
       setTimeout(() => setSwarmSaveMsg(null), 5000);
@@ -1447,7 +1447,7 @@ export const AgentHub: React.FC = () => {
                 disabled={vramLoading}
                 className="px-3.5 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
               >
-                <RefreshCw className={w-3.5 h-3.5 } />
+                <RefreshCw className={`w-3.5 h-3.5 ${vramLoading ? "animate-spin" : ""}`} />
                 <span>Refresh Hardware & Tags</span>
               </button>
 
@@ -1458,7 +1458,7 @@ export const AgentHub: React.FC = () => {
                 disabled={scavenging}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white text-xs font-bold shadow-lg shadow-amber-600/20 flex items-center gap-2 transition-all disabled:opacity-50"
               >
-                <Flame className={w-3.5 h-3.5 } />
+                <Flame className={`w-3.5 h-3.5 ${scavenging ? "animate-pulse" : ""}`} />
                 <span>{scavenging ? 'Purging VRAM...' : 'Scavenge & Flush All Idle VRAM'}</span>
               </button>
             </div>
@@ -1467,7 +1467,11 @@ export const AgentHub: React.FC = () => {
           {/* Scavenge Banner Feedback */}
           {scavengeMsg && (
             <div
-              className={p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 }
+              className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                scavengeMsg.success
+                  ? "bg-emerald-950/40 border-emerald-800/60 text-emerald-300"
+                  : "bg-rose-950/40 border-rose-800/60 text-rose-300"
+              }`}
             >
               <div className="flex items-center gap-2">
                 {scavengeMsg.success ? (
@@ -1502,7 +1506,13 @@ export const AgentHub: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">Current Load:</span>
                 <span
-                  className={	ext-xs font-bold font-mono px-2.5 py-1 rounded-lg border }
+                  className={`text-xs font-bold font-mono px-2.5 py-1 rounded-lg border ${
+                    (vramData?.usage_percent || 0) > 90
+                      ? "bg-rose-950/40 border-rose-800 text-rose-300"
+                      : (vramData?.usage_percent || 0) > 65
+                      ? "bg-amber-950/40 border-amber-800 text-amber-300"
+                      : "bg-emerald-950/40 border-emerald-800 text-emerald-300"
+                  }`}
                 >
                   {vramData?.usage_percent?.toFixed(1) || '0.0'}% Used
                 </span>
@@ -1561,8 +1571,14 @@ export const AgentHub: React.FC = () => {
 
               <div className="h-4 rounded-full bg-slate-950 border border-slate-800 p-0.5 overflow-hidden relative">
                 <div
-                  className={h-full rounded-full transition-all duration-500 }
-                  style={{ width: ${Math.min(100, Math.max(0, vramData?.usage_percent || 0))}% }}
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    (vramData?.usage_percent || 0) > 90
+                      ? "bg-gradient-to-r from-amber-500 to-rose-500"
+                      : (vramData?.usage_percent || 0) > 65
+                      ? "bg-gradient-to-r from-emerald-500 to-amber-500"
+                      : "bg-gradient-to-r from-cyan-500 to-emerald-500"
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, vramData?.usage_percent || 0))}%` }}
                 />
               </div>
 
@@ -1602,7 +1618,7 @@ export const AgentHub: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {vramData.active_loaded_models.map((mod, idx) => (
                     <div
-                      key={${mod.name}-}
+                      key={`${mod.name}-${idx}`}
                       className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-3 shadow-md transition-all"
                     >
                       <div className="min-w-0">
@@ -1614,7 +1630,7 @@ export const AgentHub: React.FC = () => {
                           <span>VRAM: <strong className="text-amber-400">{mod.size_vram_gb.toFixed(2)} GB</strong></span>
                           <span>Total: {mod.size_total_gb.toFixed(2)} GB</span>
                           {mod.expires_at && (
-                            <span className="text-slate-500 truncate" title={Expires at }>
+                            <span className="text-slate-500 truncate" title={`Expires at ${mod.expires_at}`}>
                               Timer: {new Date(mod.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
@@ -1625,7 +1641,7 @@ export const AgentHub: React.FC = () => {
                         type="button"
                         onClick={() => handleUnloadModel(mod.name)}
                         className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0"
-                        title={Unload  immediately}
+                        title={`Unload ${mod.name} immediately`}
                       >
                         <Trash2 className="w-3 h-3" />
                         <span>Unload</span>
@@ -1667,7 +1683,7 @@ export const AgentHub: React.FC = () => {
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-indigo-500 transition-all"
                 >
                   {availableLocalModels.map((m) => (
-                    <option key={orch-} value={m.name}>
+                    <option key={`orch-${m.name}`} value={m.name}>
                       {m.name} ({m.size_gb.toFixed(1)} GB)
                     </option>
                   ))}
@@ -1691,7 +1707,7 @@ export const AgentHub: React.FC = () => {
                 >
                   <option value="none">None - Single Model Mode (0.0 GB)</option>
                   {availableLocalModels.map((m) => (
-                    <option key={worker-} value={m.name}>
+                    <option key={`worker-${m.name}`} value={m.name}>
                       {m.name} ({m.size_gb.toFixed(1)} GB)
                     </option>
                   ))}
@@ -1717,7 +1733,11 @@ export const AgentHub: React.FC = () => {
                       key={ctx.label}
                       type="button"
                       onClick={() => setSimContextOverhead(ctx.val)}
-                      className={px-2.5 py-2 rounded-xl text-xs font-mono text-center border transition-all }
+                      className={`px-2.5 py-2 rounded-xl text-xs font-mono text-center border transition-all ${
+                        simContextOverhead === ctx.val
+                          ? "bg-amber-600/20 border-amber-500 text-amber-300 font-bold"
+                          : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                      }`}
                     >
                       <div>{ctx.label}</div>
                       <div className="text-[10px] text-slate-500">{ctx.sub}</div>
@@ -1748,7 +1768,7 @@ export const AgentHub: React.FC = () => {
                 </div>
 
                 {/* Verdict Badge */}
-                <div className={px-4 py-2 rounded-xl border text-xs font-bold  flex items-center gap-2 self-start sm:self-auto}>
+                <div className={`px-4 py-2 rounded-xl border text-xs font-bold ${simVerdict.className} flex items-center gap-2 self-start sm:self-auto`}>
                   {simVerdict.badge}
                 </div>
               </div>
@@ -1759,29 +1779,29 @@ export const AgentHub: React.FC = () => {
                   {/* Orchestrator segment */}
                   <div
                     className="bg-indigo-500 h-full transition-all"
-                    style={{ width: ${Math.min(100, (orchestratorFootprint / 8.0) * 100)}% }}
-                    title={Orchestrator:  GB}
+                    style={{ width: `${Math.min(100, (orchestratorFootprint / 8.0) * 100)}%` }}
+                    title={`Orchestrator: ${orchestratorFootprint.toFixed(2)} GB`}
                   />
                   {/* Worker segment */}
                   {workerFootprint > 0 && (
                     <div
                       className="bg-cyan-500 h-full transition-all"
-                      style={{ width: ${Math.min(100, (workerFootprint / 8.0) * 100)}% }}
-                      title={Worker:  GB}
+                      style={{ width: `${Math.min(100, (workerFootprint / 8.0) * 100)}%` }}
+                      title={`Worker: ${workerFootprint.toFixed(2)} GB`}
                     />
                   )}
                   {/* Context KV segment */}
                   <div
                     className="bg-amber-500 h-full transition-all"
-                    style={{ width: ${Math.min(100, (contextFootprint / 8.0) * 100)}% }}
-                    title={Context Buffer:  GB}
+                    style={{ width: `${Math.min(100, (contextFootprint / 8.0) * 100)}%` }}
+                    title={`Context Buffer: ${contextFootprint.toFixed(2)} GB`}
                   />
                   {/* Free headroom */}
                   {simHeadroom > 0 && (
                     <div
                       className="bg-slate-850 h-full transition-all"
-                      style={{ width: ${(simHeadroom / 8.0) * 100}% }}
-                      title={Free Headroom:  GB}
+                      style={{ width: `${(simHeadroom / 8.0) * 100}%` }}
+                      title={`Free Headroom: ${simHeadroom.toFixed(2)} GB`}
                     />
                   )}
                 </div>
@@ -1862,7 +1882,7 @@ export const AgentHub: React.FC = () => {
 
                   return (
                     <div
-                      key={${tagMod.name}-}
+                      key={`${tagMod.name}-${idx}`}
                       className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-md transition-all group"
                     >
                       <div>
@@ -1886,7 +1906,7 @@ export const AgentHub: React.FC = () => {
 
                         {/* Safety Tier Badge */}
                         <div className="mt-2.5">
-                          <span className={	ext-[10px] font-semibold px-2 py-0.5 rounded-md border font-mono }>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border font-mono ${safety.className}`}>
                             {safety.badge}
                           </span>
                         </div>
@@ -1989,7 +2009,7 @@ export const AgentHub: React.FC = () => {
                 disabled={swarmSaving}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all disabled:opacity-50"
               >
-                <CheckCircle2 className={w-3.5 h-3.5 } />
+                <CheckCircle2 className={`w-3.5 h-3.5 ${swarmSaving ? "animate-spin" : ""}`} />
                 <span>{swarmSaving ? 'Saving Profiles...' : 'Save & Activate Swarm'}</span>
               </button>
             </div>
@@ -1998,7 +2018,11 @@ export const AgentHub: React.FC = () => {
           {/* Swarm Save Banner Feedback */}
           {swarmSaveMsg && (
             <div
-              className={p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 }
+              className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                swarmSaveMsg.success
+                  ? "bg-emerald-950/40 border-emerald-800/60 text-emerald-300"
+                  : "bg-rose-950/40 border-rose-800/60 text-rose-300"
+              }`}
             >
               <div className="flex items-center gap-2">
                 {swarmSaveMsg.success ? (
@@ -2191,7 +2215,11 @@ export const AgentHub: React.FC = () => {
                       setOrchestratorEngine(sw.orchestrator);
                       setMaxConcurrency(sw.default_concurrency);
                     }}
-                    className={cursor-pointer rounded-2xl p-5 border transition-all flex flex-col justify-between shadow-lg relative }
+                    className={`cursor-pointer rounded-2xl p-5 border transition-all flex flex-col justify-between shadow-lg relative ${
+                      isActive
+                        ? "bg-slate-900 border-emerald-500/70 shadow-emerald-500/10 ring-1 ring-emerald-500/30"
+                        : "bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
+                    }`}
                   >
                     <div>
                       {/* Top Row: Icon + Active Pill */}
@@ -2268,7 +2296,11 @@ export const AgentHub: React.FC = () => {
                   <div
                     key={opt.id}
                     onClick={() => setOrchestratorEngine(opt.id)}
-                    className={cursor-pointer rounded-xl p-4 border transition-all flex flex-col justify-between shadow-md }
+                    className={`cursor-pointer rounded-xl p-4 border transition-all flex flex-col justify-between shadow-md ${
+                      isSelected
+                        ? "bg-slate-900 border-purple-500/70 shadow-purple-500/10 ring-1 ring-purple-500/30"
+                        : "bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
+                    }`}
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
@@ -2286,7 +2318,11 @@ export const AgentHub: React.FC = () => {
                             <Check className="w-3 h-3" /> Active
                           </span>
                         ) : (
-                          <span className={	ext-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 }>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
+                            isCloud
+                              ? "bg-cyan-950/40 border-cyan-800/60 text-cyan-300"
+                              : "bg-purple-950/40 border-purple-800/60 text-purple-300"
+                          }`}>
                             {opt.badge}
                           </span>
                         )}
@@ -2368,7 +2404,11 @@ export const AgentHub: React.FC = () => {
                     key={preset.count}
                     type="button"
                     onClick={() => setMaxConcurrency(preset.count)}
-                    className={px-3 py-1 rounded-lg text-xs font-mono font-medium border transition-all }
+                    className={`px-3 py-1 rounded-lg text-xs font-mono font-medium border transition-all ${
+                      maxConcurrency === preset.count
+                        ? "bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                    }`}
                   >
                     {preset.label}
                   </button>
@@ -2377,17 +2417,29 @@ export const AgentHub: React.FC = () => {
 
               {/* 3 Range Brackets Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                <div className={p-3.5 rounded-xl border }>
+                <div className={`p-3.5 rounded-xl border ${
+                  maxConcurrency <= 4
+                    ? "bg-emerald-950/30 border-emerald-500/50 text-emerald-300"
+                    : "bg-slate-950/50 border-slate-800/80 text-slate-400"
+                }`}>
                   <div className="text-xs font-bold font-mono">1 - 4 Workers</div>
                   <div className="text-[11px] mt-0.5">Recommended for OFFLINE_PURE & Local 8GB GPU safety.</div>
                 </div>
 
-                <div className={p-3.5 rounded-xl border }>
+                <div className={`p-3.5 rounded-xl border ${
+                  maxConcurrency >= 5 && maxConcurrency <= 9
+                    ? "bg-blue-950/30 border-blue-500/50 text-blue-300"
+                    : "bg-slate-950/50 border-slate-800/80 text-slate-400"
+                }`}>
                   <div className="text-xs font-bold font-mono">5 - 9 Workers</div>
                   <div className="text-[11px] mt-0.5">Standard balanced hybrid swarm across cloud & local models.</div>
                 </div>
 
-                <div className={p-3.5 rounded-xl border }>
+                <div className={`p-3.5 rounded-xl border ${
+                  maxConcurrency >= 10
+                    ? "bg-purple-950/30 border-purple-500/50 text-purple-300"
+                    : "bg-slate-950/50 border-slate-800/80 text-slate-400"
+                }`}>
                   <div className="text-xs font-bold font-mono">10 - 16 Workers</div>
                   <div className="text-[11px] mt-0.5">High-Concurrency Burst Mode for 4,000 RPM Flash-Lite pools.</div>
                 </div>
@@ -2429,7 +2481,7 @@ export const AgentHub: React.FC = () => {
               disabled={swarmSaving}
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:via-teal-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              <CheckCircle2 className={w-4 h-4 } />
+              <CheckCircle2 className={`w-4 h-4 ${swarmSaving ? "animate-spin" : ""}`} />
               <span>{swarmSaving ? 'Activating Profile...' : 'Save & Activate Swarm Configuration'}</span>
             </button>
           </div>

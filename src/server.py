@@ -28,8 +28,10 @@ from src.memory_manager import (
     delete_book,
     get_precision_context,
     _load_json,
+    _save_json,
     ENV_HISTORY_FILE
 )
+from src.testing_bridge import testing_bridge
 from src.key_manager import key_manager
 from src.config import (
     DEFAULT_EXECUTION_MODE,
@@ -243,6 +245,125 @@ def get_swarm_status() -> Dict[str, Any]:
         "completed_files": [],
         "status": "IDLE"
     })
+
+
+SWARM_PROFILES_FILE = os.path.join(os.path.dirname(SWARM_REGISTRY_FILE), "swarm_profiles.json")
+
+DEFAULT_SWARM_PROFILES = {
+    "active_swarm_id": "GLOBAL_HYBRID_SWARM",
+    "orchestrator_engine": "qwen2.5-coder:32b",
+    "max_concurrency_workers": 8,
+    "swarms": [
+        {
+            "id": "GLOBAL_HYBRID_SWARM",
+            "name": "Global Hybrid Adaptive Swarm",
+            "description": "Cloud Pro/Ollama 32B for Architecture; Cloud Flash & Local 7B for Parallel Workers.",
+            "orchestrator": "qwen2.5-coder:32b",
+            "worker_tier": "HIGH_RPM_TPM",
+            "default_concurrency": 8
+        },
+        {
+            "id": "FULLSTACK_CLOUD_SWARM",
+            "name": "High-Throughput Cloud Swarm",
+            "description": "Gemini Pro Orchestrator paired with 4,000 RPM Flash/Lite Workers.",
+            "orchestrator": "gemini-2.5-pro",
+            "worker_tier": "HIGHEST_RPM_TPM",
+            "default_concurrency": 12
+        },
+        {
+            "id": "AIR_GAPPED_LOCAL_SWARM",
+            "name": "Air-Gapped Private Local Swarm",
+            "description": "Zero external API calls. Runs exclusively on Ollama local weights.",
+            "orchestrator": "qwen2.5-coder:32b",
+            "worker_tier": "OFFLINE_PURE",
+            "default_concurrency": 4
+        }
+    ]
+}
+
+
+@app.get("/api/swarms/profiles")
+def get_swarm_profiles() -> Dict[str, Any]:
+    """
+    Returns the configured swarm rosters and active orchestrator role from swarm_profiles.json.
+    """
+    return _load_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+
+
+@app.post("/api/swarms/profiles")
+def save_swarm_profiles(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Persists updated swarm profile rosters and active orchestrator to swarm_profiles.json.
+    """
+    try:
+        _save_json(SWARM_PROFILES_FILE, payload)
+        return {"status": "success", "profiles": payload}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/bridge/status")
+def get_bridge_status() -> Dict[str, Any]:
+    """
+    Returns Ollama testing bridge connection state and root workspace path.
+    """
+    return {
+        "status": "success",
+        "connected": testing_bridge.is_connected,
+        "root_path": testing_bridge.root_path
+    }
+
+
+@app.get("/api/bridge/models")
+def get_bridge_models() -> Dict[str, Any]:
+    """
+    Returns all tested model profiles, capability matrices, and cloud quota tiers.
+    """
+    return {
+        "status": "success",
+        "models": testing_bridge.get_all_model_profiles(),
+        "best_in_class": testing_bridge.get_best_in_class_matrix(),
+        "cloud_quotas": testing_bridge.get_cloud_quotas_matrix()
+    }
+
+
+@app.get("/api/bridge/vram")
+def get_bridge_vram() -> Dict[str, Any]:
+    """
+    Returns live VRAM telemetry (budget, used, available, percentage, loaded models).
+    """
+    return {
+        "status": "success",
+        "vram": testing_bridge.get_active_vram_telemetry()
+    }
+
+
+@app.post("/api/bridge/vram/scavenge")
+def scavenge_bridge_vram(model_name: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Purges idle or specific model weights from VRAM via testing_bridge.
+    """
+    res = testing_bridge.scavenge_idle_vram(model_name)
+    return {
+        "status": "success" if res.get("success") else "warning",
+        "result": res,
+        "vram": testing_bridge.get_active_vram_telemetry()
+    }
+
+
+@app.get("/api/bridge/ollama/tags")
+def get_bridge_ollama_tags() -> Dict[str, Any]:
+    """
+    Queries local Ollama tags endpoint to discover installed offline weights.
+    """
+    import urllib.request
+    try:
+        req = urllib.request.Request("http://127.0.0.1:11434/api/tags", headers={"User-Agent": "AdvanceAssistant/6.0"})
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data
+    except Exception:
+        return {"models": []}
 
 
 @app.get("/api/telemetry")

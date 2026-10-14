@@ -21,6 +21,7 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 11.1: Backend Multi-Stream Log Parser & Live WebSocket Tail (`src/server.py`)
 - [x] Prompt 11.2: Frontend Dedicated Full-Screen Log Center (/logs) & Multi-Stream Inspector
 - [x] Prompt 12.1: Backend Precision Memory Snippet Engine, Book CRUD API & Context Simulator
+- [x] Prompt 12.2: Frontend Knowledge Base Split-Pane Editor, Context Simulator & Full Vite Build Verification
 
 ## Execution Records
 
@@ -528,4 +529,40 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/key_manager.py`: 100% UNTOUCHED
   * `src/testing_bridge.py`: 100% UNTOUCHED
   * Zero frontend build commands executed (Strict terminal ban enforced)
+- Stage Status: COMPLETED.
+
+
+### Prompt 12.2: Frontend Knowledge Base Split-Pane Editor, Context Simulator & Full Vite Build Verification
+- Timestamp: 2026-10-15 03:30:00 IST
+- Objective: Comprehensive audit & repair of all broken template literals in `AgentHub.tsx` & `LogCenter.tsx`, upgrade `KnowledgeBase.tsx` into an interactive split-pane Knowledge Base workspace with raw Markdown book editor, section inspector, recipe quick-adder, and precision offline context simulator, and verify full end-to-end Vite production build and API runtime status in WSL.
+- Files Modified:
+  - `frontend/src/pages/AgentHub.tsx`: Repaired all stripped backticks, unquoted attributes (`className`, `style`, `title`), broken JSX option keys (`orch-${m.name}`, `worker-${m.name}`), and template literals (`setScavengeMsg`, etc.) corrupted by prior shell escaping.
+  - `frontend/src/pages/LogCenter.tsx`: Audited for JSX syntax and template literal validity; verified clean compilation.
+  - `frontend/src/pages/KnowledgeBase.tsx`: Upgraded into a full-featured Knowledge Base workspace featuring:
+    * Live telemetry header counters: Total Books, Active Categories, Total Sections/Recipes, Estimated Tokens, and Last Defragmentation Timestamp.
+    * Mode Switcher tabs: "Explorer & Markdown Editor" and "Precision Context Injection Simulator".
+    * Split-Pane Explorer: Canonical category filter pills (`coding`, `frameworks`, `cloud`, `devops`, `ai_ml`, `security`, `databases`, `architecture`, `general`), real-time search filtering, and informative book cards.
+    * Selected Book Workspace: Discrete parsed section inspector with token badges and code flags, full raw Markdown editor with tags input, save changes (`POST /api/memory/book`), and delete book (`DELETE /api/memory/book/{category}/{book_name}`).
+    * Recipe Quick-Adder: Interactive modal for appending structured operational recipes (`POST /api/memory/book/recipe`) with automatic section re-parsing.
+    * New Book Creator: Interactive modal for creating new Markdown books in canonical categories.
+    * Precision Context Injection Simulator: Interactive prompt input, model selector with automated token budgets (`qwen2.5-coder:1.5b (600)`, `qwen2.5-coder:7b (1200)`, `qwen2.5-coder:14b (1200)`, `qwen2.5-coder:32b (2000)`, `gemini-2.5-pro (3500)`), custom token override, optimization telemetry banner (Budget, Injected Tokens, Raw Book Tokens, Tokens Saved percentage badge), matched snippet cards, and raw injected prompt context preview with one-click copy.
+  - `src/server.py`: Registered bridge endpoints (`/api/bridge/status`, `/api/bridge/models`, `/api/bridge/vram`, `/api/bridge/vram/scavenge`, `/api/bridge/ollama/tags`) and dynamic swarm profile endpoints (`/api/swarms/profiles`).
+  - `ANTIGRAVITY_BUILD_LOG.md`: Documented completion of Stage 12.2 and verified build telemetry.
+- Verification Results:
+  * **Vite Production Build**: Passed cleanly inside WSL2 (`node node_modules/vite/bin/vite.js build`) with 1934 modules transformed and 0 errors (`✓ built in 1.91s`).
+  * **Backend API Verification**: Verified using `fastapi.testclient.TestClient` that all 5 critical endpoints returned `200 OK`:
+    - `GET /api/health` -> 200 OK
+    - `GET /api/bridge/models` -> 200 OK (85 tested models)
+    - `GET /api/swarms/profiles` -> 200 OK (`GLOBAL_HYBRID_SWARM`)
+    - `GET /api/logs/sources` -> 200 OK
+    - `GET /api/memory/books` -> 200 OK (19 books, 16,984 tokens)
+    - `POST /api/memory/simulate-injection` -> 200 OK (1198 injected tokens, 6 matched snippets, 6311 tokens saved)
+- Core CLI Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * `src/logger.py`: 100% UNTOUCHED
+  * `src/token_governor.py`: 100% UNTOUCHED
+  * `src/key_manager.py`: 100% UNTOUCHED
+  * `src/testing_bridge.py`: 100% UNTOUCHED
 - Stage Status: COMPLETED.

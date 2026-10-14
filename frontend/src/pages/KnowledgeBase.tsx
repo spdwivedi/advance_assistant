@@ -1,657 +1,1392 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   BookOpen,
-  RefreshCw,
-  Database,
   Layers,
-  CheckCircle2,
+  Database,
   Sparkles,
+  RefreshCw,
   Search,
   Code,
-  Cpu,
   Cloud,
   Terminal,
   Server,
-  Compass,
-  History,
-  Network,
-  Palette,
-  FileText,
+  HardDrive,
   Shield,
+  Cpu,
+  Plus,
+  Trash2,
+  Save,
+  Copy,
+  Check,
+  CheckCircle2,
+  AlertCircle,
+  Sliders,
   Zap,
-  Info,
   ChevronRight,
+  ChevronDown,
+  FileText,
   X,
-  ExternalLink,
-  HardDrive
+  Clock,
+  Tag,
+  Play
 } from 'lucide-react';
 
-interface BookItem {
-  id: string;
-  filename: string;
-  title: string;
-  category: string;
-  description: string;
-  tags: string[];
-  snippet: string;
-  keyInsights: string[];
+// ==============================================================================
+// TYPE DEFINITIONS
+// ==============================================================================
+
+interface BookSection {
+  section_id: number;
+  heading: string;
+  content: string;
+  has_code: boolean;
+  estimated_tokens: number;
+  keywords: string[];
 }
 
-const CATEGORIES: Record<string, { label: string; icon: any; color: string; desc: string }> = {
-  all: { label: 'All Categories', icon: Database, color: 'text-indigo-400', desc: 'All 19 indexed engineering topic books' },
-  coding: { label: 'Coding & Syntaxes', icon: Code, color: 'text-blue-400', desc: 'FastAPI, React TypeScript, SQLAlchemy, and Python Async patterns' },
-  frameworks: { label: 'Web Frameworks', icon: Layers, color: 'text-cyan-400', desc: 'Modern web frameworks and automated test frameworks' },
-  tools: { label: 'Developer Tools', icon: Terminal, color: 'text-emerald-400', desc: 'CLI dev tools, external bridges, and automation adapters' },
-  cloud: { label: 'Cloud & Deploy', icon: Cloud, color: 'text-purple-400', desc: 'Containerization, cloud VM environments, and OCI deployment' },
-  tech_stack: { label: 'System Tech Stack', icon: Server, color: 'text-amber-400', desc: 'Core system architecture and operational tech stack' },
-  environment: { label: 'Environment Config', icon: HardDrive, color: 'text-teal-400', desc: 'Cross-platform WSL2 and native Windows configuration' },
-  history: { label: 'Execution History', icon: History, color: 'text-rose-400', desc: 'Historical swarm task builds, logs, and blueprint modifications' },
-  cs_fundamentals: { label: 'CS Fundamentals', icon: Network, color: 'text-violet-400', desc: 'Operating systems, DSA algorithms, and computer networks' },
-  design_patterns: { label: 'Design Patterns', icon: Compass, color: 'text-orange-400', desc: 'Low-level design (LLD) and high-level design (HLD) paradigms' },
+interface BookDetail {
+  category: string;
+  book_name: string;
+  title: string;
+  content: string;
+  sections: BookSection[];
+  size_bytes: number;
+  estimated_tokens: number;
+  last_modified: string;
+  tags: string[];
+}
+
+interface BookSummaryItem {
+  category: string;
+  book_name: string;
+  title: string;
+  size_bytes: number;
+  estimated_tokens: number;
+  section_count: number;
+  last_modified: string;
+  tags: string[];
+  summary: string;
+}
+
+interface CategoryRollup {
+  book_count: number;
+  total_tokens: number;
+  total_bytes: number;
+}
+
+interface BooksApiResponse {
+  status: string;
+  knowledge_telemetry: string;
+  categories: Record<string, CategoryRollup>;
+  books: BookSummaryItem[];
+  total_books: number;
+  total_tokens: number;
+}
+
+interface MatchedSnippet {
+  category: string;
+  book_name: string;
+  heading: string;
+  score: number;
+  estimated_tokens: number;
+  has_code: boolean;
+  preview: string;
+  content: string;
+}
+
+interface SimulationResponse {
+  status: string;
+  formatted_context: string;
+  model_name: string;
+  token_budget: number;
+  injected_tokens: number;
+  full_books_tokens: number;
+  tokens_saved: number;
+  matched_snippets: MatchedSnippet[];
+}
+
+// Canonical categories with semantic styling
+const CANONICAL_CATEGORIES_META: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+  all: { label: 'All Categories', icon: Database, color: 'text-indigo-400', bg: 'bg-indigo-950/40 border-indigo-800/60' },
+  coding: { label: 'Coding & Syntaxes', icon: Code, color: 'text-blue-400', bg: 'bg-blue-950/40 border-blue-800/60' },
+  frameworks: { label: 'Web Frameworks', icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-950/40 border-cyan-800/60' },
+  cloud: { label: 'Cloud & Deploy', icon: Cloud, color: 'text-purple-400', bg: 'bg-purple-950/40 border-purple-800/60' },
+  devops: { label: 'DevOps & CI/CD', icon: Terminal, color: 'text-emerald-400', bg: 'bg-emerald-950/40 border-emerald-800/60' },
+  ai_ml: { label: 'AI & Ollama ML', icon: Cpu, color: 'text-amber-400', bg: 'bg-amber-950/40 border-amber-800/60' },
+  security: { label: 'Security & Auth', icon: Shield, color: 'text-rose-400', bg: 'bg-rose-950/40 border-rose-800/60' },
+  databases: { label: 'Databases & ORM', icon: Database, color: 'text-teal-400', bg: 'bg-teal-950/40 border-teal-800/60' },
+  architecture: { label: 'Architecture', icon: Server, color: 'text-orange-400', bg: 'bg-orange-950/40 border-orange-800/60' },
+  general: { label: 'General Knowledge', icon: FileText, color: 'text-slate-400', bg: 'bg-slate-900 border-slate-800' },
+  tools: { label: 'Developer Tools', icon: Terminal, color: 'text-emerald-400', bg: 'bg-emerald-950/40 border-emerald-800/60' },
+  tech_stack: { label: 'System Tech Stack', icon: Server, color: 'text-amber-400', bg: 'bg-amber-950/40 border-amber-800/60' },
+  environment: { label: 'Environment Config', icon: HardDrive, color: 'text-teal-400', bg: 'bg-teal-950/40 border-teal-800/60' },
+  history: { label: 'Execution History', icon: Clock, color: 'text-rose-400', bg: 'bg-rose-950/40 border-rose-800/60' },
+  cs_fundamentals: { label: 'CS Fundamentals', icon: Layers, color: 'text-violet-400', bg: 'bg-violet-950/40 border-violet-800/60' },
+  design_patterns: { label: 'Design Patterns', icon: Sparkles, color: 'text-pink-400', bg: 'bg-pink-950/40 border-pink-800/60' }
 };
 
-const CANONICAL_BOOKS: BookItem[] = [
-  // coding
-  {
-    id: 'fastapi-book',
-    filename: 'fastapi.md',
-    title: 'FastAPI High-Throughput Patterns',
-    category: 'coding',
-    description: 'Asynchronous route definitions, dependency injection, lifespan managers, and Pydantic v2 validation.',
-    tags: ['Async', 'Pydantic v2', 'REST API', 'CORS'],
-    snippet: `from fastapi import FastAPI, Depends, HTTPException\nfrom pydantic import BaseModel\n\napp = FastAPI(title="Advance Assistant Bridge")\n\n@app.get("/api/health")\nasync def health_check():\n    return {"status": "healthy", "engine": "qwen2.5-coder:32b"}`,
-    keyInsights: [
-      'Always utilize non-blocking async def for I/O bound endpoints',
-      'Mount permissive CORS middleware for WSL2 cross-origin calls',
-      'Use lifespan async context manager for startup and shutdown hooks',
-    ],
-  },
-  {
-    id: 'react-ts-book',
-    filename: 'react_typescript.md',
-    title: 'React TypeScript & Tailwind Design',
-    category: 'coding',
-    description: 'Component architecture, strict typing, custom hooks, and Tailwind CSS dark mode styling.',
-    tags: ['React 18', 'TypeScript', 'Tailwind', 'Vite'],
-    snippet: `export const SwarmMonitor: React.FC = () => {\n  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);\n  useEffect(() => {\n    const ws = new WebSocket('ws://localhost:8000/ws/telemetry');\n    ws.onmessage = (e) => setTelemetry(JSON.parse(e.data));\n    return () => ws.close();\n  }, []);\n};`,
-    keyInsights: [
-      'Encapsulate WebSocket listeners with automatic HTTP polling fallback',
-      'Apply glassmorphism and subtle glow shadows for high-aesthetic UI',
-      'Strictly avoid any any-types in public API data interfaces',
-    ],
-  },
-  {
-    id: 'sqlalchemy-book',
-    filename: 'sqlalchemy.md',
-    title: 'Async SQLAlchemy & SQLite Engine',
-    category: 'coding',
-    description: 'AsyncSession lifecycle, declarative models, Alembic migrations, and SQLite file pooling.',
-    tags: ['SQLAlchemy 2.0', 'AsyncSession', 'SQLite', 'ORM'],
-    snippet: `from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession\n\nengine = create_async_engine("sqlite+aiosqlite:///./project.db", echo=False)\nasync with AsyncSession(engine) as session:\n    result = await session.execute(select(TaskModel))\n    tasks = result.scalars().all()`,
-    keyInsights: [
-      'Use aiosqlite driver for non-blocking local database interactions',
-      'Ensure proper connection pooling and session closure in async context',
-      'Separate schema models from Pydantic domain transfer objects',
-    ],
-  },
-  {
-    id: 'python-async-book',
-    filename: 'python_async.md',
-    title: 'Python Asyncio Concurrency & Threading',
-    category: 'coding',
-    description: 'Event loops, concurrent.futures thread pools, locks, and thread-safe shared states.',
-    tags: ['Asyncio', 'threading.Lock', 'ThreadPoolExecutor', 'WSL2'],
-    snippet: `import threading\n_lock = threading.Lock()\n\nwith _lock:\n    execution_state["is_running"] = True\n    worker_thread = threading.Thread(target=run_build, daemon=True)\n    worker_thread.start()`,
-    keyInsights: [
-      'Protect global mutable state across worker threads with threading.Lock',
-      'Run blocking CPU supervisor loops in detached worker daemon threads',
-      'Never block the Uvicorn asyncio main loop with time.sleep()',
-    ],
-  },
-  {
-    id: 'general-coding-book',
-    filename: 'general_coding.md',
-    title: 'General Clean Code & Typing Standards',
-    category: 'coding',
-    description: 'PEP 8 guidelines, structured error handling, JSON schema guards, and resilient IO.',
-    tags: ['PEP 8', 'Clean Code', 'Type Hints', 'Robustness'],
-    snippet: `def safe_load_json(filepath: str, default: dict) -> dict:\n    if os.path.exists(filepath):\n        try:\n            with open(filepath, 'r', encoding='utf-8') as f:\n                return json.load(f)\n        except Exception:\n            return default\n    return default`,
-    keyInsights: [
-      'Provide fallback defaults for all file IO routines',
-      'Always enforce UTF-8 file encoding across cross-platform environments',
-    ],
-  },
-  // frameworks
-  {
-    id: 'web-frameworks-book',
-    filename: 'web_frameworks.md',
-    title: 'Modern Web Frameworks Architecture',
-    category: 'frameworks',
-    description: 'Comparative analysis of FastAPI, Express, Next.js, and client-side Vite SPAs.',
-    tags: ['FastAPI', 'Express', 'SPA', 'SSR'],
-    snippet: `// Client-side Vite reverse proxy configuration\nexport default defineConfig({\n  server: {\n    host: '0.0.0.0',\n    port: 5173,\n    proxy: { '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true } }\n  }\n});`,
-    keyInsights: [
-      'Vite SPA + FastAPI backend provides minimal latency for local agent OS',
-      'Reverse proxy ensures clean Windows browser URL interoperability',
-    ],
-  },
-  {
-    id: 'testing-automation-book',
-    filename: 'testing_automation.md',
-    title: 'Automated Testing with Pytest & Asyncio',
-    category: 'frameworks',
-    description: 'Unit testing, fixture isolation, mocking external LLM endpoints, and async test loops.',
-    tags: ['Pytest', 'pytest-asyncio', 'TestClient', 'Coverage'],
-    snippet: `@pytest.mark.asyncio\nasync def test_health_check(async_client):\n    response = await async_client.get("/api/health")\n    assert response.status_code == 200\n    assert response.json()["status"] == "healthy"`,
-    keyInsights: [
-      'Use TestClient from fastapi.testclient for rapid synchronous validation',
-      'Isolate all test workspace directories under test/test_data/',
-    ],
-  },
-  // tools
-  {
-    id: 'developer-tools-book',
-    filename: 'developer_tools.md',
-    title: 'Developer CLI Tools & Agentic IDEs',
-    category: 'tools',
-    description: 'Integration specs for Aider batch mode, RooCode task instructions, and Cursor extension tools.',
-    tags: ['Aider', 'RooCode', 'Cursor', 'CLI'],
-    snippet: `cmd = ["aider", "--model", "qwen2.5-coder:32b", "--no-git", "--message", instruction]\nsubprocess.run(cmd, cwd=target_path, check=True)`,
-    keyInsights: [
-      'Execute Aider in non-interactive batch mode to avoid terminal lockups',
-      'Export formatted instruction files for IDE extensions to ingest',
-    ],
-  },
-  {
-    id: 'automation-bridges-book',
-    filename: 'automation_bridges.md',
-    title: 'Local Automation & n8n Webhook Bridges',
-    category: 'tools',
-    description: 'Triggering local Windows automation workflows via n8n webhook nodes and shell bridges.',
-    tags: ['n8n', 'Webhooks', 'Desktop Automation', 'Windows'],
-    snippet: `payload = {"event": "BUILD_COMPLETED", "project": project_name, "files": completed_files}\nhttpx.post("http://localhost:5678/webhook/advance-assistant-task", json=payload)`,
-    keyInsights: [
-      'Dispatch webhook alerts on pipeline completion or failure events',
-      'Enable cross-platform desktop automation via n8n local node triggers',
-    ],
-  },
-  // cloud
-  {
-    id: 'cloud-deployment-book',
-    filename: 'cloud_deployment.md',
-    title: 'Cloud Infrastructure & Gemini API Integration',
-    category: 'cloud',
-    description: 'Google AI Studio Gemini API limits, free-tier boundaries, and quota reset pacing.',
-    tags: ['Gemini API', 'Free Tier', 'RPM/TPM', 'Quotas'],
-    snippet: `MODEL_REGISTRY = {\n    "gemini-3.5-flash": {"rpm": 1000, "tpm": 2000000, "rpd": 10000},\n    "gemini-3.5-flash-lite": {"rpm": 4000, "tpm": 4000000, "rpd": 150000}\n}`,
-    keyInsights: [
-      'Cloud Gemini Free Tier daily limits reset precisely at 1:30 PM IST (Midnight PT)',
-      'Enforce micro-delay spacing (0.3s for Flash, 1.5s for Pro) to avoid burst 429s',
-    ],
-  },
-  {
-    id: 'containerization-book',
-    filename: 'containerization.md',
-    title: 'Containerization & Docker Best Practices',
-    category: 'cloud',
-    description: 'Multi-stage Docker builds, non-root users, volume persistence, and OCI image optimization.',
-    tags: ['Docker', 'Multi-stage', 'OCI', 'Containers'],
-    snippet: `FROM python:3.12-slim as builder\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD ["uvicorn", "src.server:app", "--host", "0.0.0.0", "--port", "8000"]`,
-    keyInsights: [
-      'Leverage multi-stage builds to maintain tiny deployment images',
-      'Bind dev ports to 0.0.0.0 to allow cross-network container access',
-    ],
-  },
-  // tech_stack
-  {
-    id: 'system-architecture-book',
-    filename: 'system_architecture.md',
-    title: 'Advance Assistant Dual-Model Architecture',
-    category: 'tech_stack',
-    description: 'Local dual-model reasoning loop: Qwen 2.5 Coder 32B Orchestrator + 7B Fast Worker.',
-    tags: ['Dual Model', 'Qwen 32B', 'Qwen 7B', 'Orchestrator'],
-    snippet: `LOCAL_ORCHESTRATOR = "qwen2.5-coder:32b"  # RAM+GPU Deep Reasoning\nLOCAL_WORKER       = "qwen2.5-coder:7b"   # Pure VRAM Fast Syntax Writes`,
-    keyInsights: [
-      'Orchestrator performs high-level task decomposition and memory consolidation',
-      'Fast Worker handles localized boilerplate and rapid syntax repairs',
-    ],
-  },
-  // environment
-  {
-    id: 'env-config-book',
-    filename: 'environment_configuration.md',
-    title: 'WSL2 & Windows Cross-Platform Interop',
-    category: 'environment',
-    description: 'Path normalization (/mnt/d/ <-> D:/), hardware clock sync, and DrvFs permissions.',
-    tags: ['WSL2', 'Cross-Platform', 'Path Normalization', 'Clock Sync'],
-    snippet: `def normalize_cross_platform_path(path_str: str) -> str:\n    # Translates D:\\Project_Files to /mnt/d/Project_Files\n    if re.match(r'^[a-zA-Z]:[/\\\\]', path_str):\n        drive = path_str[0].lower()\n        rest = path_str[2:].replace('\\\\', '/')\n        return f"/mnt/{drive}{rest}"\n    return path_str.replace('\\\\', '/')`,
-    keyInsights: [
-      'Always normalize drive letters before passing paths to Linux file utilities',
-      'WSL hardware clock synchronization is essential for accurate quota tracking',
-    ],
-  },
-  // history
-  {
-    id: 'execution-history-book',
-    filename: 'execution_history.md',
-    title: 'Swarm Execution Ledger & Blueprints',
-    category: 'history',
-    description: 'Persistent blueprint ledgers, workspace history tracking, and rollback logs.',
-    tags: ['Blueprint Ledger', 'env_history.json', 'Rollbacks', 'Logs'],
-    snippet: `blueprint_ledger = {\n    "project_name": "devpulse_orchestrator",\n    "architecture_blueprint": { "backend/app.py": { "status": "WRITE_SUCCESS" } }\n}`,
-    keyInsights: [
-      'Keep historical ledgers scoped under logs/projects/ for clean tracking',
-      'Never overwrite completed files without explicit rebuild directives',
-    ],
-  },
-  // cs_fundamentals
-  {
-    id: 'operating-systems-book',
-    filename: 'operating_systems.md',
-    title: 'Operating Systems & Concurrency Primitives',
-    category: 'cs_fundamentals',
-    description: 'Process management, thread safety, IPC, race conditions, and POSIX file locks.',
-    tags: ['Concurrency', 'POSIX', 'File Locks', 'Deadlocks'],
-    snippet: `# Atomic file locking prevents simultaneous sub-agent write conflicts\nwith open(SWARM_REGISTRY_FILE, "r+") as f:\n    fcntl.flock(f, fcntl.LOCK_EX)\n    # atomic mutation pass\n    fcntl.flock(f, fcntl.LOCK_UN)`,
-    keyInsights: [
-      'Domain locks in swarm_registry.json prevent multiple workers writing same file',
-      'Enforce atomic updates on shared JSON configuration files',
-    ],
-  },
-  {
-    id: 'dsa-book',
-    filename: 'data_structures_algorithms.md',
-    title: 'Data Structures & Algorithmic Decompositions',
-    category: 'cs_fundamentals',
-    description: 'Dependency graph DAGs, topological sorting for build tasks, and LRU cache rolling windows.',
-    tags: ['DAG', 'Topological Sort', 'LRU Cache', 'Sliding Window'],
-    snippet: `# 60-second sliding token window algorithm\nnow = time.time()\nrolling_window = [t for t in rolling_window if now - t < 60]\ncurrent_rpm = len(rolling_window)`,
-    keyInsights: [
-      'Topologically sort file tasks to generate boilerplate configs before business logic',
-      'Maintain sliding 60-second windows for accurate RPM and TPM enforcement',
-    ],
-  },
-  {
-    id: 'networks-book',
-    filename: 'computer_networks.md',
-    title: 'Computer Networks & Real-Time Protocols',
-    category: 'cs_fundamentals',
-    description: 'TCP sockets, HTTP/2 streaming, WebSocket full-duplex frames, and CORS policies.',
-    tags: ['WebSockets', 'TCP', 'HTTP/2', 'Protocols'],
-    snippet: `@app.websocket("/ws/telemetry")\nasync def ws_endpoint(ws: WebSocket):\n    await ws.accept()\n    while True:\n        await ws.send_json(telemetry_payload)\n        await asyncio.sleep(1.0)`,
-    keyInsights: [
-      'WebSockets offer zero-polling overhead for streaming live quota telemetry',
-      'Heartbeat frames every 1.0s verify active client connection integrity',
-    ],
-  },
-  // design_patterns
-  {
-    id: 'lld-book',
-    filename: 'low_level_design.md',
-    title: 'Low-Level Design (LLD) & SOLID Principles',
-    category: 'design_patterns',
-    description: 'Single Responsibility, Factory pattern, Dependency Injection, and Strategy patterns.',
-    tags: ['SOLID', 'Design Patterns', 'Factory', 'Interfaces'],
-    snippet: `class ExecutionStrategy(ABC):\n    @abstractmethod\n    def execute(self, task: Task) -> Result:\n        pass\n\nclass OfflineLocalStrategy(ExecutionStrategy):\n    def execute(self, task: Task) -> Result:\n        return run_local_qwen(task)`,
-    keyInsights: [
-      'Apply Strategy pattern to dynamically swap between offline and hybrid modes',
-      'Follow Single Responsibility across all assistant agent roles',
-    ],
-  },
-  {
-    id: 'hld-book',
-    filename: 'high_level_design.md',
-    title: 'High-Level Design (HLD) & Distributed Swarms',
-    category: 'design_patterns',
-    description: 'Swarm orchestrator-worker topology, rate-limiting circuit breakers, and event sourcing.',
-    tags: ['HLD', 'Swarm Topology', 'Circuit Breaker', 'Event Sourcing'],
-    snippet: `[Client Browser] <---> [FastAPI Web Bridge :8000]\n                              |\n      +-----------------------+-----------------------+\n      |                                               |\n[ProjectSupervisor]                            [TokenGovernor]\n      |                                               |\n[1..9 SubAgents] ---> [File System]             [Google AI Studio / Ollama]`,
-    keyInsights: [
-      'Decouple Web Bridge API from Supervisor execution using background threads',
-      'Circuit breakers prevent token budget overruns before making cloud LLM calls',
-    ],
-  },
+// Preset models for the Context Injection Simulator
+const PRESET_SIM_MODELS = [
+  { id: 'qwen2.5-coder:1.5b', label: 'qwen2.5-coder:1.5b (Small Local)', budget: 600 },
+  { id: 'qwen2.5-coder:7b', label: 'qwen2.5-coder:7b (Standard Local)', budget: 1200 },
+  { id: 'qwen2.5-coder:14b', label: 'qwen2.5-coder:14b (Standard Local)', budget: 1200 },
+  { id: 'qwen2.5-coder:32b', label: 'qwen2.5-coder:32b (Heavy Local)', budget: 2000 },
+  { id: 'gemini-2.5-pro', label: 'gemini-2.5-pro (Cloud High-Capacity)', budget: 3500 }
+];
+
+// Sample test directives for fast testing
+const SAMPLE_PROMPTS = [
+  'Build a FastAPI endpoint with async SQLAlchemy session, CORS middleware and JWT auth.',
+  'Implement React component with TypeScript, custom hook, and WebSocket live telemetry.',
+  'Docker containerization with multi-stage build, SQLite persistence and uvicorn server.',
+  'Operating system process threading with thread safety locks and non-blocking IO.'
 ];
 
 export const KnowledgeBase: React.FC = () => {
-  const [telemetry, setTelemetry] = useState<string>('Loading knowledge telemetry...');
-  const [defragging, setDefragging] = useState<boolean>(false);
-  const [defragMessage, setDefragMessage] = useState<string | null>(null);
+  // Navigation / View Mode
+  const [activeMode, setActiveMode] = useState<'explorer' | 'simulator'>('explorer');
+
+  // Knowledge Inventory State
+  const [booksData, setBooksData] = useState<BooksApiResponse | null>(null);
+  const [loadingBooks, setLoadingBooks] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedBook, setSelectedBook] = useState<BookItem | null>(null);
+  const [selectedBookKey, setSelectedBookKey] = useState<{ category: string; book_name: string } | null>(null);
 
-  const fetchTelemetry = async () => {
+  // Active Selected Book Details
+  const [activeBook, setActiveBook] = useState<BookDetail | null>(null);
+  const [loadingActiveBook, setLoadingActiveBook] = useState<boolean>(false);
+  const [bookWorkspaceTab, setBookWorkspaceTab] = useState<'sections' | 'editor' | 'recipe'>('sections');
+
+  // Markdown Editor State
+  const [editorContent, setEditorContent] = useState<string>('');
+  const [editorTags, setEditorTags] = useState<string>('');
+  const [savingBook, setSavingBook] = useState<boolean>(false);
+  const [bookFeedbackMsg, setBookFeedbackMsg] = useState<{ text: string; success: boolean } | null>(null);
+
+  // New Recipe Form State
+  const [recipeTitle, setRecipeTitle] = useState<string>('');
+  const [recipeInsight, setRecipeInsight] = useState<string>('');
+  const [recipeSnippet, setRecipeSnippet] = useState<string>('');
+  const [recipeTags, setRecipeTags] = useState<string>('');
+  const [addingRecipe, setAddingRecipe] = useState<boolean>(false);
+
+  // New Book Modal State
+  const [showNewBookModal, setShowNewBookModal] = useState<boolean>(false);
+  const [newBookCategory, setNewBookCategory] = useState<string>('coding');
+  const [newBookName, setNewBookName] = useState<string>('');
+  const [newBookContent, setNewBookContent] = useState<string>('# New Knowledge Book\n\n## Overview\nDocumentation and operational patterns.\n');
+  const [newBookTags, setNewBookTags] = useState<string>('general');
+  const [creatingBook, setCreatingBook] = useState<boolean>(false);
+
+  // Defrag State
+  const [defragging, setDefragging] = useState<boolean>(false);
+  const [defragFeedback, setDefragFeedback] = useState<string | null>(null);
+
+  // Simulator State
+  const [simPrompt, setSimPrompt] = useState<string>(SAMPLE_PROMPTS[0]);
+  const [simModel, setSimModel] = useState<string>('qwen2.5-coder:7b');
+  const [simCustomBudget, setSimCustomBudget] = useState<string>('');
+  const [simulating, setSimulating] = useState<boolean>(false);
+  const [simResult, setSimResult] = useState<SimulationResponse | null>(null);
+  const [copiedContext, setCopiedContext] = useState<boolean>(false);
+  const [expandedSnippets, setExpandedSnippets] = useState<Record<number, boolean>>({});
+
+  // ----------------------------------------------------------------------------
+  // DATA FETCHING: INVENTORY
+  // ----------------------------------------------------------------------------
+  const fetchBooks = useCallback(async () => {
+    setLoadingBooks(true);
     try {
-      const res = await fetch('/api/history');
+      const res = await fetch('/api/memory/books');
       if (res.ok) {
-        const data = await res.json();
-        setTelemetry(data.knowledge_telemetry || '19 Unified Topic Books | 9 Categories Indexed');
+        const data: BooksApiResponse = await res.json();
+        setBooksData(data);
+
+        // Auto-select first book if nothing is selected
+        if (data.books && data.books.length > 0 && !selectedBookKey) {
+          setSelectedBookKey({
+            category: data.books[0].category,
+            book_name: data.books[0].book_name
+          });
+        }
       }
     } catch (err) {
-      setTelemetry('19 Unified Topic Books | 9 Categories Indexed');
+      console.error('Failed to fetch books inventory:', err);
+    } finally {
+      setLoadingBooks(false);
+    }
+  }, [selectedBookKey]);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  // ----------------------------------------------------------------------------
+  // DATA FETCHING: ACTIVE BOOK DETAILS
+  // ----------------------------------------------------------------------------
+  const fetchActiveBook = useCallback(async (cat: string, name: string) => {
+    setLoadingActiveBook(true);
+    setBookFeedbackMsg(null);
+    try {
+      const res = await fetch(`/api/memory/book/${encodeURIComponent(cat)}/${encodeURIComponent(name)}`);
+      if (res.ok) {
+        const json = await res.json();
+        const b: BookDetail = json.book;
+        setActiveBook(b);
+        setEditorContent(b.content);
+        setEditorTags((b.tags || []).join(', '));
+      } else {
+        setActiveBook(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch active book:', err);
+      setActiveBook(null);
+    } finally {
+      setLoadingActiveBook(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedBookKey) {
+      fetchActiveBook(selectedBookKey.category, selectedBookKey.book_name);
+    }
+  }, [selectedBookKey, fetchActiveBook]);
+
+  // ----------------------------------------------------------------------------
+  // ACTION: SAVE BOOK
+  // ----------------------------------------------------------------------------
+  const handleSaveBook = async () => {
+    if (!activeBook) return;
+    setSavingBook(true);
+    setBookFeedbackMsg(null);
+    try {
+      const tagsList = editorTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      const res = await fetch('/api/memory/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: activeBook.category,
+          book_name: activeBook.book_name,
+          content: editorContent,
+          tags: tagsList
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setBookFeedbackMsg({ text: `Book "${activeBook.book_name}" saved successfully.`, success: true });
+        setActiveBook(data.book);
+        fetchBooks();
+      } else {
+        setBookFeedbackMsg({ text: data.detail || 'Failed to save book changes.', success: false });
+      }
+    } catch (err: any) {
+      setBookFeedbackMsg({ text: `Save error: ${err.message || err}`, success: false });
+    } finally {
+      setSavingBook(false);
     }
   };
 
-  useEffect(() => {
-    fetchTelemetry();
-  }, []);
+  // ----------------------------------------------------------------------------
+  // ACTION: DELETE BOOK
+  // ----------------------------------------------------------------------------
+  const handleDeleteBook = async () => {
+    if (!activeBook) return;
+    const confirmDelete = window.confirm(
+      `Are you sure you want to permanently delete "${activeBook.category}/${activeBook.book_name}"?`
+    );
+    if (!confirmDelete) return;
 
-  const handleDefrag = async () => {
+    try {
+      const res = await fetch(`/api/memory/book/${encodeURIComponent(activeBook.category)}/${encodeURIComponent(activeBook.book_name)}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setSelectedBookKey(null);
+        setActiveBook(null);
+        fetchBooks();
+      } else {
+        const data = await res.json();
+        alert(`Delete failed: ${data.detail || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      alert(`Delete error: ${err.message || err}`);
+    }
+  };
+
+  // ----------------------------------------------------------------------------
+  // ACTION: APPEND RECIPE
+  // ----------------------------------------------------------------------------
+  const handleAppendRecipe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeBook || !recipeTitle.trim() || !recipeInsight.trim()) return;
+
+    setAddingRecipe(true);
+    setBookFeedbackMsg(null);
+    try {
+      const tagsList = recipeTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      const res = await fetch('/api/memory/book/recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: activeBook.category,
+          book_name: activeBook.book_name,
+          title: recipeTitle.trim(),
+          insight: recipeInsight.trim(),
+          code_snippet: recipeSnippet.trim(),
+          tags: tagsList
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setActiveBook(data.book);
+        setEditorContent(data.book.content);
+        setRecipeTitle('');
+        setRecipeInsight('');
+        setRecipeSnippet('');
+        setRecipeTags('');
+        setBookWorkspaceTab('sections');
+        setBookFeedbackMsg({ text: `Recipe "${recipeTitle}" appended successfully!`, success: true });
+        fetchBooks();
+      } else {
+        setBookFeedbackMsg({ text: data.detail || 'Failed to append recipe.', success: false });
+      }
+    } catch (err: any) {
+      setBookFeedbackMsg({ text: `Recipe error: ${err.message || err}`, success: false });
+    } finally {
+      setAddingRecipe(false);
+    }
+  };
+
+  // ----------------------------------------------------------------------------
+  // ACTION: CREATE NEW BOOK
+  // ----------------------------------------------------------------------------
+  const handleCreateBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let cleanName = newBookName.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '_');
+    if (!cleanName) return;
+    if (!cleanName.endsWith('.md')) cleanName += '.md';
+
+    setCreatingBook(true);
+    try {
+      const tagsList = newBookTags.split(',').map((t) => t.trim()).filter(Boolean);
+      const res = await fetch('/api/memory/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: newBookCategory,
+          book_name: cleanName,
+          content: newBookContent,
+          tags: tagsList
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setShowNewBookModal(false);
+        setNewBookName('');
+        setSelectedBookKey({ category: newBookCategory, book_name: cleanName });
+        fetchBooks();
+      } else {
+        alert(data.detail || 'Failed to create new book.');
+      }
+    } catch (err: any) {
+      alert(`Create error: ${err.message || err}`);
+    } finally {
+      setCreatingBook(false);
+    }
+  };
+
+  // ----------------------------------------------------------------------------
+  // ACTION: DEFRAGMENT BOOKS
+  // ----------------------------------------------------------------------------
+  const handleDefragment = async () => {
     setDefragging(true);
-    setDefragMessage(null);
+    setDefragFeedback(null);
     try {
       const res = await fetch('/api/memory/defrag', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setTelemetry(data.knowledge_telemetry);
-        setDefragMessage(data.message || 'Defragmentation complete. Memory books consolidated.');
-      } else {
-        setDefragMessage('Defragmentation completed with standard system baseline.');
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setDefragFeedback(data.message || 'Defragmentation complete.');
+        fetchBooks();
+        setTimeout(() => setDefragFeedback(null), 6000);
       }
     } catch (err) {
-      setDefragMessage('Defragmentation triggered. Topic books verified.');
+      console.error('Defragmentation failed:', err);
     } finally {
       setDefragging(false);
     }
   };
 
-  const filteredBooks = CANONICAL_BOOKS.filter((book) => {
-    const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory;
-    const matchesSearch =
-      searchQuery === '' ||
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  // ----------------------------------------------------------------------------
+  // ACTION: CONTEXT SIMULATION
+  // ----------------------------------------------------------------------------
+  const handleRunSimulation = async () => {
+    if (!simPrompt.trim()) return;
+    setSimulating(true);
+    try {
+      const budgetNum = simCustomBudget.trim() ? parseInt(simCustomBudget.trim(), 10) : undefined;
+      const res = await fetch('/api/memory/simulate-injection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: simPrompt.trim(),
+          model_name: simModel,
+          max_tokens: budgetNum
+        })
+      });
+
+      if (res.ok) {
+        const data: SimulationResponse = await res.json();
+        setSimResult(data);
+      }
+    } catch (err) {
+      console.error('Simulation failed:', err);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const copyInjectedContext = () => {
+    if (!simResult?.formatted_context) return;
+    navigator.clipboard.writeText(simResult.formatted_context);
+    setCopiedContext(true);
+    setTimeout(() => setCopiedContext(false), 2500);
+  };
+
+  // ----------------------------------------------------------------------------
+  // FILTERED BOOKS LIST
+  // ----------------------------------------------------------------------------
+  const filteredBooks = useMemo(() => {
+    if (!booksData?.books) return [];
+    return booksData.books.filter((b) => {
+      const matchesCat = selectedCategory === 'all' || b.category.toLowerCase() === selectedCategory.toLowerCase();
+      if (!matchesCat) return false;
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      const nameMatch = b.book_name.toLowerCase().includes(q) || b.title.toLowerCase().includes(q);
+      const tagMatch = (b.tags || []).some((t) => t.toLowerCase().includes(q));
+      const summaryMatch = (b.summary || '').toLowerCase().includes(q);
+      return nameMatch || tagMatch || summaryMatch;
+    });
+  }, [booksData, selectedCategory, searchQuery]);
+
+  // Total sections count rollup
+  const totalSectionsCount = useMemo(() => {
+    if (!booksData?.books) return 0;
+    return booksData.books.reduce((acc, b) => acc + (b.section_count || 0), 0);
+  }, [booksData]);
 
   return (
-    <div id="knowledge-base-page" className="space-y-6">
-      {/* 1. Top Header Banner & Defrag Action */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-950/50 via-slate-900/80 to-orange-950/40 border border-amber-500/20 p-6 backdrop-blur">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-semibold text-amber-400">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Advance Assistant OS v6.0 &bull; Knowledge Base Explorer</span>
+    <div className="space-y-6 pb-12">
+      {/* ==================================================================== */}
+      {/* 1. TOP HEADER & TELEMETRY COUNTER BANNER                             */}
+      {/* ==================================================================== */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <BookOpen className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              Unified Engineering Topic Books
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
-              Persistent architectural memory spanning 9 canonical categories. Automatically consolidated from domain tasks and synthesis insights.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 shrink-0">
-            <div className="px-3.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs font-mono">
-              <span className="text-slate-400">Indexed Telemetry:</span>{' '}
-              <span className="text-amber-400 font-bold">{telemetry}</span>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                Knowledge Base & Snippet Engine
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  v6.0 Unified
+                </span>
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Precision Markdown Section Parser &bull; Model-Aware Token Budgeter &bull; Offline Ollama Context Simulator
+              </p>
             </div>
-
-            <button
-              id="trigger-defrag-btn"
-              onClick={handleDefrag}
-              disabled={defragging}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs shadow-glow-amber transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${defragging ? 'animate-spin' : ''}`} />
-              <span>{defragging ? 'Consolidating Memory...' : 'Defrag & Consolidate Books'}</span>
-            </button>
           </div>
+        </div>
+
+        {/* Global Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            id="new-book-modal-btn"
+            onClick={() => setShowNewBookModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-amber-600/20 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Knowledge Book</span>
+          </button>
+
+          <button
+            type="button"
+            id="defrag-books-btn"
+            onClick={handleDefragment}
+            disabled={defragging}
+            className="px-3.5 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${defragging ? 'animate-spin text-amber-400' : 'text-slate-400'}`} />
+            <span>{defragging ? 'Consolidating...' : 'Defrag & Consolidate'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Success Notification */}
-      {defragMessage && (
-        <div
-          id="defrag-success-banner"
-          className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-xs text-emerald-200 flex items-center justify-between gap-2"
-        >
-          <div className="flex items-center gap-2.5">
+      {/* Defrag Alert Banner */}
+      {defragFeedback && (
+        <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-xs flex items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{defragMessage}</span>
+            <span>{defragFeedback}</span>
           </div>
-          <button
-            onClick={() => setDefragMessage(null)}
-            className="text-slate-400 hover:text-white p-1 rounded"
-          >
-            <X className="w-3.5 h-3.5" />
+          <button onClick={() => setDefragFeedback(null)} className="text-slate-400 hover:text-slate-200 text-xs">
+            ✕
           </button>
         </div>
       )}
 
-      {/* 2. System Hardware & Architecture Invariants Panel */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Hardware & System Architectural Invariants</span>
+      {/* Live Telemetry Summary Gauges */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider flex items-center gap-1.5">
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span>Total Topic Books</span>
           </div>
-          <span className="text-[11px] font-mono text-slate-500">Unchanging Host Foundations</span>
+          <div className="text-2xl font-bold font-mono text-white mt-1">
+            {booksData?.total_books ?? '--'}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">Persisted in .agent_memory/books/</div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <span className="text-slate-400 text-[10px] uppercase">Execution Host</span>
-            <div className="text-white font-semibold">Ubuntu 24.04 WSL2</div>
-            <p className="text-[10px] text-slate-500 font-sans">Native Windows /mnt/c & /mnt/d DrvFs Mounts</p>
+        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Active Categories</span>
           </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <span className="text-slate-400 text-[10px] uppercase">Dedicated GPU & VRAM</span>
-            <div className="text-emerald-400 font-semibold">NVIDIA RTX 4060 (8GB VRAM)</div>
-            <p className="text-[10px] text-slate-500 font-sans">Pure VRAM for Qwen 7B & RAM+GPU for 32B</p>
+          <div className="text-2xl font-bold font-mono text-indigo-300 mt-1">
+            {booksData?.categories ? Object.keys(booksData.categories).length : '--'}
           </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <span className="text-slate-400 text-[10px] uppercase">Host Processor</span>
-            <div className="text-purple-400 font-semibold">Intel Core i7-14700HX</div>
-            <p className="text-[10px] text-slate-500 font-sans">20 Cores (8P + 12E), 28 Threads Concurrency</p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <span className="text-slate-400 text-[10px] uppercase">Quota Reset Boundary</span>
-            <div className="text-amber-400 font-semibold">1:30 PM IST (Midnight PT)</div>
-            <p className="text-[10px] text-slate-500 font-sans">Automated daily ledger purge and reset</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Search & Category Filter Navigation */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              id="search-books-input"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search topic books, syntaxes, patterns..."
-              className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500 transition-all placeholder:text-slate-600"
-            />
-          </div>
-
-          <span className="text-xs text-slate-400 font-mono self-center">
-            Showing {filteredBooks.length} of {CANONICAL_BOOKS.length} books
-          </span>
+          <div className="text-[11px] text-slate-500 mt-0.5">Canonical knowledge domains</div>
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-2 pt-1">
-          {Object.entries(CATEGORIES).map(([catKey, cat]) => {
-            const Icon = cat.icon;
-            const count =
-              catKey === 'all'
-                ? CANONICAL_BOOKS.length
-                : CANONICAL_BOOKS.filter((b) => b.category === catKey).length;
+        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Sections & Recipes</span>
+          </div>
+          <div className="text-2xl font-bold font-mono text-cyan-300 mt-1">
+            {totalSectionsCount}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">Discrete parsed Markdown blocks</div>
+        </div>
 
-            return (
-              <button
-                key={catKey}
-                id={`cat-filter-${catKey}`}
-                onClick={() => setSelectedCategory(catKey)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
-                  selectedCategory === catKey
-                    ? 'bg-amber-600/30 text-amber-300 border-amber-500/50 shadow-glow-amber'
-                    : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${cat.color}`} />
-                <span>{cat.label}</span>
-                <span className="px-1.5 py-0.2 rounded bg-slate-800 text-[10px] font-mono text-slate-500">
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Estimated Tokens</span>
+          </div>
+          <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+            {booksData?.total_tokens ? booksData.total_tokens.toLocaleString() : '--'}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">Indexed total corpus size</div>
         </div>
       </div>
 
-      {/* 4. Categorized Topic Books Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredBooks.map((book) => {
-          const cat = CATEGORIES[book.category] || CATEGORIES.all;
-          const CatIcon = cat.icon;
-
-          return (
-            <div
-              key={book.id}
-              id={book.id}
-              onClick={() => setSelectedBook(book)}
-              className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 cursor-pointer hover:border-amber-500/40 hover:-translate-y-0.5 transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-amber-400 group-hover:text-amber-300 transition-colors">
-                    <CatIcon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-white group-hover:text-amber-200 transition-colors">
-                      {book.title}
-                    </h3>
-                    <span className="text-[10px] font-mono text-slate-500">{book.filename}</span>
-                  </div>
-                </div>
-
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-900 text-slate-400 border border-slate-800 uppercase">
-                  {book.category}
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-400 line-clamp-2">
-                {book.description}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {book.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800 text-[10px] font-mono text-slate-400"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
-                <span>Canonical Master Topic</span>
-                <span className="text-amber-400 flex items-center gap-1 font-medium group-hover:translate-x-0.5 transition-transform">
-                  View Notes <ChevronRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 5. Topic Book Reader Modal / Drawer */}
-      {selectedBook && (
-        <div
-          id="book-reader-modal"
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+      {/* ==================================================================== */}
+      {/* 2. MODE SELECTOR BAR (EXPLORER vs CONTEXT SIMULATOR)                 */}
+      {/* ==================================================================== */}
+      <div className="flex border-b border-slate-800">
+        <button
+          type="button"
+          onClick={() => setActiveMode('explorer')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition-all ${
+            activeMode === 'explorer'
+              ? 'border-amber-500 text-amber-300 bg-amber-500/5'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+          }`}
         >
-          <div className="w-full max-w-3xl max-h-[85vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">{selectedBook.title}</h3>
-                  <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                    <span>File: .agent_memory/books/{selectedBook.category}/{selectedBook.filename}</span>
-                    <span>&bull;</span>
-                    <span className="text-amber-400 font-semibold uppercase">{selectedBook.category}</span>
-                  </div>
-                </div>
-              </div>
+          <BookOpen className="w-4 h-4" />
+          <span>Explorer & Markdown Workspace</span>
+        </button>
 
-              <button
-                id="close-reader-modal-btn"
-                onClick={() => setSelectedBook(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        <button
+          type="button"
+          onClick={() => setActiveMode('simulator')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition-all ${
+            activeMode === 'simulator'
+              ? 'border-emerald-500 text-emerald-300 bg-emerald-500/5'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+          }`}
+        >
+          <Zap className="w-4 h-4 text-emerald-400" />
+          <span>Precision Context Simulator</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Offline Ollama
+          </span>
+        </button>
+      </div>
+
+      {/* ==================================================================== */}
+      {/* 3. MODE 1: SPLIT-PANE EXPLORER & WORKSPACE                           */}
+      {/* ==================================================================== */}
+      {activeMode === 'explorer' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN: Categories & Book Selector (4 Cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            {/* Category Pills Scroller */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Categories
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(CANONICAL_CATEGORIES_META).map(([catKey, meta]) => {
+                  const Icon = meta.icon;
+                  const isSelected = selectedCategory === catKey;
+                  const count =
+                    catKey === 'all'
+                      ? booksData?.books?.length || 0
+                      : booksData?.categories?.[catKey]?.book_count || 0;
+
+                  return (
+                    <button
+                      key={catKey}
+                      type="button"
+                      onClick={() => setSelectedCategory(catKey)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                        isSelected
+                          ? 'bg-amber-600/20 border-amber-500 text-amber-300 font-bold'
+                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+                      <span>{meta.label}</span>
+                      <span className="px-1.5 py-0.2 rounded bg-slate-800 text-[10px] font-mono text-slate-500">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-5 text-xs font-sans">
+            {/* Book Search & Book List */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter books by title, filename, tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Books List View */}
+              <div className="space-y-2 max-h-[620px] overflow-y-auto pr-1">
+                {loadingBooks ? (
+                  <div className="p-8 text-center text-xs text-slate-500 font-mono flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>Loading knowledge catalog...</span>
+                  </div>
+                ) : filteredBooks.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    No books matched category or filter query.
+                  </div>
+                ) : (
+                  filteredBooks.map((b) => {
+                    const isSelected =
+                      selectedBookKey?.category === b.category && selectedBookKey?.book_name === b.book_name;
+                    const meta = CANONICAL_CATEGORIES_META[b.category] || CANONICAL_CATEGORIES_META.general;
+
+                    return (
+                      <div
+                        key={`${b.category}/${b.book_name}`}
+                        onClick={() => setSelectedBookKey({ category: b.category, book_name: b.book_name })}
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-slate-850 border-amber-500/70 shadow-amber-500/10 ring-1 ring-amber-500/30'
+                            : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/60'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className={`text-xs font-bold truncate ${isSelected ? 'text-amber-300' : 'text-white'}`}>
+                              {b.title}
+                            </h3>
+                            <div className="text-[10px] font-mono text-slate-500 truncate mt-0.5">
+                              {b.book_name}
+                            </div>
+                          </div>
+
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border shrink-0 ${meta.bg} ${meta.color}`}>
+                            {b.category}
+                          </span>
+                        </div>
+
+                        {b.summary && (
+                          <p className="text-[11px] text-slate-400 line-clamp-2 mt-2 leading-relaxed">
+                            {b.summary}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-slate-800/60 text-[10px] font-mono text-slate-500">
+                          <span className="text-slate-400">
+                            {b.section_count} sections &bull; {b.estimated_tokens} tokens
+                          </span>
+                          <span>{(b.size_bytes / 1024).toFixed(1)} KB</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Active Book Workspace (7 Cols) */}
+          <div className="lg:col-span-7 space-y-4">
+            {activeBook ? (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                {/* Book Workspace Header */}
+                <div className="p-5 border-b border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        {activeBook.category}
+                      </span>
+                      <h2 className="text-base font-bold text-white truncate">{activeBook.title}</h2>
+                    </div>
+                    <div className="text-xs font-mono text-slate-400 mt-1 flex flex-wrap items-center gap-3">
+                      <span>Path: .agent_memory/books/{activeBook.category}/{activeBook.book_name}</span>
+                      <span>&bull;</span>
+                      <span className="text-emerald-400">{activeBook.estimated_tokens} tokens</span>
+                      <span>&bull;</span>
+                      <span className="text-slate-500">{activeBook.last_modified}</span>
+                    </div>
+                  </div>
+
+                  {/* Sub-tab Switcher Buttons */}
+                  <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setBookWorkspaceTab('sections')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        bookWorkspaceTab === 'sections'
+                          ? 'bg-amber-600/30 text-amber-300 border border-amber-500/50 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Sections ({activeBook.sections?.length || 0})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookWorkspaceTab('editor')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        bookWorkspaceTab === 'editor'
+                          ? 'bg-amber-600/30 text-amber-300 border border-amber-500/50 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Markdown Editor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookWorkspaceTab('recipe')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        bookWorkspaceTab === 'recipe'
+                          ? 'bg-amber-600/30 text-amber-300 border border-amber-500/50 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      + Add Recipe
+                    </button>
+                  </div>
+                </div>
+
+                {/* Feedback banner */}
+                {bookFeedbackMsg && (
+                  <div
+                    className={`mx-5 mt-4 p-3 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                      bookFeedbackMsg.success
+                        ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300'
+                        : 'bg-rose-950/40 border-rose-800/60 text-rose-300'
+                    }`}
+                  >
+                    <span>{bookFeedbackMsg.text}</span>
+                    <button onClick={() => setBookFeedbackMsg(null)} className="text-slate-400 hover:text-white text-xs">
+                      ✕
+                    </button>
+                  </div>
+                )}
+
+                {/* SUB-TAB 1: PARSED SECTIONS & RECIPES */}
+                {bookWorkspaceTab === 'sections' && (
+                  <div className="p-5 space-y-4 max-h-[720px] overflow-y-auto">
+                    {loadingActiveBook ? (
+                      <div className="p-12 text-center text-xs text-slate-500 font-mono">
+                        Parsing sections...
+                      </div>
+                    ) : !activeBook.sections || activeBook.sections.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-slate-500">
+                        No parsed sections found. Add a recipe or edit Markdown.
+                      </div>
+                    ) : (
+                      activeBook.sections.map((sec) => (
+                        <div
+                          key={sec.section_id}
+                          className="bg-slate-950 border border-slate-800/90 hover:border-slate-700 rounded-xl p-4 space-y-2.5 transition-all shadow-md"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400 flex items-center justify-center shrink-0">
+                                #{sec.section_id}
+                              </span>
+                              <h4 className="text-xs font-bold text-white font-mono">{sec.heading}</h4>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {sec.has_code && (
+                                <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
+                                  <Code className="w-3 h-3" /> Code
+                                </span>
+                              )}
+                              <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-slate-900 text-slate-400 border border-slate-800">
+                                {sec.estimated_tokens} tok
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Keywords */}
+                          {sec.keywords && sec.keywords.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {sec.keywords.slice(0, 8).map((kw, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-slate-900 border border-slate-800 text-slate-400"
+                                >
+                                  #{kw}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Section Markdown Content */}
+                          <pre className="p-3.5 rounded-lg bg-slate-900/90 border border-slate-800/80 text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                            {sec.content}
+                          </pre>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* SUB-TAB 2: RAW MARKDOWN EDITOR */}
+                {bookWorkspaceTab === 'editor' && (
+                  <div className="p-5 space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Tags (Comma Separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={editorTags}
+                        onChange={(e) => setEditorTags(e.target.value)}
+                        placeholder="fastapi, async, sqlalchemy, rest"
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <label className="font-bold text-slate-300 uppercase tracking-wider">
+                          Raw Markdown Content
+                        </label>
+                        <span className="font-mono text-[11px]">
+                          ~{Math.max(1, Math.floor(editorContent.length / 4))} estimated tokens
+                        </span>
+                      </div>
+                      <textarea
+                        value={editorContent}
+                        onChange={(e) => setEditorContent(e.target.value)}
+                        rows={18}
+                        className="w-full p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 leading-relaxed focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                      <button
+                        type="button"
+                        onClick={handleDeleteBook}
+                        className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Book</span>
+                      </button>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditorContent(activeBook.content);
+                            setEditorTags((activeBook.tags || []).join(', '));
+                          }}
+                          className="px-3 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 text-xs font-medium"
+                        >
+                          Reset
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleSaveBook}
+                          disabled={savingBook}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-50"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>{savingBook ? 'Saving Changes...' : 'Save Book Changes'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB 3: APPEND OPERATIONAL RECIPE */}
+                {bookWorkspaceTab === 'recipe' && (
+                  <form onSubmit={handleAppendRecipe} className="p-5 space-y-4">
+                    <div className="text-xs text-slate-400">
+                      Appends a structured knowledge insight block into{' '}
+                      <strong className="text-amber-400 font-mono">{activeBook.book_name}</strong>. The backend automatically parses it into a discrete section and indexes keywords for precision retrieval.
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Recipe Directive / Title
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Non-blocking Session Disposal in Lifespan Context"
+                        value={recipeTitle}
+                        onChange={(e) => setRecipeTitle(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Operational Insight & Architecture Notes
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        placeholder="Explain syntax specifics, concurrency protections, or bug fixes..."
+                        value={recipeInsight}
+                        onChange={(e) => setRecipeInsight(e.target.value)}
+                        className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono leading-relaxed focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Standard Code Snippet (Optional)
+                      </label>
+                      <textarea
+                        rows={5}
+                        placeholder="async with async_session() as session: ..."
+                        value={recipeSnippet}
+                        onChange={(e) => setRecipeSnippet(e.target.value)}
+                        className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-300 placeholder-slate-600 font-mono leading-relaxed focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                        Tags (Comma Separated)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="async, session, lifespan, sqlalchemy"
+                        value={recipeTags}
+                        onChange={(e) => setRecipeTags(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={addingRecipe}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-amber-600/20 transition-all disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>{addingRecipe ? 'Appending Recipe...' : 'Append Recipe to Book'}</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 flex flex-col items-center justify-center space-y-3">
+                <BookOpen className="w-10 h-10 text-slate-700" />
+                <div className="text-sm font-semibold text-slate-400">No Knowledge Book Selected</div>
+                <div className="text-xs max-w-sm text-slate-500">
+                  Select a book from the left catalogue or click &quot;New Knowledge Book&quot; to initialize a new knowledge layer.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 4. MODE 2: PRECISION CONTEXT INJECTION SIMULATOR                     */}
+      {/* ==================================================================== */}
+      {activeMode === 'simulator' && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                  Architectural Summary
-                </h4>
-                <p className="text-slate-300 leading-relaxed text-sm">
-                  {selectedBook.description}
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-emerald-400" />
+                  Model-Aware Precision Context Simulation
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Simulate what discrete knowledge snippets our weighted scoring algorithm compiles for offline local models.
                 </p>
               </div>
 
-              {/* Key Insights */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                  Key Operational Directives & Synthesis Insights
-                </h4>
-                <div className="space-y-1.5">
-                  {selectedBook.keyInsights.map((insight, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 flex items-start gap-2"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                      <span>{insight}</span>
-                    </div>
+              <div className="text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-800/60">
+                POST /api/memory/simulate-injection
+              </div>
+            </div>
+
+            {/* Quick Sample Prompts */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Quick Preset Engineering Directives:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {SAMPLE_PROMPTS.map((promptText, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSimPrompt(promptText)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[11px] text-slate-300 font-mono transition-all text-left line-clamp-1"
+                  >
+                    &quot;{promptText.slice(0, 48)}...&quot;
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Directive Input Textarea */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Task / Prompt Directive
+              </label>
+              <textarea
+                rows={3}
+                value={simPrompt}
+                onChange={(e) => setSimPrompt(e.target.value)}
+                placeholder="Type engineering directive here..."
+                className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-emerald-500 leading-relaxed"
+              />
+            </div>
+
+            {/* Model & Budget Controls */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Target Inference Model
+                </label>
+                <select
+                  value={simModel}
+                  onChange={(e) => setSimModel(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                >
+                  {PRESET_SIM_MODELS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label} &bull; Default Budget: {m.budget} tokens
+                    </option>
                   ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Custom Budget Override
+                </label>
+                <input
+                  type="number"
+                  placeholder="Auto by model"
+                  value={simCustomBudget}
+                  onChange={(e) => setSimCustomBudget(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 font-mono focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Run Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={handleRunSimulation}
+                disabled={simulating || !simPrompt.trim()}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all disabled:opacity-50"
+              >
+                <Play className={`w-3.5 h-3.5 ${simulating ? 'animate-spin' : ''}`} />
+                <span>{simulating ? 'Evaluating Relevance Scores...' : 'Run Precision Context Simulation'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* SIMULATION RESULTS VIEW */}
+          {simResult && (
+            <div className="space-y-5 animate-fadeIn">
+              {/* Optimization KPI Banner */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Token Budget</div>
+                  <div className="text-2xl font-bold font-mono text-white mt-1">
+                    {simResult.token_budget}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">Scale for {simResult.model_name}</div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Injected Tokens</div>
+                  <div className="text-2xl font-bold font-mono text-cyan-400 mt-1">
+                    {simResult.injected_tokens}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">High-signal snippets</div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Full Books Size</div>
+                  <div className="text-2xl font-bold font-mono text-slate-400 mt-1">
+                    {simResult.full_books_tokens}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">Uncompressed raw tokens</div>
+                </div>
+
+                <div className="bg-slate-900 border border-emerald-900/60 rounded-xl p-4 bg-emerald-950/20">
+                  <div className="text-[10px] text-emerald-400 uppercase font-semibold">Tokens Saved</div>
+                  <div className="text-2xl font-bold font-mono text-emerald-300 mt-1 flex items-baseline gap-2">
+                    <span>{simResult.tokens_saved}</span>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      {simResult.full_books_tokens > 0
+                        ? `${Math.round((simResult.tokens_saved / simResult.full_books_tokens) * 100)}% Saved`
+                        : '100%'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-emerald-500/80 mt-0.5">Context pollution prevented</div>
                 </div>
               </div>
 
-              {/* Code Snippet Box */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-                  <span>Standard Canonical Implementation Pattern</span>
-                  <span className="text-slate-500 text-[10px]">Reference Blueprint</span>
+              {/* Matched Snippets Cards */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Top Matched Snippets ({simResult.matched_snippets?.length || 0})</span>
+                  </h4>
+                  <span className="text-[11px] font-mono text-slate-400">
+                    Weighted scoring: Heading (3x) + Domain (2.5x) + Body (1x) + Code (+1.5)
+                  </span>
                 </div>
-                <pre className="p-4 rounded-xl bg-black/80 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto leading-relaxed">
-                  {selectedBook.snippet}
+
+                <div className="space-y-2.5">
+                  {simResult.matched_snippets.map((snip, idx) => {
+                    const isExpanded = !!expandedSnippets[idx];
+
+                    return (
+                      <div
+                        key={idx}
+                        className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 hover:border-slate-700 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                              Score: {snip.score}
+                            </span>
+                            <span className="text-xs font-bold text-white truncate font-mono">
+                              [{snip.category}/{snip.book_name} &gt; {snip.heading}]
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {snip.has_code && (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-950/40 text-emerald-300 border border-emerald-800/60">
+                                Code
+                              </span>
+                            )}
+                            <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-slate-900 text-slate-400 border border-slate-800">
+                              {snip.estimated_tokens} tok
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSnippets((prev) => ({ ...prev, [idx]: !isExpanded }))}
+                              className="text-slate-400 hover:text-white p-1"
+                            >
+                              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Preview or Expanded Content */}
+                        <pre className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                          {isExpanded ? snip.content : `${snip.preview}...`}
+                        </pre>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Exact Injected Context Prompt Preview */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Compiled Model Prompt Context
+                    </h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      The exact Markdown string assembled and prepended to the system prompt.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={copyInjectedContext}
+                    className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    {copiedContext ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedContext ? 'Copied Context!' : 'Copy Injected Context'}</span>
+                  </button>
+                </div>
+
+                <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto">
+                  {simResult.formatted_context}
                 </pre>
               </div>
             </div>
+          )}
+        </div>
+      )}
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs font-mono text-slate-500">
-              <span>Managed by MemoryManager defragment_and_consolidate_books()</span>
+      {/* ==================================================================== */}
+      {/* 5. NEW KNOWLEDGE BOOK MODAL                                          */}
+      {/* ==================================================================== */}
+      {showNewBookModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-bold text-white">Create New Knowledge Book</h3>
+              </div>
               <button
-                onClick={() => setSelectedBook(null)}
-                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors font-sans"
+                onClick={() => setShowNewBookModal(false)}
+                className="text-slate-400 hover:text-white"
               >
-                Close Reader
+                ✕
               </button>
             </div>
+
+            <form onSubmit={handleCreateBook} className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Target Canonical Domain
+                </label>
+                <select
+                  value={newBookCategory}
+                  onChange={(e) => setNewBookCategory(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-amber-500"
+                >
+                  <option value="coding">coding (Syntax, algorithms, languages)</option>
+                  <option value="frameworks">frameworks (FastAPI, React, testing)</option>
+                  <option value="cloud">cloud (Docker, OCI, deployment)</option>
+                  <option value="devops">devops (CI/CD, pipelines, monitoring)</option>
+                  <option value="ai_ml">ai_ml (Ollama, models, weights)</option>
+                  <option value="security">security (OAuth, JWT, hashing)</option>
+                  <option value="databases">databases (SQLAlchemy, PostgreSQL, Redis)</option>
+                  <option value="architecture">architecture (HLD, microservices)</option>
+                  <option value="general">general (System notes, runbooks)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Book Filename
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. docker_compose_templates"
+                  value={newBookName}
+                  onChange={(e) => setNewBookName(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                />
+                <div className="text-[10px] text-slate-500 font-mono">
+                  Will be saved as .agent_memory/books/{newBookCategory}/{newBookName || 'book_name'}.md
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Tags (Comma-Separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="docker, compose, container"
+                  value={newBookTags}
+                  onChange={(e) => setNewBookTags(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Initial Content
+                </label>
+                <textarea
+                  rows={6}
+                  value={newBookContent}
+                  onChange={(e) => setNewBookContent(e.target.value)}
+                  className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowNewBookModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-medium hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingBook}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold shadow-lg shadow-amber-600/20 transition-all disabled:opacity-50"
+                >
+                  {creatingBook ? 'Creating...' : 'Create Book'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
