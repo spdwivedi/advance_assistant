@@ -109,6 +109,19 @@ export const ExecutionStudio: React.FC = () => {
           if (cfg.defaults?.max_swarm_workers) setMaxWorkers(Math.min(cfg.defaults.max_swarm_workers - 1, 8));
         }
 
+        // Hydrate default max workers and active swarm profile from Agent Hub
+        try {
+          const swarmsRes = await fetch("/api/swarms/profiles");
+          if (swarmsRes.ok && isMounted) {
+            const swData = await swarmsRes.json();
+            if (swData.max_concurrency_workers) {
+              setMaxWorkers(Math.min(Math.max(1, Number(swData.max_concurrency_workers)), 16));
+            }
+          }
+        } catch (sErr) {
+          // Graceful fallback to default config
+        }
+
         if (historyRes.ok && isMounted) {
           const hist: HistoryData = await historyRes.json();
           setHistory(hist);
@@ -624,21 +637,21 @@ export const ExecutionStudio: React.FC = () => {
                 <label htmlFor="workers-input" className="block text-xs font-semibold text-slate-300">
                   Swarm Concurrency Workers
                 </label>
-                <span className="font-mono text-xs text-purple-400 font-bold">{maxWorkers} / 9</span>
+                <span className="font-mono text-xs text-purple-400 font-bold">{maxWorkers} / 16</span>
               </div>
               <input
                 id="workers-slider"
                 type="range"
                 min={1}
-                max={9}
+                max={16}
                 value={maxWorkers}
                 onChange={(e) => setMaxWorkers(Number(e.target.value))}
                 className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
               />
               <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>1 worker (Serial)</span>
-                <span>4 workers (Standard)</span>
-                <span>9 workers (Max Swarm)</span>
+                <span>8 workers (Standard Swarm)</span>
+                <span>16 workers (Burst Mode)</span>
               </div>
             </div>
 

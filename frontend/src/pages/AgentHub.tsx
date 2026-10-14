@@ -26,7 +26,16 @@ import {
   Gauge,
   Clock,
   Filter,
-  CheckCircle
+  CheckCircle,
+  HardDrive,
+  Trash2,
+  Plus,
+  X,
+  Globe,
+  Lock,
+  AlertTriangle,
+  SlidersHorizontal,
+  Rocket
 } from 'lucide-react';
 
 interface SafetyTier {
@@ -63,6 +72,145 @@ interface BridgeStatus {
   is_ollama_online: boolean;
   ollama_api_base: string;
 }
+
+interface LoadedModelInfo {
+  name: string;
+  size_vram_gb: number;
+  size_total_gb: number;
+  expires_at?: string;
+}
+
+interface VramTelemetry {
+  is_ollama_online: boolean;
+  budget_gb: number;
+  used_gb: number;
+  available_gb: number;
+  usage_percent: number;
+  active_loaded_models: LoadedModelInfo[];
+}
+
+interface OllamaTagModel {
+  name: string;
+  tag: string;
+  size_gb: number;
+  parameter_size: string;
+  quantization_level: string;
+  modified_at?: string;
+}
+
+interface SwarmProfile {
+  id: string;
+  name: string;
+  description: string;
+  orchestrator: string;
+  worker_tier: string;
+  default_concurrency: number;
+}
+
+interface SwarmProfilesConfig {
+  active_swarm_id: string;
+  orchestrator_engine: string;
+  max_concurrency_workers: number;
+  swarms: SwarmProfile[];
+}
+
+const DEFAULT_SWARMS: SwarmProfile[] = [
+  {
+    id: 'GLOBAL_HYBRID_SWARM',
+    name: 'Global Hybrid Adaptive Swarm',
+    description: 'Cloud Pro/Ollama 32B for Architecture; Cloud Flash & Local 7B for Parallel Workers.',
+    orchestrator: 'qwen2.5-coder:32b',
+    worker_tier: 'HIGH_RPM_TPM',
+    default_concurrency: 8
+  },
+  {
+    id: 'FULLSTACK_CLOUD_SWARM',
+    name: 'High-Throughput Cloud Swarm',
+    description: 'Gemini Pro Orchestrator paired with 4,000 RPM Flash/Lite Workers.',
+    orchestrator: 'gemini-2.5-pro',
+    worker_tier: 'HIGHEST_RPM_TPM',
+    default_concurrency: 12
+  },
+  {
+    id: 'AIR_GAPPED_LOCAL_SWARM',
+    name: 'Air-Gapped Private Local Swarm',
+    description: 'Zero external API calls. Runs exclusively on Ollama local weights.',
+    orchestrator: 'qwen2.5-coder:32b',
+    worker_tier: 'OFFLINE_PURE',
+    default_concurrency: 4
+  }
+];
+
+const ORCHESTRATOR_OPTIONS = [
+  {
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro (Preview)',
+    tier: 'Cloud Pro',
+    badge: '☁️ 25-150 RPM',
+    tag: 'Google Cloud',
+    desc: 'Deepest Frontier Reasoning, 2M Context Window, Advanced Multi-turn Architecture.'
+  },
+  {
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    tier: 'Cloud Pro',
+    badge: '☁️ 150 RPM',
+    tag: 'Google Cloud',
+    desc: 'Enterprise Flagship Architect, 1M Context Window, Exhaustive System Design.'
+  },
+  {
+    id: 'gemini-3.6-flash',
+    name: 'Gemini 3.6 Flash',
+    tier: 'Cloud High-Tier',
+    badge: '☁️ 1,000 RPM',
+    tag: 'Google Cloud',
+    desc: 'High-Throughput Fast Architect, Low Latency, 2M Context Token Horizon.'
+  },
+  {
+    id: 'qwen2.5-coder:32b',
+    name: 'Qwen 2.5 Coder 32B',
+    tier: 'Local 32B',
+    badge: '⚡ Local Weights',
+    tag: 'Local Ollama',
+    desc: 'Heavyweight Local Architect, Complex AST Refactoring, 19.8 GB Hybrid Paged.'
+  },
+  {
+    id: 'qwen2.5-coder:14b',
+    name: 'Qwen 2.5 Coder 14B',
+    tier: 'Local 14B',
+    badge: '⚡ Local Weights',
+    tag: 'Local Ollama',
+    desc: 'Balanced Local Architect, Fast Syntax Tree Introspection, 9.0 GB Footprint.'
+  },
+  {
+    id: 'qwen2.5-coder:7b',
+    name: 'Qwen 2.5 Coder 7B',
+    tier: 'Local 7B',
+    badge: '🟢 Pure GPU Safe',
+    tag: 'Local Ollama',
+    desc: 'Fast Pure-GPU Architect, 0s Latency, Fits Entirely in RTX 4060 8GB VRAM.'
+  },
+  {
+    id: 'deepseek-r1:8b',
+    name: 'DeepSeek R1 8B',
+    tier: 'Local 8B',
+    badge: '🟢 Pure GPU Safe',
+    tag: 'Local Ollama',
+    desc: 'Chain-of-Thought Reasoner, Algorithmic Logic & Root-Cause Proof Steps.'
+  }
+];
+
+const getVramSafetyTier = (sizeGb: number): { tier: string; badge: string; color: string } => {
+  if (sizeGb <= 5.2) {
+    return { tier: 'SAFE_GPU', badge: '🟢 Pure GPU Safe', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' };
+  } else if (sizeGb <= 8.0) {
+    return { tier: 'HIGH_LOAD', badge: '🟡 High VRAM Load', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' };
+  } else if (sizeGb <= 16.0) {
+    return { tier: 'PAGED_HYBRID', badge: '🟡 Hybrid Paged (RAM)', color: 'text-orange-400 bg-orange-500/10 border-orange-500/30' };
+  } else {
+    return { tier: 'OOM_HAZARDOUS', badge: '🔴 OOM Hazard (>16GB)', color: 'text-rose-400 bg-rose-500/10 border-rose-500/30' };
+  }
+};
 
 // Built-in resilient fallback catalog matching empirical benchmarks
 const DEFAULT_MODEL_PROFILES: ModelProfile[] = [
@@ -311,6 +459,38 @@ export const AgentHub: React.FC = () => {
   const [safetyFilter, setSafetyFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Tab 2 (VRAM Arbitrator & Local Ollama Engine) States
+  const [vramData, setVramData] = useState<VramTelemetry | null>(null);
+  const [ollamaTags, setOllamaTags] = useState<OllamaTagModel[]>([]);
+  const [vramLoading, setVramLoading] = useState<boolean>(false);
+  const [scavenging, setScavenging] = useState<boolean>(false);
+  const [scavengeMsg, setScavengeMsg] = useState<{ text: string; success: boolean } | null>(null);
+  const [tagSearchQuery, setTagSearchQuery] = useState<string>('');
+
+  // Co-Residency Simulator States
+  const [simOrchestrator, setSimOrchestrator] = useState<string>('qwen2.5-coder:7b');
+  const [simWorker, setSimWorker] = useState<string>('qwen2.5-coder:1.5b');
+  const [simContextOverhead, setSimContextOverhead] = useState<number>(0.8);
+
+  // Tab 3 (Swarm Rosters & Roles) States
+  const [swarmConfig, setSwarmConfig] = useState<SwarmProfilesConfig | null>(null);
+  const [activeSwarmId, setActiveSwarmId] = useState<string>('GLOBAL_HYBRID_SWARM');
+  const [orchestratorEngine, setOrchestratorEngine] = useState<string>('qwen2.5-coder:32b');
+  const [maxConcurrency, setMaxConcurrency] = useState<number>(8);
+  const [customSwarms, setCustomSwarms] = useState<SwarmProfile[]>(DEFAULT_SWARMS);
+  const [swarmSaving, setSwarmSaving] = useState<boolean>(false);
+  const [swarmSaveMsg, setSwarmSaveMsg] = useState<{ text: string; success: boolean } | null>(null);
+
+  // Custom Swarm Modal/Drawer States
+  const [showCreateSwarm, setShowCreateSwarm] = useState<boolean>(false);
+  const [newSwarmName, setNewSwarmName] = useState<string>('');
+  const [newSwarmId, setNewSwarmId] = useState<string>('');
+  const [newSwarmDesc, setNewSwarmDesc] = useState<string>('');
+  const [newSwarmOrchestrator, setNewSwarmOrchestrator] = useState<string>('qwen2.5-coder:32b');
+  const [newSwarmTier, setNewSwarmTier] = useState<string>('HIGH_RPM_TPM');
+  const [newSwarmConcurrency, setNewSwarmConcurrency] = useState<number>(8);
+  const [createSwarmError, setCreateSwarmError] = useState<string | null>(null);
+
   const fetchBridgeData = useCallback(async () => {
     try {
       // 1. Fetch Bridge Status
@@ -348,6 +528,47 @@ export const AgentHub: React.FC = () => {
           setBestInClass(bic);
         }
       }
+
+      // 3. Fetch Real-Time VRAM Telemetry
+      try {
+        const vramRes = await fetch('/api/bridge/vram');
+        if (vramRes.ok) {
+          const vData = await vramRes.json();
+          if (vData.vram) setVramData(vData.vram);
+        }
+      } catch (e) {
+        console.warn('VRAM telemetry fetch error:', e);
+      }
+
+      // 4. Fetch Live Installed Ollama Tags
+      try {
+        const tagsRes = await fetch('/api/bridge/ollama/tags');
+        if (tagsRes.ok) {
+          const tData = await tagsRes.json();
+          if (tData.models && Array.isArray(tData.models)) {
+            setOllamaTags(tData.models);
+          }
+        }
+      } catch (e) {
+        console.warn('Ollama tags fetch error:', e);
+      }
+
+      // 5. Fetch Dynamic Swarm Profiles
+      try {
+        const swarmsRes = await fetch('/api/swarms/profiles');
+        if (swarmsRes.ok) {
+          const swData = await swarmsRes.json();
+          setSwarmConfig(swData);
+          if (swData.active_swarm_id) setActiveSwarmId(swData.active_swarm_id);
+          if (swData.orchestrator_engine) setOrchestratorEngine(swData.orchestrator_engine);
+          if (swData.max_concurrency_workers) setMaxConcurrency(Number(swData.max_concurrency_workers));
+          if (swData.swarms && Array.isArray(swData.swarms) && swData.swarms.length > 0) {
+            setCustomSwarms(swData.swarms);
+          }
+        }
+      } catch (e) {
+        console.warn('Swarm profiles fetch error:', e);
+      }
     } catch (err) {
       console.warn('Bridge API fetch error, using resilient fallbacks:', err);
     } finally {
@@ -369,6 +590,273 @@ export const AgentHub: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopiedModelId(id);
     setTimeout(() => setCopiedModelId(null), 2000);
+  };
+
+  // Re-fetch VRAM telemetry & installed tags on demand
+  const fetchVramAndTags = useCallback(async () => {
+    setVramLoading(true);
+    try {
+      const [vRes, tRes] = await Promise.all([
+        fetch('/api/bridge/vram'),
+        fetch('/api/bridge/ollama/tags')
+      ]);
+      if (vRes.ok) {
+        const vData = await vRes.json();
+        if (vData.vram) setVramData(vData.vram);
+      }
+      if (tRes.ok) {
+        const tData = await tRes.json();
+        if (tData.models && Array.isArray(tData.models)) {
+          setOllamaTags(tData.models);
+        }
+      }
+    } catch (err) {
+      console.warn('Error refreshing VRAM and tags:', err);
+    } finally {
+      setVramLoading(false);
+    }
+  }, []);
+
+  // Flush all idle model VRAM allocations
+  const handleScavengeAll = async () => {
+    setScavenging(true);
+    setScavengeMsg(null);
+    try {
+      const res = await fetch('/api/bridge/vram/scavenge', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const count = data.scavenged_models?.length || 0;
+        setScavengeMsg({
+          text: Flushed  active model from GPU VRAM. Headroom fully restored.,
+          success: true
+        });
+        const vRes = await fetch('/api/bridge/vram');
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          if (vData.vram) setVramData(vData.vram);
+        }
+      } else {
+        setScavengeMsg({
+          text: data.error || 'Failed to scavenge idle VRAM.',
+          success: false
+        });
+      }
+    } catch (err: any) {
+      setScavengeMsg({ text: Scavenge error: , success: false });
+    } finally {
+      setScavenging(false);
+    }
+  };
+
+  // Unload single model from VRAM
+  const handleUnloadModel = async (modelName: string) => {
+    try {
+      const res = await fetch(/api/bridge/vram/scavenge?model_name=, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setScavengeMsg({ text: Unloaded  from GPU VRAM., success: true });
+        const vRes = await fetch('/api/bridge/vram');
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          if (vData.vram) setVramData(vData.vram);
+        }
+      }
+    } catch (err: any) {
+      setScavengeMsg({ text: Failed to unload : , success: false });
+    }
+  };
+
+  // Available local models for Co-Residency Simulator
+  const availableLocalModels = useMemo(() => {
+    const map = new Map<string, { name: string; size_gb: number }>();
+    if (ollamaTags.length > 0) {
+      ollamaTags.forEach((t) => {
+        map.set(t.name, { name: t.name, size_gb: t.size_gb });
+      });
+    }
+    models
+      .filter((m) => m.provider === 'OLLAMA_LOCAL')
+      .forEach((m) => {
+        if (!map.has(m.name)) {
+          map.set(m.name, { name: m.name, size_gb: m.size_gb });
+        }
+      });
+    if (map.size === 0) {
+      map.set('qwen2.5-coder:32b', { name: 'qwen2.5-coder:32b', size_gb: 19.8 });
+      map.set('codestral:22b', { name: 'codestral:22b', size_gb: 12.2 });
+      map.set('qwen2.5-coder:14b', { name: 'qwen2.5-coder:14b', size_gb: 9.0 });
+      map.set('qwen2.5-coder:7b', { name: 'qwen2.5-coder:7b', size_gb: 4.7 });
+      map.set('sqlcoder:7b', { name: 'sqlcoder:7b', size_gb: 4.8 });
+      map.set('llama3-groq-tool-use:8b', { name: 'llama3-groq-tool-use:8b', size_gb: 4.9 });
+      map.set('deepseek-r1:8b', { name: 'deepseek-r1:8b', size_gb: 4.9 });
+      map.set('qwen2.5-coder:3b', { name: 'qwen2.5-coder:3b', size_gb: 2.2 });
+      map.set('qwen2.5-coder:1.5b', { name: 'qwen2.5-coder:1.5b', size_gb: 1.2 });
+    }
+    return Array.from(map.values());
+  }, [ollamaTags, models]);
+
+  // Lookup model size in GB
+  const getModelSize = useCallback(
+    (modelName: string): number => {
+      if (!modelName || modelName === 'none') return 0;
+      const match = availableLocalModels.find((m) => m.name === modelName);
+      if (match) return match.size_gb;
+      if (modelName.includes('32b')) return 19.8;
+      if (modelName.includes('22b')) return 12.2;
+      if (modelName.includes('14b')) return 9.0;
+      if (modelName.includes('7b') || modelName.includes('8b')) return 4.8;
+      if (modelName.includes('3b')) return 2.2;
+      if (modelName.includes('1.5b') || modelName.includes('1b')) return 1.2;
+      return 4.7;
+    },
+    [availableLocalModels]
+  );
+
+  // Compute Co-Residency Simulation
+  const orchestratorFootprint = getModelSize(simOrchestrator);
+  const workerFootprint = simWorker === 'none' ? 0 : getModelSize(simWorker);
+  const contextFootprint = simContextOverhead;
+  const totalSimFootprint = Math.round((orchestratorFootprint + workerFootprint + contextFootprint) * 100) / 100;
+  const simHeadroom = Math.max(0, Math.round((8.0 - totalSimFootprint) * 100) / 100);
+
+  const simVerdict = useMemo(() => {
+    if (totalSimFootprint <= 7.2) {
+      return {
+        badge: '🟢 Co-Residency Safe (Both models fit in Pure VRAM)',
+        badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        description:
+          'Zero CPU offloading. Peak GDDR6 token velocity with zero PCIe offload latency across both orchestrator and worker models simultaneously.'
+      };
+    } else if (totalSimFootprint <= 8.5) {
+      return {
+        badge: '🟡 Partial RAM Offload (Slight TPS reduction)',
+        badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        description:
+          'Combined weights exceed 7.2 GB operational target. Windows/CUDA driver will page overflow layers into system RAM via PCIe, causing minor token generation latency (~20-40% TPS degradation).'
+      };
+    } else {
+      return {
+        badge: '🔴 VRAM Overflow Warning (Models will swap/thrash)',
+        badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+        description:
+          'Footprint exceeds 8.0 GB VRAM boundary significantly. High risk of memory thrashing or CUDA Out-Of-Memory. Switch worker to lightweight qwen2.5-coder:1.5b (1.2 GB) or run models sequentially in serial mode.'
+      };
+    }
+  }, [totalSimFootprint]);
+
+  // Filtered tags for Local Ollama grid
+  const filteredTags = useMemo(() => {
+    const list = ollamaTags.length > 0 ? ollamaTags : [
+      { name: 'qwen2.5-coder:32b', tag: 'qwen2.5-coder:32b', size_gb: 19.8, parameter_size: '32B', quantization_level: 'Q4_K_M' },
+      { name: 'codestral:22b', tag: 'codestral:22b', size_gb: 12.2, parameter_size: '22B', quantization_level: 'Q4_K_M' },
+      { name: 'qwen2.5-coder:7b', tag: 'qwen2.5-coder:7b', size_gb: 4.7, parameter_size: '7B', quantization_level: 'Q4_K_M' },
+      { name: 'sqlcoder:7b', tag: 'sqlcoder:7b', size_gb: 4.8, parameter_size: '7B', quantization_level: 'Q4_K_M' },
+      { name: 'llama3-groq-tool-use:8b', tag: 'llama3-groq-tool-use:8b', size_gb: 4.9, parameter_size: '8B', quantization_level: 'Q4_K_M' },
+      { name: 'deepseek-r1:8b', tag: 'deepseek-r1:8b', size_gb: 4.9, parameter_size: '8B', quantization_level: 'Q4_K_M' },
+      { name: 'qwen2.5-coder:1.5b', tag: 'qwen2.5-coder:1.5b', size_gb: 1.2, parameter_size: '1.5B', quantization_level: 'Q4_K_M' }
+    ];
+    if (!tagSearchQuery.trim()) return list;
+    const q = tagSearchQuery.toLowerCase();
+    return list.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.tag.toLowerCase().includes(q) ||
+        t.parameter_size.toLowerCase().includes(q) ||
+        t.quantization_level.toLowerCase().includes(q)
+    );
+  }, [ollamaTags, tagSearchQuery]);
+
+  // Save active swarm profiles configuration
+  const handleSaveSwarmConfig = async () => {
+    setSwarmSaving(true);
+    setSwarmSaveMsg(null);
+    try {
+      const payload = {
+        active_swarm_id: activeSwarmId,
+        orchestrator_engine: orchestratorEngine,
+        max_concurrency_workers: maxConcurrency,
+        swarms: customSwarms
+      };
+      const res = await fetch('/api/swarms/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setSwarmSaveMsg({
+          text: 'Swarm Roster & Orchestrator Roles Activated - Saved to .agent_memory/swarm_profiles.json',
+          success: true
+        });
+        setTimeout(() => setSwarmSaveMsg(null), 5000);
+      } else {
+        setSwarmSaveMsg({
+          text: data.detail || data.error || 'Failed to update swarm profiles.',
+          success: false
+        });
+      }
+    } catch (err: any) {
+      setSwarmSaveMsg({ text: Error updating swarm profiles: , success: false });
+    } finally {
+      setSwarmSaving(false);
+    }
+  };
+
+  // Add custom swarm roster
+  const handleAddCustomSwarm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateSwarmError(null);
+    const id = newSwarmId.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    const name = newSwarmName.trim();
+    if (!id || !name) {
+      setCreateSwarmError('Please provide both a Swarm ID and Name.');
+      return;
+    }
+    if (customSwarms.some((s) => s.id === id)) {
+      setCreateSwarmError(Swarm ID "" already exists.);
+      return;
+    }
+
+    const newSwarm: SwarmProfile = {
+      id,
+      name,
+      description: newSwarmDesc.trim() || 'User configured custom swarm roster.',
+      orchestrator: newSwarmOrchestrator,
+      worker_tier: newSwarmTier,
+      default_concurrency: newSwarmConcurrency
+    };
+
+    const updated = [...customSwarms, newSwarm];
+    setCustomSwarms(updated);
+    setActiveSwarmId(id);
+    setOrchestratorEngine(newSwarmOrchestrator);
+    setMaxConcurrency(newSwarmConcurrency);
+    setShowCreateSwarm(false);
+    setNewSwarmName('');
+    setNewSwarmId('');
+    setNewSwarmDesc('');
+
+    try {
+      await fetch('/api/swarms/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          active_swarm_id: id,
+          orchestrator_engine: newSwarmOrchestrator,
+          max_concurrency_workers: newSwarmConcurrency,
+          swarms: updated
+        })
+      });
+      setSwarmSaveMsg({
+        text: Custom Swarm "" created and activated!,
+        success: true
+      });
+      setTimeout(() => setSwarmSaveMsg(null), 5000);
+    } catch (err) {
+      console.warn('Auto-save error on swarm creation:', err);
+    }
   };
 
   // Filtered Model Roster
@@ -912,100 +1400,1038 @@ export const AgentHub: React.FC = () => {
         </div>
       )}
 
+      
       {/* ==================================================================== */}
-      {/* TAB 2: VRAM ARBITRATOR & LOCAL MODELS (STUBBED FOR STAGE 10.2)      */}
+      {/* TAB 2: VRAM ARBITRATOR & LOCAL OLLAMA ENGINE                        */}
       {/* ==================================================================== */}
       {activeTab === 'vram' && (
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
-            <Zap className="w-8 h-8 animate-pulse" />
-          </div>
-          <div className="space-y-2 max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-500/30">
-              ⚡ Stage 10.2 Capability
+        <div className="space-y-6">
+          {/* Hardware & Live Status Header Banner */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-white shadow-lg shadow-amber-500/20 shrink-0">
+                <Zap className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    NVIDIA GeForce RTX 4060 VRAM Arbitrator
+                  </h2>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                    8.0 GB GDDR6
+                  </span>
+                  {vramData?.is_ollama_online ? (
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 font-mono">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Ollama Online (127.0.0.1:11434)
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 font-mono">
+                      <AlertTriangle className="w-3 h-3" />
+                      Ollama Standalone / Offline
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Active GPU memory budgeting, 1-click idle VRAM scavengers, and dual-model co-residency simulation.
+                </p>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              VRAM Arbitrator & Local Ollama Allocator
-            </h2>
-            <p className="text-sm text-slate-400">
-              Real-time NVIDIA RTX 4060 8GB VRAM allocation telemetry, 1-click idle model scavengers, live Ollama installed tags discovery, and paging safeguards.
-            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <button
+                type="button"
+                id="refresh-vram-btn"
+                onClick={fetchVramAndTags}
+                disabled={vramLoading}
+                className="px-3.5 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
+              >
+                <RefreshCw className={w-3.5 h-3.5 } />
+                <span>Refresh Hardware & Tags</span>
+              </button>
+
+              <button
+                type="button"
+                id="scavenge-all-btn"
+                onClick={handleScavengeAll}
+                disabled={scavenging}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white text-xs font-bold shadow-lg shadow-amber-600/20 flex items-center gap-2 transition-all disabled:opacity-50"
+              >
+                <Flame className={w-3.5 h-3.5 } />
+                <span>{scavenging ? 'Purging VRAM...' : 'Scavenge & Flush All Idle VRAM'}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto text-left pt-4">
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
-                <Gauge className="w-4 h-4" /> Live VRAM Telemetry
+          {/* Scavenge Banner Feedback */}
+          {scavengeMsg && (
+            <div
+              className={p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 }
+            >
+              <div className="flex items-center gap-2">
+                {scavengeMsg.success ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <span>{scavengeMsg.text}</span>
               </div>
-              <p className="text-xs text-slate-400">
-                Queries <code className="text-slate-300">/api/bridge/vram</code> to display active GPU memory allocations, resident models, and safety headroom.
+              <button
+                onClick={() => setScavengeMsg(null)}
+                className="text-slate-400 hover:text-slate-200 text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {/* Hardware Telemetry Gauge Card */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <Gauge className="w-4 h-4 text-amber-400" />
+                  <span>RTX 4060 Real-Time Memory Telemetry</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Safe Operational Ceiling: <span className="text-emerald-400 font-mono font-semibold">7.20 GB</span> (~90%) • Display Buffer: <span className="text-slate-400 font-mono">0.80 GB</span>
+                </div>
+              </div>
+
+              {/* Usage percentage badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Current Load:</span>
+                <span
+                  className={	ext-xs font-bold font-mono px-2.5 py-1 rounded-lg border }
+                >
+                  {vramData?.usage_percent?.toFixed(1) || '0.0'}% Used
+                </span>
+              </div>
+            </div>
+
+            {/* 3 Metric Stats Boxes */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                  VRAM Allocated
+                </div>
+                <div className="text-2xl font-bold font-mono text-white mt-1">
+                  {vramData?.used_gb?.toFixed(2) || '0.00'}{' '}
+                  <span className="text-xs text-slate-400 font-normal">/ 8.00 GB</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Active weights in GPU memory
+                </div>
+              </div>
+
+              <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                  Available Headroom
+                </div>
+                <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+                  {vramData?.available_gb?.toFixed(2) || '8.00'}{' '}
+                  <span className="text-xs text-slate-400 font-normal">GB</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Unallocated GDDR6 headroom
+                </div>
+              </div>
+
+              <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                  Resident Local Models
+                </div>
+                <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
+                  {vramData?.active_loaded_models?.length || 0}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Models currently warm in VRAM
+                </div>
+              </div>
+            </div>
+
+            {/* VRAM Telemetry Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400">0.0 GB</span>
+                <span className="text-emerald-400">5.2 GB (Pure Safe)</span>
+                <span className="text-amber-400">7.2 GB (Target Limit)</span>
+                <span className="text-rose-400">8.0 GB (Hardware Ceiling)</span>
+              </div>
+
+              <div className="h-4 rounded-full bg-slate-950 border border-slate-800 p-0.5 overflow-hidden relative">
+                <div
+                  className={h-full rounded-full transition-all duration-500 }
+                  style={{ width: ${Math.min(100, Math.max(0, vramData?.usage_percent || 0))}% }}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-400 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  &le; 65% (&le; 5.2 GB): Pure GPU Safe
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  66% - 88%: High VRAM Load
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-400" />
+                  &gt; 88%: Paging / OOM Hazard
+                </span>
+              </div>
+            </div>
+
+            {/* Resident Models List & Individual Unload */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                  <Server className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Resident Loaded Models in VRAM</span>
+                </div>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  From Ollama /api/ps
+                </span>
+              </div>
+
+              {!vramData?.active_loaded_models || vramData.active_loaded_models.length === 0 ? (
+                <div className="bg-slate-950/60 border border-slate-800/60 rounded-xl p-5 text-center text-xs text-slate-400">
+                  ✨ No models currently resident in GPU memory (0.00 GB active footprint). Full 8.00 GB VRAM headroom is idle and available.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {vramData.active_loaded_models.map((mod, idx) => (
+                    <div
+                      key={${mod.name}-}
+                      className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-3 shadow-md transition-all"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-mono font-bold text-sm text-white truncate flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>{mod.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1 font-mono">
+                          <span>VRAM: <strong className="text-amber-400">{mod.size_vram_gb.toFixed(2)} GB</strong></span>
+                          <span>Total: {mod.size_total_gb.toFixed(2)} GB</span>
+                          {mod.expires_at && (
+                            <span className="text-slate-500 truncate" title={Expires at }>
+                              Timer: {new Date(mod.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleUnloadModel(mod.name)}
+                        className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0"
+                        title={Unload  immediately}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Unload</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* ================================================================ */}
+          {/* DUAL-MODEL VRAM STAGING CALCULATOR (CO-RESIDENCY SIMULATOR)       */}
+          {/* ================================================================ */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+            <div className="border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                <Sliders className="w-4 h-4" />
+                <span>Dual-Model VRAM Staging Calculator (Co-Residency Simulator)</span>
+              </div>
+              <h3 className="text-lg font-bold text-white mt-1">
+                Test Multi-Agent Local Co-Residency on RTX 4060 8.0 GB
+              </h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-3xl">
+                Simulate whether your chosen Local Orchestrator and Local SubAgent Worker can execute concurrently in pure GDDR6 VRAM without triggering CUDA system RAM paging.
               </p>
             </div>
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-amber-400 font-semibold text-xs">
-                <RefreshCw className="w-4 h-4" /> 1-Click VRAM Scavenger
+
+            {/* Simulator Controls Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Dropdown 1: Primary Orchestrator */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-300">
+                  1. Primary / Orchestrator Model
+                </label>
+                <select
+                  id="sim-orchestrator-select"
+                  value={simOrchestrator}
+                  onChange={(e) => setSimOrchestrator(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-indigo-500 transition-all"
+                >
+                  {availableLocalModels.map((m) => (
+                    <option key={orch-} value={m.name}>
+                      {m.name} ({m.size_gb.toFixed(1)} GB)
+                    </option>
+                  ))}
+                </select>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>Footprint:</span>
+                  <span className="font-bold text-indigo-400">{orchestratorFootprint.toFixed(2)} GB</span>
+                </div>
               </div>
-              <p className="text-xs text-slate-400">
-                Dispatches <code className="text-slate-300">keep_alive: 0</code> via <code className="text-slate-300">/api/bridge/vram/scavenge</code> to instantly purge idle allocations.
+
+              {/* Dropdown 2: Secondary Worker */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-300">
+                  2. Secondary / Swarm Worker
+                </label>
+                <select
+                  id="sim-worker-select"
+                  value={simWorker}
+                  onChange={(e) => setSimWorker(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-cyan-500 transition-all"
+                >
+                  <option value="none">None - Single Model Mode (0.0 GB)</option>
+                  {availableLocalModels.map((m) => (
+                    <option key={worker-} value={m.name}>
+                      {m.name} ({m.size_gb.toFixed(1)} GB)
+                    </option>
+                  ))}
+                </select>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>Footprint:</span>
+                  <span className="font-bold text-cyan-400">{workerFootprint.toFixed(2)} GB</span>
+                </div>
+              </div>
+
+              {/* Context Window Overhead */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-300">
+                  3. Context KV-Cache Overhead
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: '2048 ctx', val: 0.4, sub: '~0.4 GB' },
+                    { label: '4096 ctx', val: 0.8, sub: '~0.8 GB' },
+                    { label: '8192 ctx', val: 1.5, sub: '~1.5 GB' }
+                  ].map((ctx) => (
+                    <button
+                      key={ctx.label}
+                      type="button"
+                      onClick={() => setSimContextOverhead(ctx.val)}
+                      className={px-2.5 py-2 rounded-xl text-xs font-mono text-center border transition-all }
+                    >
+                      <div>{ctx.label}</div>
+                      <div className="text-[10px] text-slate-500">{ctx.sub}</div>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>KV Overhead:</span>
+                  <span className="font-bold text-amber-400">{contextFootprint.toFixed(2)} GB</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Computed Output & Visual Footprint Bar */}
+            <div className="bg-slate-950 rounded-xl p-5 border border-slate-800/90 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Total Estimated VRAM Footprint
+                  </div>
+                  <div className="text-2xl font-bold font-mono text-white mt-0.5">
+                    {totalSimFootprint.toFixed(2)}{' '}
+                    <span className="text-xs text-slate-400 font-normal">/ 8.00 GB</span>
+                    <span className="text-xs text-slate-500 font-normal ml-2">
+                      ({Math.round((totalSimFootprint / 8.0) * 100)}% capacity)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Verdict Badge */}
+                <div className={px-4 py-2 rounded-xl border text-xs font-bold  flex items-center gap-2 self-start sm:self-auto}>
+                  {simVerdict.badge}
+                </div>
+              </div>
+
+              {/* Multi-Segment Stacked Footprint Bar */}
+              <div className="space-y-1.5">
+                <div className="h-4 rounded-full bg-slate-900 border border-slate-800 overflow-hidden flex">
+                  {/* Orchestrator segment */}
+                  <div
+                    className="bg-indigo-500 h-full transition-all"
+                    style={{ width: ${Math.min(100, (orchestratorFootprint / 8.0) * 100)}% }}
+                    title={Orchestrator:  GB}
+                  />
+                  {/* Worker segment */}
+                  {workerFootprint > 0 && (
+                    <div
+                      className="bg-cyan-500 h-full transition-all"
+                      style={{ width: ${Math.min(100, (workerFootprint / 8.0) * 100)}% }}
+                      title={Worker:  GB}
+                    />
+                  )}
+                  {/* Context KV segment */}
+                  <div
+                    className="bg-amber-500 h-full transition-all"
+                    style={{ width: ${Math.min(100, (contextFootprint / 8.0) * 100)}% }}
+                    title={Context Buffer:  GB}
+                  />
+                  {/* Free headroom */}
+                  {simHeadroom > 0 && (
+                    <div
+                      className="bg-slate-850 h-full transition-all"
+                      style={{ width: ${(simHeadroom / 8.0) * 100}% }}
+                      title={Free Headroom:  GB}
+                    />
+                  )}
+                </div>
+
+                {/* Bar Legend */}
+                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
+                    Orchestrator ({orchestratorFootprint.toFixed(1)} GB)
+                  </span>
+                  {workerFootprint > 0 && (
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-cyan-500" />
+                      Worker ({workerFootprint.toFixed(1)} GB)
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
+                    KV Cache ({contextFootprint.toFixed(1)} GB)
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-slate-700" />
+                    Free Headroom ({simHeadroom.toFixed(1)} GB)
+                  </span>
+                </div>
+              </div>
+
+              {/* Explanatory Guidance */}
+              <p className="text-xs text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+                {simVerdict.description}
               </p>
             </div>
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs">
-                <Server className="w-4 h-4" /> Installed Tags Discovery
+          </div>
+          {/* ================================================================ */}
+          {/* INSTALLED LOCAL OLLAMA MODELS TABLE/GRID                          */}
+          {/* ================================================================ */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <HardDrive className="w-4 h-4 text-purple-400" />
+                  <span>Installed Local Ollama Models</span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                    {filteredTags.length} Discovered
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Weights installed on this workstation with hardware safety classifications.
+                </p>
               </div>
-              <p className="text-xs text-slate-400">
-                Inspects <code className="text-slate-300">/api/bridge/ollama/tags</code> to discover local weights installed on the machine with parameter sizes.
-              </p>
+
+              {/* Search filter for tags */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter local models..."
+                  value={tagSearchQuery}
+                  onChange={(e) => setTagSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500"
+                />
+              </div>
             </div>
+
+            {filteredTags.length === 0 ? (
+              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-8 text-center space-y-2">
+                <HardDrive className="w-8 h-8 text-slate-600 mx-auto" />
+                <div className="text-xs font-semibold text-slate-300">No Local Models Match Filter</div>
+                <p className="text-[11px] text-slate-500">
+                  Ensure Ollama daemon is running or install additional models with <code className="text-slate-300 font-mono">ollama pull qwen2.5-coder:7b</code>.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredTags.map((tagMod, i) => {
+                  const safety = getVramSafetyTier(tagMod.size_gb);
+                  const isCopied = copiedModelId === tagMod.name;
+
+                  return (
+                    <div
+                      key={${tagMod.name}-}
+                      className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-md transition-all group"
+                    >
+                      <div>
+                        {/* Top: Name & Copy */}
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-mono font-bold text-sm text-white group-hover:text-purple-300 transition-colors truncate">
+                            {tagMod.name}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(tagMod.name, tagMod.name)}
+                            className="text-slate-500 hover:text-slate-300 p-1 rounded hover:bg-slate-900 transition-colors"
+                            title="Copy model tag"
+                          >
+                            {isCopied ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Safety Tier Badge */}
+                        <div className="mt-2.5">
+                          <span className={	ext-[10px] font-semibold px-2 py-0.5 rounded-md border font-mono }>
+                            {safety.badge}
+                          </span>
+                        </div>
+
+                        {/* Metrics Pills */}
+                        <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                          <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-1.5">
+                            <div className="text-[9px] text-slate-500 uppercase font-semibold">Params</div>
+                            <div className="text-xs font-bold font-mono text-slate-200 mt-0.5">
+                              {tagMod.parameter_size || 'Unknown'}
+                            </div>
+                          </div>
+                          <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-1.5">
+                            <div className="text-[9px] text-slate-500 uppercase font-semibold">Quant</div>
+                            <div className="text-xs font-bold font-mono text-purple-300 mt-0.5">
+                              {tagMod.quantization_level || 'Q4_K_M'}
+                            </div>
+                          </div>
+                          <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-1.5">
+                            <div className="text-[9px] text-slate-500 uppercase font-semibold">Size</div>
+                            <div className="text-xs font-bold font-mono text-amber-400 mt-0.5">
+                              {tagMod.size_gb.toFixed(1)} GB
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick action buttons to load into Simulator */}
+                      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSimOrchestrator(tagMod.name)}
+                          className="px-2.5 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-semibold transition-all flex items-center gap-1"
+                          title="Set as Primary Orchestrator in Simulator"
+                        >
+                          <Sliders className="w-3 h-3" />
+                          <span>Sim: Orch</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setSimWorker(tagMod.name)}
+                          className="px-2.5 py-1 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-semibold transition-all flex items-center gap-1"
+                          title="Set as Swarm Worker in Simulator"
+                        >
+                          <Bot className="w-3 h-3" />
+                          <span>Sim: Worker</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
-
       {/* ==================================================================== */}
-      {/* TAB 3: SWARM ROSTERS & ROLE BUILDER (STUBBED FOR STAGE 10.2)        */}
+      {/* TAB 3: SWARM ROSTERS, ROLES & CONCURRENCY BUILDER                  */}
       {/* ==================================================================== */}
       {activeTab === 'swarms' && (
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
-            <Sliders className="w-8 h-8 animate-pulse" />
-          </div>
-          <div className="space-y-2 max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
-              🛠️ Stage 10.2 Capability
+        <div className="space-y-6">
+          {/* Header & Active Summary Banner */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 shrink-0">
+                <Sliders className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    Dynamic Swarm Rosters & Worker Roles
+                  </h2>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">
+                    Multi-Agent Mesh
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Configure Phase 0 Master Orchestrator planning engines, empirical worker role assignments, and dynamic concurrency ceilings.
+                </p>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Dynamic Swarm Rosters & Role Builder
-            </h2>
-            <p className="text-sm text-slate-400">
-              Customizable swarm profiles with persistent storage in <code className="text-slate-300">.agent_memory/swarm_profiles.json</code>, orchestrator assignment, and concurrency ceilings.
-            </p>
+
+            {/* Top Right Save & Status */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <button
+                type="button"
+                id="toggle-create-swarm-btn"
+                onClick={() => setShowCreateSwarm(!showCreateSwarm)}
+                className="px-3.5 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all"
+              >
+                {showCreateSwarm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5 text-emerald-400" />}
+                <span>{showCreateSwarm ? 'Close Creator' : 'Create Custom Swarm'}</span>
+              </button>
+
+              <button
+                type="button"
+                id="save-swarm-config-btn"
+                onClick={handleSaveSwarmConfig}
+                disabled={swarmSaving}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all disabled:opacity-50"
+              >
+                <CheckCircle2 className={w-3.5 h-3.5 } />
+                <span>{swarmSaving ? 'Saving Profiles...' : 'Save & Activate Swarm'}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto text-left pt-4">
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs">
-                <Layers className="w-4 h-4" /> Swarm Profile Presets
+          {/* Swarm Save Banner Feedback */}
+          {swarmSaveMsg && (
+            <div
+              className={p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 }
+            >
+              <div className="flex items-center gap-2">
+                {swarmSaveMsg.success ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <span>{swarmSaveMsg.text}</span>
               </div>
-              <p className="text-xs text-slate-400">
-                Instantly switch between Global Hybrid Adaptive Swarm, High-Throughput Cloud Swarm, and Air-Gapped Private Local Swarm.
+              <button
+                onClick={() => setSwarmSaveMsg(null)}
+                className="text-slate-400 hover:text-slate-200 text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* ================================================================ */}
+          {/* 1. SWARM ROSTER PRESETS GRID                                      */}
+          {/* ================================================================ */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-emerald-400" />
+                  <span>Swarm Roster Presets</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Select an active multi-agent profile to pre-fill orchestrator and worker concurrency defaults.
+                </p>
+              </div>
+
+              <div className="text-xs font-mono text-slate-400">
+                Active ID: <strong className="text-emerald-400">{activeSwarmId}</strong>
+              </div>
+            </div>
+
+            {/* Custom Swarm Creator Collapsible Form */}
+            {showCreateSwarm && (
+              <form
+                onSubmit={handleAddCustomSwarm}
+                className="bg-slate-950 border border-emerald-500/30 rounded-xl p-5 space-y-4 shadow-lg animate-in fade-in duration-200"
+              >
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Create Custom Swarm Roster</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateSwarm(false)}
+                    className="text-slate-500 hover:text-slate-300 text-xs"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {createSwarmError && (
+                  <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{createSwarmError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Swarm Identifier (Unique ID)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. FRONTEND_SPRINT_SWARM"
+                      value={newSwarmId}
+                      onChange={(e) => setNewSwarmId(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. High-Velocity Frontend Sprint Team"
+                      value={newSwarmName}
+                      onChange={(e) => setNewSwarmName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-300">
+                    Swarm Description & Objective
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Optimized for rapid TypeScript / React component authoring with high-speed Flash workers."
+                    value={newSwarmDesc}
+                    onChange={(e) => setNewSwarmDesc(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Default Orchestrator
+                    </label>
+                    <select
+                      value={newSwarmOrchestrator}
+                      onChange={(e) => setNewSwarmOrchestrator(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                    >
+                      {ORCHESTRATOR_OPTIONS.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.name} ({o.tier})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Worker Rate Tier
+                    </label>
+                    <select
+                      value={newSwarmTier}
+                      onChange={(e) => setNewSwarmTier(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="HIGH_RPM_TPM">HIGH_RPM_TPM (Flash & 7B)</option>
+                      <option value="HIGHEST_RPM_TPM">HIGHEST_RPM_TPM (Flash-Lite 4K RPM)</option>
+                      <option value="PRO_PLAN">PRO_PLAN (Deep Reasoning)</option>
+                      <option value="OFFLINE_PURE">OFFLINE_PURE (Local Only)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Default Concurrency (1 - 16)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={16}
+                      value={newSwarmConcurrency}
+                      onChange={(e) => setNewSwarmConcurrency(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateSwarm(false)}
+                    className="px-3.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20"
+                  >
+                    Save & Activate Roster
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Presets Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {customSwarms.map((sw) => {
+                const isActive = activeSwarmId === sw.id;
+                let iconEl = <Layers className="w-5 h-5 text-emerald-400" />;
+                if (sw.id === 'GLOBAL_HYBRID_SWARM') iconEl = <Globe className="w-5 h-5 text-blue-400" />;
+                if (sw.id === 'FULLSTACK_CLOUD_SWARM') iconEl = <Zap className="w-5 h-5 text-purple-400" />;
+                if (sw.id === 'AIR_GAPPED_LOCAL_SWARM') iconEl = <Lock className="w-5 h-5 text-amber-400" />;
+
+                return (
+                  <div
+                    key={sw.id}
+                    onClick={() => {
+                      setActiveSwarmId(sw.id);
+                      setOrchestratorEngine(sw.orchestrator);
+                      setMaxConcurrency(sw.default_concurrency);
+                    }}
+                    className={cursor-pointer rounded-2xl p-5 border transition-all flex flex-col justify-between shadow-lg relative }
+                  >
+                    <div>
+                      {/* Top Row: Icon + Active Pill */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center">
+                          {iconEl}
+                        </div>
+                        {isActive ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 flex items-center gap-1 font-mono">
+                            <Check className="w-3 h-3" /> Active Swarm
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-900 text-slate-500 border border-slate-800">
+                            Preset
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-3">
+                        <h4 className="font-bold text-sm text-white group-hover:text-emerald-300">
+                          {sw.name}
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                          {sw.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2 text-[11px] font-mono">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>Orchestrator:</span>
+                        <span className="font-bold text-slate-200 truncate max-w-[140px]" title={sw.orchestrator}>
+                          {sw.orchestrator}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>Worker Tier:</span>
+                        <span className="text-blue-300">{sw.worker_tier}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>Default Workers:</span>
+                        <span className="text-emerald-400 font-bold">{sw.default_concurrency} Workers</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* ================================================================ */}
+          {/* 2. PHASE 0 MASTER ORCHESTRATOR ROLE ASSIGNMENT                    */}
+          {/* ================================================================ */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider">
+                <Bot className="w-4 h-4" />
+                <span>Phase 0 Master Orchestrator Role Assignment</span>
+              </div>
+              <h3 className="text-lg font-bold text-white mt-1">
+                Designate Master System Architecture & Planning Engine
+              </h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-3xl">
+                The Master Orchestrator analyzes high-level instructions, resolves module dependency graphs, generates multi-file blueprints, and governs memory book defragmentation before parallel sub-agent handoff.
               </p>
             </div>
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-purple-400 font-semibold text-xs">
-                <Bot className="w-4 h-4" /> Orchestrator Assignment
-              </div>
-              <p className="text-xs text-slate-400">
-                Designate primary planning engines (<code className="text-slate-300">qwen2.5-coder:32b</code>, <code className="text-slate-300">gemini-2.5-pro</code>) for system architecture.
-              </p>
+
+            {/* Selection Grid for Orchestrator */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+              {ORCHESTRATOR_OPTIONS.map((opt) => {
+                const isSelected = orchestratorEngine === opt.id;
+                const isCloud = opt.tag === 'Google Cloud';
+
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setOrchestratorEngine(opt.id)}
+                    className={cursor-pointer rounded-xl p-4 border transition-all flex flex-col justify-between shadow-md }
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-mono font-bold text-sm text-white flex items-center gap-1.5 truncate">
+                            <span>{opt.name}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                            {opt.id}
+                          </div>
+                        </div>
+
+                        {isSelected ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center gap-1 font-mono shrink-0">
+                            <Check className="w-3 h-3" /> Active
+                          </span>
+                        ) : (
+                          <span className={	ext-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 }>
+                            {opt.badge}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                        {opt.desc}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-slate-500">Tier: {opt.tier}</span>
+                      <span className={isCloud ? 'text-cyan-400' : 'text-purple-400'}>
+                        {opt.tag}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
-                <Sliders className="w-4 h-4" /> Concurrency & Worker Tiers
+          </div>
+          {/* ================================================================ */}
+          {/* 3. DYNAMIC SWARM WORKER CONCURRENCY SCALING (1 to 16)             */}
+          {/* ================================================================ */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+                  <span>Swarm Worker Concurrency Scaling</span>
+                </div>
+                <h3 className="text-base font-bold text-white mt-0.5">
+                  Parallel Sub-Agent Execution Ceiling
+                </h3>
               </div>
-              <p className="text-xs text-slate-400">
-                Configure concurrency ceilings (up to 12 parallel sub-agents) and assign specialized roles across empirical tracks.
-              </p>
+
+              {/* Number display */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Ceiling:</span>
+                <span className="text-xl font-bold font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/30">
+                  {maxConcurrency} Workers
+                </span>
+              </div>
             </div>
+
+            {/* Slider Control */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <input
+                  id="concurrency-slider"
+                  type="range"
+                  min={1}
+                  max={16}
+                  value={maxConcurrency}
+                  onChange={(e) => setMaxConcurrency(Number(e.target.value))}
+                  className="w-full h-2.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                />
+
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                  <span>1 Worker (Serial)</span>
+                  <span>4 Workers (Local Safe)</span>
+                  <span>8 Workers (Standard)</span>
+                  <span>12 Workers (Burst)</span>
+                  <span>16 Workers (Max Concurrency)</span>
+                </div>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs text-slate-400 font-semibold mr-1">Presets:</span>
+                {[
+                  { count: 1, label: '1 (Serial)' },
+                  { count: 4, label: '4 (Local Safe)' },
+                  { count: 8, label: '8 (Hybrid Default)' },
+                  { count: 12, label: '12 (Cloud High)' },
+                  { count: 16, label: '16 (Max Burst)' }
+                ].map((preset) => (
+                  <button
+                    key={preset.count}
+                    type="button"
+                    onClick={() => setMaxConcurrency(preset.count)}
+                    className={px-3 py-1 rounded-lg text-xs font-mono font-medium border transition-all }
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 3 Range Brackets Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                <div className={p-3.5 rounded-xl border }>
+                  <div className="text-xs font-bold font-mono">1 - 4 Workers</div>
+                  <div className="text-[11px] mt-0.5">Recommended for OFFLINE_PURE & Local 8GB GPU safety.</div>
+                </div>
+
+                <div className={p-3.5 rounded-xl border }>
+                  <div className="text-xs font-bold font-mono">5 - 9 Workers</div>
+                  <div className="text-[11px] mt-0.5">Standard balanced hybrid swarm across cloud & local models.</div>
+                </div>
+
+                <div className={p-3.5 rounded-xl border }>
+                  <div className="text-xs font-bold font-mono">10 - 16 Workers</div>
+                  <div className="text-[11px] mt-0.5">High-Concurrency Burst Mode for 4,000 RPM Flash-Lite pools.</div>
+                </div>
+              </div>
+
+              {/* Dynamic Advisory Banners */}
+              {maxConcurrency > 4 && (orchestratorEngine.includes('qwen') || orchestratorEngine.includes('deepseek') || activeSwarmId === 'AIR_GAPPED_LOCAL_SWARM') && (
+                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>
+                    <strong>High Local Concurrency Warning:</strong> Running &gt;4 parallel local workers on an 8GB GPU may trigger GPU thread contention or CPU paging. Recommend 1-4 workers for pure local execution.
+                  </span>
+                </div>
+              )}
+
+              {maxConcurrency > 9 && (
+                <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs flex items-center gap-2.5">
+                  <Rocket className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>
+                    <strong>High-Concurrency Burst Mode Active:</strong> Scaled to {maxConcurrency} parallel agents. Optimized for Google Flash-Lite 4,000 RPM pools and multi-API key rotation.
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Persist Action Bar */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-xs text-slate-400">
+              <span className="font-semibold text-slate-200">Active Blueprint: </span>
+              <span className="font-mono text-emerald-400">{activeSwarmId}</span> with{' '}
+              <span className="font-mono text-purple-400">{orchestratorEngine}</span> orchestrator and{' '}
+              <span className="font-mono text-cyan-400">{maxConcurrency} workers</span>.
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveSwarmConfig}
+              disabled={swarmSaving}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:via-teal-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              <CheckCircle2 className={w-4 h-4 } />
+              <span>{swarmSaving ? 'Activating Profile...' : 'Save & Activate Swarm Configuration'}</span>
+            </button>
           </div>
         </div>
       )}
