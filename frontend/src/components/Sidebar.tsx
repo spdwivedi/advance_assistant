@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  ScrollText,
   Rocket,
   Activity,
   BookOpen,
@@ -102,6 +103,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       icon: Key,
       id: 'nav-key-manager',
       badge: 'Matrix'
+    },
+    {
+      to: '/logs',
+      label: 'Log Center',
+      icon: ScrollText,
+      id: 'nav-log-center',
+      badge: 'Live'
     },
     {
       to: '/tools',

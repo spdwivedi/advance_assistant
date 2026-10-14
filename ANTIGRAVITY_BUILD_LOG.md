@@ -19,6 +19,7 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 10.1: Agent Hub UI (Capability Matrix & Scores) & Repo Hygiene
 - [x] Prompt 10.2: Agent Hub UI (VRAM Arbitrator & Swarm Role Builder)
 - [x] Prompt 11.1: Backend Multi-Stream Log Parser & Live WebSocket Tail (`src/server.py`)
+- [x] Prompt 11.2: Frontend Dedicated Full-Screen Log Center (/logs) & Multi-Stream Inspector
 
 ## Execution Records
 
@@ -426,3 +427,57 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/testing_bridge.py`: 100% UNTOUCHED
   * Existing routes in `src/server.py`: 100% PRESERVED
 - Stage Status: COMPLETED. Ready for Phase 2: Prompt 11.2 (Frontend Multi-Stream Log Viewer UI).
+
+
+---
+
+### Prompt 11.2: Frontend Dedicated Full-Screen Log Center (/logs) & Multi-Stream Inspector
+- Timestamp: 2026-10-15 02:45:00 IST
+- Objective: Create full-screen observability and log analytics console matching the dark slate aesthetic (`bg-slate-900`, `border-slate-800`), 6-stream source switcher, live WebSocket tail (`/ws/logs`), multi-dimensional faceted filters, monospace log stream, expandable JSON inspector, and project blueprint ledger viewer.
+- Files Updated:
+  * `frontend/src/pages/LogCenter.tsx` (New Page)
+  * `frontend/src/components/Sidebar.tsx`
+  * `frontend/src/App.tsx`
+  * `ANTIGRAVITY_BUILD_LOG.md`
+- Features Implemented:
+  * **6-Stream Log Source Switcher Bar**:
+    - Discovers and tracks all log streams on mount via `GET /api/logs/sources`.
+    - Stream pills for `master` (Master Timeline with dynamic file size badge), `daily` (Daily IST logs with date selector dropdown), `category` (Categorical domains with Domain and Action file secondary dropdowns), `model` (Per-Model execution logs with model selector dropdown), `project` (Project workspaces with project selector and Blueprint Ledger modal trigger), and `test` (Test Suite execution logs with test script selector dropdown).
+    - Contextual metadata display rendering active stream type, resolved relative file path, and human-readable byte sizes (`formatBytes`).
+  * **Multi-Dimensional Filter Bar & Facet Counters**:
+    - Automatic querying against `GET /api/logs/query` responding to stream switching, severity filters, model/category filters, substring searches, and tail limits.
+    - Real-time severity filter pills displaying dynamic facet count badges: `ALL` (total matched), `INFO` (blue badge), `SUCCESS` (emerald badge), `WARNING` (amber badge), and `ERROR` (rose badge).
+    - Dynamic facet dropdowns for Model and Category populated directly from query results (`facets.models`, `facets.categories`).
+    - Instant substring search input with clear (`X`) button across action, model, category, and raw JSON details.
+    - Configurable tail limit selector (`100`, `300`, `500`, `1000`, `2000` lines) and toggle between `Tail (Latest)` and `Head (Oldest)`.
+  * **Real-Time WebSocket Tail (`/ws/logs`)**:
+    - Live tail toggle with real-time heartbeat and connection indicator (`🟢 LIVE TAIL ACTIVE` vs `⏸️ LIVE TAIL PAUSED`).
+    - Handles WebSocket frames: `initial_batch` seeding, `new_entries` incremental stream appending, `file_rotated` notification with automatic re-query, and `heartbeat` keep-alives.
+    - Incremental new lines badge (`+X new lines`) tracking newly appended lines.
+    - Auto-scroll / Follow Bottom checkbox toggle that smoothly scrolls to newest entries when new lines arrive.
+    - Client-side export capabilities: "Export Filtered (.json)" and "Export Raw (.log)" triggering immediate browser downloads.
+  * **Interactive Monospace Log Stream & Structured JSON Inspector**:
+    - High-density monospace log stream rendering line ID `#id`, timestamp, color-coded severity badge with icons, clickable model pill, clickable category tag, bold action type, environment indicator, and single-line preview of details.
+    - Expandable row drawer exposing:
+      * Structured details JSON with pretty-printing.
+      * Raw unparsed log string.
+      * One-click "Copy JSON" and "Copy Raw Line" buttons with visual copied confirmation states.
+      * Instant filter shortcut buttons ("Filter Model: <model>", "Filter Category: <category>").
+  * **Project Blueprint Ledger Modal**:
+    - Modal/drawer triggered when inspecting project logs with available `blueprint_ledger.json` via `GET /api/logs/project/{project_name}/ledger`.
+    - Displays architectural decomposition mapping target files, last action status badges (`WRITE_SUCCESS`, `COMPILING`, `FAILED`), associated task directives, and timestamps.
+    - Full chronological sequential file history trace table.
+  * **Sidebar & Router Integration**:
+    - Added dedicated navbar link in `Sidebar.tsx` between "Key Manager" and "Tool Bridges": Label `Log Center`, Path `/logs`, Icon `ScrollText`, Badge `Live`.
+    - Registered `<Route path="logs" element={<LogCenter />} />` in `App.tsx`.
+- Architectural Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/logger.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * `src/token_governor.py`: 100% UNTOUCHED
+  * `src/key_manager.py`: 100% UNTOUCHED
+  * `src/testing_bridge.py`: 100% UNTOUCHED
+  * `src/server.py`: 100% UNTOUCHED
+  * All existing frontend routes (`/`, `/swarm`, `/agents`, `/knowledge`, `/governor`, `/keys`, `/tools`): 100% PRESERVED
+- Stage Status: COMPLETED.

@@ -8,6 +8,7 @@ import { TokenGovernor } from './pages/TokenGovernor';
 import { ApiKeyManager } from './pages/ApiKeyManager';
 import { AgentHub } from './pages/AgentHub';
 import { ToolBridges } from './pages/ToolBridges';
+import { LogCenter } from './pages/LogCenter';
 
 export const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ export const App: React.FC = () => {
           <Route path="knowledge" element={<KnowledgeBase />} />
           <Route path="governor" element={<TokenGovernor />} />
           <Route path="keys" element={<ApiKeyManager />} />
+          <Route path="logs" element={<LogCenter />} />
           <Route path="tools" element={<ToolBridges />} />
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />
