@@ -20,6 +20,7 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 10.2: Agent Hub UI (VRAM Arbitrator & Swarm Role Builder)
 - [x] Prompt 11.1: Backend Multi-Stream Log Parser & Live WebSocket Tail (`src/server.py`)
 - [x] Prompt 11.2: Frontend Dedicated Full-Screen Log Center (/logs) & Multi-Stream Inspector
+- [x] Prompt 12.1: Backend Precision Memory Snippet Engine, Book CRUD API & Context Simulator
 
 ## Execution Records
 
@@ -480,4 +481,51 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/testing_bridge.py`: 100% UNTOUCHED
   * `src/server.py`: 100% UNTOUCHED
   * All existing frontend routes (`/`, `/swarm`, `/agents`, `/knowledge`, `/governor`, `/keys`, `/tools`): 100% PRESERVED
+- Stage Status: COMPLETED.
+
+---
+
+### Prompt 12.1: Backend Precision Memory Snippet Engine, Book CRUD API & Context Simulator
+- Timestamp: 2026-10-15 03:05:00 IST
+- Objective: Upgrade `src/memory_manager.py` with section-level Markdown knowledge parsing, model-scale aware token budgeting, weighted keyword relevance scoring, full Book & Recipe CRUD methods, and expose corresponding REST endpoints and Context Injection Simulator in `src/server.py` while strictly preserving 100% backward compatibility for all existing callers.
+- Files Updated:
+  * `src/memory_manager.py`
+  * `src/server.py`
+  * `ANTIGRAVITY_BUILD_LOG.md`
+- Key Capabilities Added:
+  * **Canonical Categories & Safe Path Resolution**:
+    - Supported 9 canonical categories (`coding`, `frameworks`, `cloud`, `devops`, `ai_ml`, `security`, `databases`, `architecture`, `general`) alongside legacy directories (`tools`, `tech_stack`, `environment`, `history`, `cs_fundamentals`, `design_patterns`).
+    - Implemented strict `_resolve_book_path(category, book_name)` blocking directory traversal (`..`, `/`, `\\`) outside `.agent_memory/books/`.
+  * **Markdown Section & Recipe Parser**:
+    - Implemented `parse_book_sections(category, book_name)` splitting Markdown files by `## ` and `### ` headings into self-contained blocks with headings, content, code block detection (`has_code`), estimated token counts, and extracted keywords.
+  * **Model-Aware Precision Snippet Retriever**:
+    - Implemented `get_precision_context(prompt, model_name, max_tokens)` dynamically assigning token budgets by model tier: Small Local Models (600 tokens), Standard Local Models (1200 tokens), Heavy Local Models (2000 tokens), and Cloud Gemini Models (3500 tokens).
+    - Weighted keyword relevance scoring: Heading match (3.0x), Category/Book match (2.5x), Body match (1.0x), and Code block bonus (+1.5) when coding intent is detected.
+    - Token savings telemetry: computes `full_books_tokens`, `injected_tokens`, and `tokens_saved` to measure context optimization efficiency.
+  * **100% Backward Compatibility**:
+    - Upgraded `get_contextual_memory` and `load_relevant_memory_books` to transparently route through precision snippets while falling back gracefully to raw book loading if no sections match.
+    - Provided aliases `record_learning`, `defragment_books`, and `get_knowledge_telemetry`.
+  * **Full Book & Recipe CRUD Methods**:
+    - `list_all_books_detailed()`: Scans all categories and books, computing size, tokens, sections count, last modified IST timestamp, tags from `catalog_index.json`, and summary previews.
+    - `read_book_content(category, book_name)`: Returns raw content, parsed sections, and metadata.
+    - `save_book_content(category, book_name, content, tags)`: Creates/updates book, updates `catalog_index.json` with tags, and returns updated details.
+    - `append_book_recipe(category, book_name, title, insight, code_snippet, tags)`: Appends clean operation insight recipe block with code snippet and tags.
+    - `delete_book(category, book_name)`: Removes book file and updates catalog.
+  * **Server REST Endpoints in `src/server.py`**:
+    - `GET /api/memory/books`: Returns detailed list of books, section counts, token estimations, tags, and category summaries.
+    - `GET /api/memory/book/{category}/{book_name}`: Returns raw markdown content, parsed sections, token count, and tags (404 on missing).
+    - `POST /api/memory/book`: Creates or updates a book with optional tags.
+    - `POST /api/memory/book/recipe`: Appends a structured operational recipe to a book.
+    - `DELETE /api/memory/book/{category}/{book_name}`: Deletes a book file and cleans tags.
+    - `POST /api/memory/simulate-injection`: Simulates context injection, relevance scores, and token savings.
+    - `POST /api/memory/defrag`: Fully preserved existing defragmentation endpoint.
+- Architectural Preservation Checklist:
+  * `src/main.py`: 100% UNTOUCHED
+  * `src/agent.py`: 100% UNTOUCHED
+  * `src/supervisor.py`: 100% UNTOUCHED
+  * `src/logger.py`: 100% UNTOUCHED
+  * `src/token_governor.py`: 100% UNTOUCHED
+  * `src/key_manager.py`: 100% UNTOUCHED
+  * `src/testing_bridge.py`: 100% UNTOUCHED
+  * Zero frontend build commands executed (Strict terminal ban enforced)
 - Stage Status: COMPLETED.

@@ -21,6 +21,12 @@ from src.memory_manager import (
     get_last_env_location,
     get_knowledge_base_telemetry,
     defragment_and_consolidate_books,
+    list_all_books_detailed,
+    read_book_content,
+    save_book_content,
+    append_book_recipe,
+    delete_book,
+    get_precision_context,
     _load_json,
     ENV_HISTORY_FILE
 )
@@ -119,6 +125,28 @@ class SetPolicyPayload(BaseModel):
 class ToggleSelectionPayload(BaseModel):
     key_id: str
     is_selected: bool
+
+
+class SaveBookPayload(BaseModel):
+    category: str
+    book_name: str
+    content: str
+    tags: Optional[List[str]] = None
+
+
+class AppendRecipePayload(BaseModel):
+    category: str
+    book_name: str
+    title: str
+    insight: str
+    code_snippet: Optional[str] = ""
+    tags: Optional[List[str]] = None
+
+
+class SimulateInjectionPayload(BaseModel):
+    prompt: str
+    model_name: Optional[str] = "qwen2.5-coder:7b"
+    max_tokens: Optional[int] = None
 
 
 def get_detailed_key_telemetry() -> Dict[str, Any]:
@@ -238,6 +266,133 @@ def get_telemetry() -> Dict[str, Any]:
         "snippets": snippets,
         "key_pool": get_detailed_key_telemetry()
     }
+
+
+# ==============================================================================
+# KNOWLEDGE BASE BOOKS, RECIPES & CONTEXT SIMULATOR ENDPOINTS
+# ==============================================================================
+
+@app.get("/api/memory/books")
+def get_memory_books() -> Dict[str, Any]:
+    """
+    Returns detailed list of all memory books across categories,
+    including section counts, token estimations, tags, and category summaries.
+    """
+    detailed = list_all_books_detailed()
+    return {
+        "status": "success",
+        "knowledge_telemetry": get_knowledge_base_telemetry(),
+        **detailed
+    }
+
+
+@app.get("/api/memory/book/{category}/{book_name}")
+def get_book(category: str, book_name: str) -> Dict[str, Any]:
+    """
+    Returns full raw Markdown content, parsed sections, token count,
+    and tags for a specific book.
+    """
+    try:
+        book_data = read_book_content(category, book_name)
+        return {
+            "status": "success",
+            "book": book_data
+        }
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Book '{category}/{book_name}' not found")
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/book")
+def save_book(payload: SaveBookPayload) -> Dict[str, Any]:
+    """
+    Saves or creates a book in the specified category with content and optional tags.
+    """
+    try:
+        book_data = save_book_content(
+            category=payload.category,
+            book_name=payload.book_name,
+            content=payload.content,
+            tags=payload.tags
+        )
+        return {
+            "status": "success",
+            "message": f"Book '{payload.category}/{payload.book_name}' saved successfully.",
+            "book": book_data
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/book/recipe")
+def append_recipe(payload: AppendRecipePayload) -> Dict[str, Any]:
+    """
+    Appends a structured operational recipe to a memory book.
+    """
+    try:
+        book_data = append_book_recipe(
+            category=payload.category,
+            book_name=payload.book_name,
+            title=payload.title,
+            insight=payload.insight,
+            code_snippet=payload.code_snippet or "",
+            tags=payload.tags
+        )
+        return {
+            "status": "success",
+            "message": f"Recipe '{payload.title}' appended to '{payload.category}/{payload.book_name}'.",
+            "book": book_data
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/memory/book/{category}/{book_name}")
+def remove_book(category: str, book_name: str) -> Dict[str, Any]:
+    """
+    Deletes a specific book from a category.
+    """
+    try:
+        result = delete_book(category, book_name)
+        return {
+            "status": "success",
+            "message": f"Book '{category}/{book_name}' deleted successfully.",
+            "category": result.get("category", category),
+            "book_name": result.get("book_name", book_name)
+        }
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Book '{category}/{book_name}' not found")
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/simulate-injection")
+def simulate_injection(payload: SimulateInjectionPayload) -> Dict[str, Any]:
+    """
+    Simulates model-aware precision context snippet retrieval for a given prompt,
+    returning relevance scores, matched sections, and measured token savings.
+    """
+    try:
+        result = get_precision_context(
+            prompt=payload.prompt,
+            model_name=payload.model_name or "qwen2.5-coder:7b",
+            max_tokens=payload.max_tokens
+        )
+        return {
+            "status": "success",
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/memory/defrag")
