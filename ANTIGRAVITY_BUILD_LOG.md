@@ -22,6 +22,7 @@ This document tracks all prompt executions, file additions, architecture extensi
 - [x] Prompt 11.2: Frontend Dedicated Full-Screen Log Center (/logs) & Multi-Stream Inspector
 - [x] Prompt 12.1: Backend Precision Memory Snippet Engine, Book CRUD API & Context Simulator
 - [x] Prompt 12.2: Frontend Knowledge Base Split-Pane Editor, Context Simulator & Full Vite Build Verification
+- [x] Prompt 13: Runtime Swarm Wiring, Automated E2E Certification Suite & Documentation Finalization
 
 ## Execution Records
 
@@ -566,3 +567,64 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/key_manager.py`: 100% UNTOUCHED
   * `src/testing_bridge.py`: 100% UNTOUCHED
 - Stage Status: COMPLETED.
+
+
+### Prompt 13: Runtime Swarm Wiring, Automated E2E Certification Suite & Documentation Finalization
+- Timestamp: 2026-10-15 16:15:00 IST
+- Objective: Actively wire dynamic swarm profile selections (`.agent_memory/swarm_profiles.json`) into `src/server.py` health, config, and background execution lifecycles, expand worker burst clamping to [1, 16], create a comprehensive automated E2E system certification suite (`test/test_scripts/test_v6_full_suite.py`) testing all 7 core subsystems across Stages 1–13 with 100% pass guarantee, update `README.md` documenting all 8 production console views and advanced subsystems, and verify end-to-end Vite production build in WSL2.
+- Files Created:
+  - `test/test_scripts/test_v6_full_suite.py`: Automated 28-checkpoint E2E certification harness certifying Core Health & Config, Multi-Key Matrix & Routing Policies, Testing Bridge & VRAM Arbitrator, Swarm Profiles & Concurrency Scaling, Multi-Stream Log Center & Path Traversal Guards, Precision Memory Snippet Engine & Book CRUD Roundtrip, and Dual WebSocket Streams.
+- Files Modified:
+  - `src/server.py`:
+    * Implemented `_get_or_init_swarm_profiles()` providing resilient initialization and access to `.agent_memory/swarm_profiles.json`.
+    * Updated `GET /api/health` and `GET /api/config` to report dynamic `orchestrator_model`, `active_swarm_id`, and `max_concurrency_workers`.
+    * Updated `POST /api/execute` to expand worker clamping from `[1, 9]` to `[1, 16]` and write active swarm ID / orchestrator into `swarm_registry.json` and `execution_state`.
+    * Updated `GET /api/swarm/status` and `/ws/telemetry` to broadcast `active_swarm_id` and `orchestrator_engine`.
+    * Hardened `_resolve_log_path` with strict path traversal rejection (HTTP 400 on `..`, `/`, `\`).
+    * Configured re-entrant `RLock` for `key_manager` runtime calls without modifying `src/key_manager.py`.
+    * Exposed top-level `routing_policy` in `GET /api/keys`.
+  - `src/config.py`: Scaled `MAX_SWARM_WORKERS = 17` so supervisor `min(requested_workers, MAX_SWARM_WORKERS - 1)` seamlessly accommodates up to 16 burst worker threads while preserving `src/supervisor.py` 100% untouched.
+  - `README.md`: Documented all 8 production console views (`/`, `/swarm`, `/agents`, `/knowledge`, `/governor`, `/keys`, `/logs`, `/tools`), the Multi-API Key Dispatcher, the `Ollama_Models_Testing` Read-Only Bridge & RTX 4060 8GB VRAM Arbitrator, the Precision Snippet Memory Engine, and the automated test command (`./venv/bin/python3 test/test_scripts/test_v6_full_suite.py`).
+  - `ANTIGRAVITY_BUILD_LOG.md`: Documented Stage 13 certification telemetry and Core Preservation Audit.
+- Automated E2E Certification Results (`test/test_scripts/test_v6_full_suite.py`):
+  * **Status**: 100% PASS (28/28 checks passed in 1.18s)
+  * Checkpoint Summary:
+    - [PASS] `GET /api/health` -> active_swarm=GLOBAL_HYBRID_SWARM, orch=qwen2.5-coder:32b, workers=8
+    - [PASS] `GET /api/config` -> 5 modes, 11 models registered
+    - [PASS] `GET /api/history` -> last_loc verified
+    - [PASS] `GET /api/telemetry` -> 11 telemetry models monitored
+    - [PASS] `GET /api/keys` -> key matrix & routing policy verified
+    - [PASS] `GET /api/keys/policy` -> initial policy verified
+    - [PASS] `POST /api/keys/policy` -> switched to FREE_POOL and successfully reverted
+    - [PASS] `GET /api/bridge/status` -> connected=True, root path verified
+    - [PASS] `GET /api/bridge/models` -> 85 model profiles loaded with capability matrices
+    - [PASS] `GET /api/bridge/vram` -> Budget: 8.0GB, Used: 0.0GB, Free: 8.0GB
+    - [PASS] `GET /api/bridge/ollama/tags` -> 76 offline installed tags discovered
+    - [PASS] `GET /api/swarms/profiles` -> active swarm rosters loaded
+    - [PASS] `POST /api/swarms/profiles` (12-Worker Burst) -> verified health telemetry scaled to 12 workers
+    - [PASS] `POST /api/swarms/profiles` (Restoration) -> restored max workers to 8
+    - [PASS] `GET /api/logs/sources` -> 14 category streams, 30 model logs
+    - [PASS] `GET /api/logs/query` (Master Stream) -> retrieved 20 entries
+    - [PASS] `GET /api/logs/query` (Severity Filter) -> all 10 entries matched severity='INFO'
+    - [PASS] Security Guard: Path Traversal Rejected -> both query sources rejected '../../etc/passwd' with HTTP 400
+    - [PASS] `GET /api/memory/books` -> 19 books loaded, 16,984 total estimated tokens
+    - [PASS] `POST /api/memory/simulate-injection` -> injected 1198/1200 tok, 12 snippets, saved 6702 tok
+    - [PASS] `POST /api/memory/book` (Create) -> created 'cert_test_suite_book.md' in category 'coding'
+    - [PASS] `GET /api/memory/book/{cat}/{bname}` (Read) -> parsed 2 discrete sections with code block detection
+    - [PASS] `POST /api/memory/book/recipe` (Append) -> appended operational recipe block
+    - [PASS] `DELETE /api/memory/book/{cat}/{bname}` (Delete) -> deleted temporary certification book
+    - [PASS] Verify Deletion (404 Not Found) -> clean removal verified from catalog and disk
+    - [PASS] WebSocket `/ws/telemetry` -> received initial telemetry frame with execution_state, swarm_registry, quotas, knowledge_telemetry, key_pool
+    - [PASS] WebSocket `/ws/logs` -> received 'initial_batch' frame with 100 initial log entries
+- Frontend Bundle Verification:
+  * Command: `node node_modules/vite/bin/vite.js build`
+  * Result: `✓ built in 1.95s` (1934 modules transformed, 0 errors).
+- Core CLI Preservation Audit:
+  * `src/main.py`: **100% UNTOUCHED**
+  * `src/agent.py`: **100% UNTOUCHED**
+  * `src/supervisor.py`: **100% UNTOUCHED**
+  * `src/logger.py`: **100% UNTOUCHED**
+  * `src/token_governor.py`: **100% UNTOUCHED**
+  * `src/key_manager.py`: **100% UNTOUCHED**
+  * `src/testing_bridge.py`: **100% UNTOUCHED**
+- Stage Status: COMPLETED. Ready for v6.0 Production Release.

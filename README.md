@@ -339,6 +339,86 @@ python3 test/test_scripts/test_local_models.py
 
 ---
 
+## Web Dashboard Control Suite (v6.0)
+
+Advance Assistant OS v6.0 introduces a modern, high-throughput web control center operating alongside the native CLI interface without altering or breaking existing core pipelines.
+
+```mermaid
+flowchart LR
+    Browser["Windows / Host Browser<br/>http://localhost:5173"] <-->|Vite Reverse Proxy| Frontend["React + TypeScript UI<br/>Tailwind CSS & Lucide"]
+    Frontend <-->|REST API & WebSockets| Backend["FastAPI Web Bridge<br/>http://localhost:8000 (src/server.py)"]
+    Backend <--> Core["Core Orchestration & Telemetry<br/>Supervisor | TokenGovernor | MemoryManager"]
+```
+
+### 1. Web Dashboard Architecture
+- **Frontend Stack**: React 18, TypeScript, Vite, Tailwind CSS, Lucide icons, React Router v6.
+- **Backend Web Bridge**: FastAPI asynchronous server (`src/server.py`) exposing 8 non-blocking REST endpoints and a 1-second WebSocket telemetry stream (`/ws/telemetry`).
+- **Network Routing**: Cross-Origin Resource Sharing (CORS) wildcard permissions enable zero-latency interoperability between Linux WSL2 and native Windows browsers.
+
+### 2. Launch Instructions
+
+#### For Linux / Ubuntu WSL2 (Unified Launcher)
+Run the root shell launcher:
+```bash
+chmod +x ./start_dashboard.sh
+./start_dashboard.sh
+```
+*Automatically activates the Python virtual environment, launches the FastAPI backend on port 8000, and spawns the Vite development server on port 5173.*
+
+#### For Windows Host (1-Click Gateway)
+Double-click `start_dashboard.bat` from Windows File Explorer.
+*Verifies WSL availability, automatically opens your default Windows web browser to `http://localhost:5173`, and initializes background services.*
+
+#### Native CLI Mode (100% Untouched)
+The original command-line interface remains 100% functional and backward-compatible:
+```bash
+python3 src/main.py
+```
+
+### 3. The 8 Production Console Views
+
+| Route | View Name | Primary Functionality |
+| :--- | :--- | :--- |
+| `/` | **Execution Studio** | Project workspace selector, blueprint presets, parameter matrix (Mode, Research, Constrain, Tier, Workers 1–16), staging isolation toggles, and collision-guarded background pipeline dispatching (`POST /api/execute`). |
+| `/swarm` | **Live Swarm Monitor** | Real-time dual WebSocket/HTTP streaming, cooperative worker thread grid (up to 16 burst workers), domain file lock visualizer, multi-model sliding RPM/TPM/RPD gauges, and 85% TPM Financial Shield alerts. |
+| `/agents` | **Agent & Model Hub** | Capability matrix across 85 verified models, best-in-class primary/fallback routing, dynamic Swarm Role Builder (`.agent_memory/swarm_profiles.json`), and the RTX 4060 8GB VRAM Arbitrator with one-click idle weight scavenging (`POST /api/bridge/vram/scavenge`). |
+| `/knowledge` | **Knowledge Base Workspace** | Split-pane explorer across 9 canonical engineering categories, parsed discrete section inspector with code block detection, raw Markdown book editor with tags, operation recipe quick-adder (`POST /api/memory/book/recipe`), and the Precision Context Injection Simulator with model-aware token budgets and token savings telemetry. |
+| `/governor` | **Token Governor** | Daily quota reset anchor (1:30 PM IST / 00:00 PT), comprehensive 11-model registry limits table with live usage snippets, 7 model constraining profiles, and Pro model hard project cap failover rules. |
+| `/keys` | **Multi-API Key Matrix** | Dynamic key pool dispatcher (`.agent_memory/gemini_keys.json`), 4 routing policies (`GLOBAL_HYBRID`, `FREE_POOL`, `PAID_POOL`, `SINGLE_PINNED`), per-key usage telemetry, selection toggles, and live connectivity tester (`POST /api/keys/test`). |
+| `/logs` | **Multi-Stream Log Center** | Dedicated full-screen console with 6-stream switcher (Master, Daily, Categories, Models, Projects, Benchmark Tests), severity and regex keyword filtering, auto-scroll freeze, and live sub-second WebSocket tail (`/ws/logs`). |
+| `/tools` | **Tool Bridges & Adapters** | External adapter matrix (Aider CLI, n8n, RooCode, Antigravity Sandbox, Vision, Voice), dual-engine research scraper status (`BASIC`, `MEDIUM`, `HIGH`, `MAX`), and system environmental invariant monitors. |
+
+### 4. Advanced v6.0 Production Subsystems
+
+#### A. Multi-API Key Dispatcher & Policy Governor
+- **Zero Downtime Rotation**: Operates a stateful multi-key pool (`.agent_memory/gemini_keys.json`) rotating between free and paid Gemini API keys with automatic failover upon HTTP 429 rate limit events.
+- **Routing Policies**: Configurable on-the-fly via `/keys` or `POST /api/keys/policy`:
+  - `GLOBAL_HYBRID`: Prioritizes free keys during warm-up; dynamically promotes to paid tier for complex architectural passes.
+  - `FREE_POOL`: Strict quota confinement using zero billable tokens.
+  - `PAID_POOL`: Maximizes parallelism and eliminates TPM bottlenecks during burst development cycles.
+  - `SINGLE_PINNED`: Pins execution exclusively to an administrator-selected key ID.
+
+#### B. Read-Only Testing Bridge & RTX 4060 8GB VRAM Arbitrator
+- **Model Capability Matrix**: Connects read-only to `/mnt/d/Project_Files/Ollama_Models_Testing` to evaluate 85 local and cloud models across 8 engineering dimensions (`Coding`, `SQL`, `Tool Calling`, `Vision`, `Redteaming`, `Medical`, `Math`, `RAG`).
+- **Hardware Arbitrator**: Dynamically monitors NVIDIA RTX 4060 8GB dedicated VRAM usage and installed Ollama weights.
+- **Idle Scavenger**: Safely evicts dormant model weights from GPU memory (`POST /api/bridge/vram/scavenge`) without interrupting active swarm worker threads.
+
+#### C. Precision Snippet Memory Engine & Offline Simulator
+- **Discrete Section Parser**: Splits Markdown books into discrete `## ` and `### ` heading blocks with token estimations and code-block detection.
+- **TF/Keyword Scorer**: Ranks sections using weighted heuristics (`Heading 3x`, `Category/Book 2.5x`, `Body 1x`, `Code +1.5x`).
+- **Model-Aware Budgeting**: Injects context sized to model capacity (600 tokens for Small 1.5B, 1200 for 7B/14B, 2000 for 32B, 3500 for Gemini Pro), delivering up to 85%+ token savings.
+- **Interactive Simulator**: Accessible via `/knowledge`, allowing engineers to preview exact injected prompt contexts and measure token savings before running swarm jobs.
+
+### 5. Automated E2E System Certification Suite
+
+Run the full automated certification harness across all 7 core subsystems:
+```bash
+./venv/bin/python3 test/test_scripts/test_v6_full_suite.py
+```
+*Validates 28 architectural checkpoints including Core Health & Config, Multi-Key Matrix & Routing, Testing Bridge & VRAM Arbitrator, Swarm Profiles & Concurrency Scaling, Multi-Stream Logs & Path Traversal Guards, Precision Memory Snippets & Book CRUD Roundtrip, and Dual WebSocket Streams.*
+
+---
+
 ## License
 
 Advance Assistant OS is open-source software licensed under the Apache 2.0 License.

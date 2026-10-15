@@ -33,6 +33,8 @@ from src.memory_manager import (
 )
 from src.testing_bridge import testing_bridge
 from src.key_manager import key_manager
+import src.key_manager
+src.key_manager._KEY_LOCK = threading.RLock()
 from src.config import (
     DEFAULT_EXECUTION_MODE,
     DEFAULT_RESEARCH_PROFILE,
@@ -172,81 +174,6 @@ def get_detailed_key_telemetry() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/health")
-def get_health() -> Dict[str, Any]:
-    """
-    Returns service health status, local orchestrator model name,
-    worker model name, current background execution state, and live key pool telemetry.
-    """
-    with execution_lock:
-        state_copy = dict(execution_state)
-
-    return {
-        "status": "healthy",
-        "service": "advance_assistant_web_bridge",
-        "version": "6.0.0",
-        "orchestrator_model": LOCAL_ORCHESTRATOR_MODEL,
-        "worker_model": LOCAL_WORKER_MODEL,
-        "execution_state": state_copy,
-        "key_pool": get_detailed_key_telemetry()
-    }
-
-
-@app.get("/api/config")
-def get_config() -> Dict[str, Any]:
-    """
-    Returns available execution modes, research profiles, model constraining
-    profiles, tier pools, registered model limits, and system defaults.
-    """
-    return {
-        "execution_modes": VALID_EXECUTION_MODES,
-        "default_mode": DEFAULT_EXECUTION_MODE,
-        "research_profiles": RESEARCH_PROFILES,
-        "default_research_profile": DEFAULT_RESEARCH_PROFILE,
-        "model_constraining_profiles": MODEL_CONSTRAINING_PROFILES,
-        "default_constraining_profile": DEFAULT_MODEL_CONSTRAINING_PROFILE,
-        "tier_pools": TIER_POOLS,
-        "models": list(MODEL_REGISTRY.keys()),
-        "model_registry": MODEL_REGISTRY,
-        "defaults": {
-            "isolation_enabled": DEFAULT_ISOLATION_ENABLED,
-            "max_swarm_workers": MAX_SWARM_WORKERS,
-            "orchestrator_model": LOCAL_ORCHESTRATOR_MODEL,
-            "worker_model": LOCAL_WORKER_MODEL
-        }
-    }
-
-
-@app.get("/api/history")
-def get_history() -> Dict[str, Any]:
-    """
-    Returns historical workspace paths from env_history.json, last used location,
-    and current unified topic knowledge base telemetry.
-    """
-    env_data = _load_json(ENV_HISTORY_FILE, {"history": [], "last_location": ""})
-    return {
-        "history": env_data.get("history", []),
-        "last_location": get_last_env_location(),
-        "knowledge_telemetry": get_knowledge_base_telemetry()
-    }
-
-
-@app.get("/api/swarm/status")
-def get_swarm_status() -> Dict[str, Any]:
-    """
-    Returns the live raw operational state from swarm_registry.json.
-    """
-    return _load_json(SWARM_REGISTRY_FILE, {
-        "project_name": None,
-        "project_root": None,
-        "active_workspace": None,
-        "max_available_workers": MAX_SWARM_WORKERS - 1,
-        "domain_locks": {},
-        "completed_files": [],
-        "status": "IDLE"
-    })
-
-
 SWARM_PROFILES_FILE = os.path.join(os.path.dirname(SWARM_REGISTRY_FILE), "swarm_profiles.json")
 
 DEFAULT_SWARM_PROFILES = {
@@ -282,12 +209,114 @@ DEFAULT_SWARM_PROFILES = {
 }
 
 
+def _get_or_init_swarm_profiles() -> Dict[str, Any]:
+    """
+    Retrieves swarm profile configurations or initializes with production defaults.
+    """
+    if not os.path.exists(SWARM_PROFILES_FILE):
+        try:
+            _save_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+        except Exception:
+            pass
+        return dict(DEFAULT_SWARM_PROFILES)
+    return _load_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+
+
+@app.get("/api/health")
+def get_health() -> Dict[str, Any]:
+    """
+    Returns service health status, local orchestrator model name,
+    worker model name, current background execution state, and live key pool telemetry.
+    """
+    with execution_lock:
+        state_copy = dict(execution_state)
+
+    swarm_conf = _get_or_init_swarm_profiles()
+    active_orch = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+
+    return {
+        "status": "healthy",
+        "service": "advance_assistant_web_bridge",
+        "version": "6.0.0",
+        "orchestrator_model": active_orch,
+        "worker_model": LOCAL_WORKER_MODEL,
+        "active_swarm_id": swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM"),
+        "max_concurrency_workers": swarm_conf.get("max_concurrency_workers", 8),
+        "execution_state": state_copy,
+        "key_pool": get_detailed_key_telemetry()
+    }
+
+
+@app.get("/api/config")
+def get_config() -> Dict[str, Any]:
+    """
+    Returns available execution modes, research profiles, model constraining
+    profiles, tier pools, registered model limits, and system defaults.
+    """
+    swarm_conf = _get_or_init_swarm_profiles()
+    active_orch = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+    active_max_workers = swarm_conf.get("max_concurrency_workers", MAX_SWARM_WORKERS)
+
+    return {
+        "execution_modes": VALID_EXECUTION_MODES,
+        "default_mode": DEFAULT_EXECUTION_MODE,
+        "research_profiles": RESEARCH_PROFILES,
+        "default_research_profile": DEFAULT_RESEARCH_PROFILE,
+        "model_constraining_profiles": MODEL_CONSTRAINING_PROFILES,
+        "default_constraining_profile": DEFAULT_MODEL_CONSTRAINING_PROFILE,
+        "tier_pools": TIER_POOLS,
+        "models": list(MODEL_REGISTRY.keys()),
+        "model_registry": MODEL_REGISTRY,
+        "active_swarm_id": swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM"),
+        "defaults": {
+            "isolation_enabled": DEFAULT_ISOLATION_ENABLED,
+            "max_swarm_workers": active_max_workers,
+            "orchestrator_model": active_orch,
+            "worker_model": LOCAL_WORKER_MODEL
+        }
+    }
+
+
+@app.get("/api/history")
+def get_history() -> Dict[str, Any]:
+    """
+    Returns historical workspace paths from env_history.json, last used location,
+    and current unified topic knowledge base telemetry.
+    """
+    env_data = _load_json(ENV_HISTORY_FILE, {"history": [], "last_location": ""})
+    return {
+        "history": env_data.get("history", []),
+        "last_location": get_last_env_location(),
+        "knowledge_telemetry": get_knowledge_base_telemetry()
+    }
+
+
+@app.get("/api/swarm/status")
+def get_swarm_status() -> Dict[str, Any]:
+    """
+    Returns the live raw operational state from swarm_registry.json.
+    """
+    swarm_conf = _get_or_init_swarm_profiles()
+    reg = _load_json(SWARM_REGISTRY_FILE, {
+        "project_name": None,
+        "project_root": None,
+        "active_workspace": None,
+        "max_available_workers": swarm_conf.get("max_concurrency_workers", 8),
+        "domain_locks": {},
+        "completed_files": [],
+        "status": "IDLE"
+    })
+    reg.setdefault("active_swarm_id", swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM"))
+    reg.setdefault("orchestrator_engine", swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL))
+    return reg
+
+
 @app.get("/api/swarms/profiles")
 def get_swarm_profiles() -> Dict[str, Any]:
     """
     Returns the configured swarm rosters and active orchestrator role from swarm_profiles.json.
     """
-    return _load_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+    return _get_or_init_swarm_profiles()
 
 
 @app.post("/api/swarms/profiles")
@@ -541,11 +570,13 @@ def get_api_keys() -> Dict[str, Any]:
     Returns list of masked API keys with selection status, tiers, active statuses,
     error counts, and pool-wide routing statistics.
     """
+    routing_stat = key_manager.get_routing_status()
     return {
         "status": "success",
         "keys": key_manager.get_masked_keys(),
         "pool_status": key_manager.get_pool_status(),
-        "routing_status": key_manager.get_routing_status()
+        "routing_status": routing_stat,
+        "routing_policy": routing_stat.get("routing_policy", "GLOBAL_HYBRID")
     }
 
 
@@ -685,10 +716,22 @@ def _run_background_build(
         )
         with execution_lock:
             execution_state["status"] = "COMPLETED"
+        try:
+            reg = _load_json(SWARM_REGISTRY_FILE, {})
+            reg["status"] = "COMPLETED"
+            _save_json(SWARM_REGISTRY_FILE, reg)
+        except Exception:
+            pass
     except Exception as exc:
         with execution_lock:
             execution_state["status"] = "FAILED"
             execution_state["error"] = str(exc)
+        try:
+            reg = _load_json(SWARM_REGISTRY_FILE, {})
+            reg["status"] = "FAILED"
+            _save_json(SWARM_REGISTRY_FILE, reg)
+        except Exception:
+            pass
     finally:
         with execution_lock:
             execution_state["is_running"] = False
@@ -717,7 +760,14 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
         active_profile = payload.profile or DEFAULT_RESEARCH_PROFILE
         active_constrain = payload.constrain or DEFAULT_MODEL_CONSTRAINING_PROFILE
         active_isolate = DEFAULT_ISOLATION_ENABLED if payload.isolate is None else payload.isolate
-        active_max_workers = payload.max_workers
+        swarm_conf = _get_or_init_swarm_profiles()
+        active_swarm_id = swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM")
+        active_orchestrator = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        default_workers = swarm_conf.get("max_concurrency_workers", 8)
+
+        # Worker clamping from [1, 9] to [1, 16]
+        raw_workers = payload.max_workers if payload.max_workers is not None else default_workers
+        active_max_workers = max(1, min(int(raw_workers), 16))
 
         execution_state["is_running"] = True
         execution_state["status"] = "RUNNING"
@@ -728,9 +778,28 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
         execution_state["profile"] = active_profile
         execution_state["constrain"] = active_constrain
         execution_state["isolate"] = active_isolate
+        execution_state["active_swarm_id"] = active_swarm_id
+        execution_state["orchestrator_engine"] = active_orchestrator
+        execution_state["max_workers"] = active_max_workers
         execution_state["start_time"] = time.time()
         execution_state["end_time"] = None
         execution_state["error"] = None
+
+    # Update swarm_registry.json so /swarm and /logs reflect active swarm during execution
+    try:
+        current_registry = _load_json(SWARM_REGISTRY_FILE, {})
+        current_registry.update({
+            "project_name": project_name,
+            "project_root": target_dest,
+            "active_workspace": target_dest,
+            "active_swarm_id": active_swarm_id,
+            "orchestrator_engine": active_orchestrator,
+            "max_available_workers": active_max_workers,
+            "status": "RUNNING"
+        })
+        _save_json(SWARM_REGISTRY_FILE, current_registry)
+    except Exception:
+        pass
 
     worker_thread = threading.Thread(
         target=_run_background_build,
@@ -757,7 +826,10 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
             "mode": active_mode,
             "profile": active_profile,
             "constrain": active_constrain,
-            "isolate": active_isolate
+            "isolate": active_isolate,
+            "active_swarm_id": active_swarm_id,
+            "orchestrator_engine": active_orchestrator,
+            "max_workers": active_max_workers
         }
     }
 
@@ -774,15 +846,18 @@ async def websocket_telemetry(websocket: WebSocket):
             with execution_lock:
                 state_copy = dict(execution_state)
 
+            swarm_conf = _get_or_init_swarm_profiles()
             swarm_status = _load_json(SWARM_REGISTRY_FILE, {
                 "project_name": None,
                 "project_root": None,
                 "active_workspace": None,
-                "max_available_workers": MAX_SWARM_WORKERS - 1,
+                "max_available_workers": swarm_conf.get("max_concurrency_workers", 8),
                 "domain_locks": {},
                 "completed_files": [],
                 "status": "IDLE"
             })
+            swarm_status.setdefault("active_swarm_id", swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM"))
+            swarm_status.setdefault("orchestrator_engine", swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL))
 
             quotas = {}
             for model_name in MODEL_REGISTRY.keys():
@@ -895,6 +970,9 @@ def _resolve_log_path(source_type: str, source_name: Optional[str] = None) -> st
     Resolves log file path across all 6 streams and prevents path traversal outside
     LOGS_DIR and TEST_LOGS_DIR.
     """
+    if source_name and (".." in source_name or source_name.startswith("/") or source_name.startswith("\\")):
+        raise HTTPException(status_code=400, detail="Path traversal forbidden.")
+
     source_type = (source_type or "master").lower().strip()
     clean_source_name = source_name.strip() if source_name else None
 
@@ -1163,6 +1241,9 @@ def get_project_blueprint_ledger(project_name: str) -> Dict[str, Any]:
     """
     Reads and returns logs/projects/<project_name>/blueprint_ledger.json if present.
     """
+    if ".." in project_name or project_name.startswith("/") or project_name.startswith("\\"):
+        raise HTTPException(status_code=400, detail="Path traversal forbidden.")
+
     clean_pname = os.path.basename(project_name.replace("\\", "/").strip("/"))
     ledger_path = os.path.join(LOGS_DIR, "projects", clean_pname, "blueprint_ledger.json")
 

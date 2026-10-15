@@ -15,6 +15,7 @@ WIN_TEST_DATA_DIR = "D:/Project_Files/Assistant_Projects/Test_Win_Data"
 
 # Project-Scoped Workspace Isolated Logs Directory
 PROJECT_LOGS_DIR = os.path.abspath("./logs/projects")
+PROJECT_LOG_DIR = PROJECT_LOGS_DIR
 
 # Auto-create local directories
 for t_dir in [TEST_DATA_DIR, TEST_LOGS_DIR, TEST_SCRIPTS_DIR, PROJECT_LOGS_DIR]:
@@ -28,7 +29,7 @@ except Exception:
     pass
 
 # Swarm & Execution Defaults
-MAX_SWARM_WORKERS = 10
+MAX_SWARM_WORKERS = 17
 DEFAULT_ISOLATION_ENABLED = False
 DEFAULT_EXECUTION_MODE = "AUTO_DETECT"
 DEFAULT_RESEARCH_PROFILE = "MAX"
