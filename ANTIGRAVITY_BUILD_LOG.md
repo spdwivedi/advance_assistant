@@ -738,3 +738,42 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 14.4: Frontend Hierarchical Governor Console (/governor), Sub-Agent Bounds Editor & Multi-Provider Key Manager (/keys)
+- **Date**: 2026-10-15
+- **Goal**: Deliver a comprehensive frontend UI in `TokenGovernor.tsx` and `ApiKeyManager.tsx` supporting the 3-level Provider -> Tier -> Model hierarchy, inline limit configuration, Sub-Agent input/output/thinking bounds editing, Paid Tier Financial Shield controls, and multi-provider key management (`GOOGLE`, `GROQ`).
+- **Key Deliverables Implemented**:
+  - `frontend/src/pages/TokenGovernor.tsx`:
+    * Replaced legacy flat layout with high-throughput Hierarchical Governor Console connected to `GET /api/governor/hierarchy`, `POST /api/governor/limits`, `POST /api/governor/provider-model`, `POST /api/governor/shield`, `POST /api/governor/sub-agents`, and `WebSocket /ws/telemetry`.
+    * **Top Section — Paid Tier Financial Shield & In-Flight Lease Control Bar**:
+      - One-click Paid Tier Lock toggle button: `🔒 PAID TIER LOCKED` (Emerald/Cyan) vs `🔓 PAID TIER UNLOCKED` (Amber/Rose).
+      - Limit Enforcement Mode toggle: `🛡️ Enforcing Safe Working Limits` vs `⚡ Using Raw Strict API Limits`.
+      - Budget caps editor drawer (`Daily Paid Token Cap`, `Per-Build Paid Token Cap`, `Safety Margin %`) with persistence via `POST /api/governor/shield`.
+      - Live telemetry gauges: `Paid Tokens Today` (with color-coded threshold progress bar), `In-Flight Token Leases` active counter, and `Daily Quota Reset` indicator (01:30 PM IST / Google PT Midnight).
+    * **Main View Switcher**: Tab A (`🏛️ Provider -> Tier -> Model Quota Hierarchy`), Tab B (`🤖 Sub-Agent Bounds`), and `+ Add Provider / Model` action button.
+    * **Tab A — 3-Level Hierarchy Explorer**:
+      - Level 1: Dynamic Provider Selector pills (`GOOGLE`, `GROQ`, `OLLAMA`, `ANTHROPIC`, etc.) with provider icons, colors, and model counts.
+      - Level 2: Dynamic Tier sub-tabs (`FREE`, `PAID`, `LOCAL`) with descriptive pool metadata.
+      - Level 3: Model Quota & Breakdown Cards with 60s rolling and daily gauges (RPM, TPM, RPD) comparing Working Limits against Strict API Limits, plus 4 discrete token split metric boxes (`Input Tokens`, `Output Tokens`, `Thinking Budget`, `In-Flight Reserved`).
+      - Inline Limit Editor Modal: Allows live editing of both Working and Strict limits, saving directly via `POST /api/governor/limits`.
+    * **"+ Add Provider / Model" Modal**:
+      - Quick-select provider pills (`GOOGLE`, `GROQ`, `OLLAMA`, `OPENAI`, `ANTHROPIC`, `DEEPSEEK`) or custom name input, Tier selection, Model identifier, and full Working/Strict limits, saving via `POST /api/governor/provider-model`.
+    * **Tab B — Sub-Agent Input / Output / Thinking Bounds Editor**:
+      - Rendered cards for all 11 sub-agent profiles from `.agent_memory/sub_agents.json`.
+      - Shows assigned model, provider, complexity level, token caps, rpm/tpm/rpd, and ideal_for tags.
+      - Inline bounds editor modal dispatching `POST /api/governor/sub-agents`.
+  - `frontend/src/pages/ApiKeyManager.tsx`:
+    * Upgraded Add Key modal with Provider selector (`☁️ Google Gemini` vs `⚡ Groq Cloud LPU`) and auto-detection when pasting `gsk_` keys.
+    * Added Provider Filter Bar (`All Providers`, `Google Gemini`, `Groq Cloud LPU`) with dynamic counts.
+    * Added Provider badges (`☁️ GOOGLE` in cyan, `⚡ GROQ` in purple) on all Free and Paid key cards, passing provider context to key test requests.
+    * Added Paid Tier Financial Shield Active banner above the Paid Tier pool when `paid_tier_locked` is active.
+- **Verification Results**:
+  - `node node_modules/vite/bin/vite.js build`: **100% PASS (Built cleanly in 2.37s)**
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_stage14_2_pipeline.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_stage14_3_server.py`: **100% PASS (8/8 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 2.99s)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

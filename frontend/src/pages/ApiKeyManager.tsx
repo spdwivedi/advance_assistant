@@ -27,6 +27,7 @@ import {
 interface KeyItem {
   id: string;
   key: string;
+  provider?: string;
   tier: 'FREE' | 'PAID';
   label: string;
   is_selected: boolean;
@@ -47,6 +48,11 @@ interface PolicyStatus {
   selected_paid_keys: number;
   active_keys: number;
   exhausted_keys: number;
+  google_keys?: number;
+  groq_keys?: number;
+  selected_google_keys?: number;
+  selected_groq_keys?: number;
+  paid_tier_locked?: boolean;
 }
 
 interface TestResult {
@@ -67,9 +73,13 @@ export const ApiKeyManager: React.FC = () => {
   const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Filter state
+  const [providerFilter, setProviderFilter] = useState<'ALL' | 'GOOGLE' | 'GROQ'>('ALL');
+
   // Add Key Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [newKeyString, setNewKeyString] = useState<string>('');
+  const [newKeyProvider, setNewKeyProvider] = useState<'GOOGLE' | 'GROQ'>('GOOGLE');
   const [newKeyTier, setNewKeyTier] = useState<'FREE' | 'PAID'>('FREE');
   const [newKeyLabel, setNewKeyLabel] = useState<string>('');
   const [newKeyIsSelected, setNewKeyIsSelected] = useState<boolean>(true);
@@ -90,9 +100,10 @@ export const ApiKeyManager: React.FC = () => {
   const fetchKeyData = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
     try {
-      const [keysRes, policyRes] = await Promise.all([
+      const [keysRes, policyRes, hierRes] = await Promise.all([
         fetch('/api/keys'),
-        fetch('/api/keys/policy')
+        fetch('/api/keys/policy'),
+        fetch('/api/governor/hierarchy').catch(() => null)
       ]);
 
       if (keysRes.ok) {
@@ -105,6 +116,18 @@ export const ApiKeyManager: React.FC = () => {
 
       if (policyRes.ok) {
         const pData = await policyRes.json();
+        if (hierRes && hierRes.ok) {
+          try {
+            const hData = await hierRes.json();
+            if (hData.key_pool) {
+              pData.paid_tier_locked = hData.key_pool.paid_tier_locked;
+              pData.google_keys = hData.key_pool.google_keys;
+              pData.groq_keys = hData.key_pool.groq_keys;
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
         setPolicyData(pData);
       }
     } catch (err) {
@@ -218,18 +241,18 @@ export const ApiKeyManager: React.FC = () => {
   };
 
   // Test Existing Key
-  const handleTestKey = async (keyId: string) => {
+  const handleTestKey = async (keyId: string, provider?: string) => {
     setTestingKeyId(keyId);
     try {
       const res = await fetch('/api/keys/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: keyId })
+        body: JSON.stringify({ id: keyId, provider: provider || 'GOOGLE' })
       });
       const data = await res.json();
       setTestResults((prev) => ({ ...prev, [keyId]: data }));
       if (data.valid) {
-        showToast('Key validated successfully against Google GenAI.', 'success');
+        showToast(`Key validated successfully with ${provider || 'Google GenAI'}.`, 'success');
       } else {
         showToast(data.error || 'Key authentication failed.', 'error');
       }
@@ -276,7 +299,7 @@ export const ApiKeyManager: React.FC = () => {
       const res = await fetch('/api/keys/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: newKeyString.trim() })
+        body: JSON.stringify({ key: newKeyString.trim(), provider: newKeyProvider })
       });
       const data = await res.json();
       setModalTestResult(data);
@@ -300,6 +323,7 @@ export const ApiKeyManager: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           key: newKeyString.trim(),
+          provider: newKeyProvider,
           tier: newKeyTier,
           label: newKeyLabel.trim() || undefined,
           is_selected: newKeyIsSelected
@@ -311,6 +335,7 @@ export const ApiKeyManager: React.FC = () => {
         setIsAddModalOpen(false);
         setNewKeyString('');
         setNewKeyLabel('');
+        setNewKeyProvider('GOOGLE');
         setModalTestResult(null);
         fetchKeyData(true);
       } else {
@@ -324,8 +349,18 @@ export const ApiKeyManager: React.FC = () => {
     }
   };
 
-  const freeKeys = keys.filter((k) => k.tier === 'FREE');
-  const paidKeys = keys.filter((k) => k.tier === 'PAID');
+  // Key filter by provider
+  const googleKeysCount = keys.filter((k) => (k.provider || 'GOOGLE').toUpperCase() === 'GOOGLE').length;
+  const groqKeysCount = keys.filter((k) => (k.provider || '').toUpperCase() === 'GROQ').length;
+
+  const filteredKeys = keys.filter((k) => {
+    if (providerFilter === 'GOOGLE') return (k.provider || 'GOOGLE').toUpperCase() === 'GOOGLE';
+    if (providerFilter === 'GROQ') return (k.provider || '').toUpperCase() === 'GROQ';
+    return true;
+  });
+
+  const freeKeys = filteredKeys.filter((k) => k.tier === 'FREE');
+  const paidKeys = filteredKeys.filter((k) => k.tier === 'PAID');
   const allFreeSelected = freeKeys.length > 0 && freeKeys.every((k) => k.is_selected);
   const allPaidSelected = paidKeys.length > 0 && paidKeys.every((k) => k.is_selected);
 
@@ -574,8 +609,59 @@ export const ApiKeyManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Batch Actions Toolbar */}
-      <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      {/* Provider Filter Bar & Batch Toolbar */}
+      <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <Sliders className="w-4 h-4 text-cyan-400" />
+            <span>Filter by Provider:</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setProviderFilter('ALL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                providerFilter === 'ALL'
+                  ? 'bg-blue-600 text-white shadow-glow-sm'
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+              }`}
+            >
+              <span>All Providers</span>
+              <span className="px-1.5 py-0.2 rounded bg-black/40 font-mono text-[10px] text-slate-300">
+                {keys.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setProviderFilter('GOOGLE')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                providerFilter === 'GOOGLE'
+                  ? 'bg-cyan-700 text-white shadow-glow-sm border border-cyan-500/50'
+                  : 'bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Google Gemini</span>
+              <span className="px-1.5 py-0.2 rounded bg-cyan-950/80 font-mono text-[10px] text-cyan-300">
+                {googleKeysCount}
+              </span>
+            </button>
+            <button
+              onClick={() => setProviderFilter('GROQ')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                providerFilter === 'GROQ'
+                  ? 'bg-purple-700 text-white shadow-glow-sm border border-purple-500/50'
+                  : 'bg-slate-950 text-slate-400 hover:text-purple-300 border border-slate-800'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 text-purple-400" />
+              <span>Groq Cloud LPU</span>
+              <span className="px-1.5 py-0.2 rounded bg-purple-950/80 font-mono text-[10px] text-purple-300">
+                {groqKeysCount}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
           <Layers className="w-4 h-4 text-slate-400" />
           <span>Batch Selection Controls:</span>
@@ -600,6 +686,7 @@ export const ApiKeyManager: React.FC = () => {
             {allPaidSelected ? 'Deselect All Paid' : 'Select All Paid'} ({paidKeys.length})
           </button>
         </div>
+      </div>
       </div>
 
       {/* Dual-Column Key Management Grid */}
@@ -632,6 +719,20 @@ export const ApiKeyManager: React.FC = () => {
 
         {/* Column 2: PAID TIER KEYS */}
         <div className="space-y-4">
+          {policyData?.paid_tier_locked && (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/60 border border-emerald-500/50 text-emerald-200 flex items-center justify-between text-xs shadow-glow-sm animate-pulse">
+              <div className="flex items-center gap-2.5">
+                <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <span className="font-bold text-white">Paid Tier Financial Shield Active:</span> Paid keys are currently isolated to prevent billing spend. All swarm operations route through Free and Local pools.
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-md bg-emerald-900/90 border border-emerald-500 font-mono text-[10px] font-bold text-emerald-100 whitespace-nowrap shadow-sm">
+                ZERO PAID SPEND
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between p-3 rounded-xl bg-amber-950/20 border border-amber-900/40">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
@@ -689,7 +790,13 @@ export const ApiKeyManager: React.FC = () => {
                 <input
                   type={showKeySecret ? 'text' : 'password'}
                   value={newKeyString}
-                  onChange={(e) => setNewKeyString(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewKeyString(val);
+                    if (val.trim().startsWith('gsk_')) {
+                      setNewKeyProvider('GROQ');
+                    }
+                  }}
                   placeholder="AIzaSy..."
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-20"
                 />
@@ -865,6 +972,25 @@ export const ApiKeyManager: React.FC = () => {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-sm text-white truncate max-w-[200px]" title={item.label}>
                   {item.label || 'Unnamed Key'}
+                </span>
+
+                {/* Provider Badge */}
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider flex items-center gap-1 ${
+                    (item.provider || 'GOOGLE').toUpperCase() === 'GROQ'
+                      ? 'bg-purple-950 text-purple-300 border border-purple-800/80'
+                      : 'bg-cyan-950 text-cyan-300 border border-cyan-800/80'
+                  }`}
+                >
+                  {(item.provider || 'GOOGLE').toUpperCase() === 'GROQ' ? (
+                    <>
+                      <Zap className="w-2.5 h-2.5 text-purple-400" /> GROQ
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="w-2.5 h-2.5 text-cyan-400" /> GOOGLE
+                    </>
+                  )}
                 </span>
 
                 {/* Tier Badge */}
