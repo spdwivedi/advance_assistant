@@ -663,3 +663,44 @@ This document tracks all prompt executions, file additions, architecture extensi
   - `src/key_manager.py`: **100% UNTOUCHED**
   - `src/testing_bridge.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 14.2: Multi-Provider Key Pool (Google, Groq) & Zero-Overage Agent/Swarm Pipeline
+- **Date**: 2026-10-15
+- **Goal**: Implement multi-provider key management (`GOOGLE`, `GROQ`), zero-cloud-cost task classification, atomic pre-request token leases with post-request usage reconciliation, and limit-aware dynamic swarm concurrency scaling.
+- **Key Deliverables Implemented**:
+  - `.agent_memory/sub_agents.json`:
+    * Upgraded all 10 existing sub-agent profiles with explicit `provider`, `max_input_tokens`, `max_output_tokens`, and `thinking_budget` bounds.
+    * Added `Groq_Velocity_Coder_Agent` (`qwen-2.5-coder-32b`, `provider: "GROQ"`, `max_input_tokens: 4096`, `max_output_tokens: 2048`, `thinking_budget: 0`, `rpm: 24`, `tpm: 12000`, `rpd: 850`).
+  - `src/key_manager.py`:
+    * Upgraded `KeyManager` with re-entrant `threading.RLock()`.
+    * Extended schema in `.agent_memory/api_keys.json` to track `"provider": "GOOGLE" | "GROQ"`.
+    * Implemented startup auto-seeding from `GROQ_API_KEY` (and `GEMINI_API_KEY`).
+    * Updated `add_key(...)` with automatic `"GROQ"` detection for `gsk_` prefixed keys and provider normalization.
+    * Implemented `resolve_key_context(model_name, tier_preference, provider)` returning unified context dict (`client`, `key_id`, `raw_key`, `provider`, `tier`, `label`).
+    * Enforced automatic Paid Tier Financial Shield bypass: when `paid_tier_locked=True`, automatically suppresses `PAID` keys and routes strictly to `FREE` pool keys.
+    * Updated `test_key(...)` supporting direct verification against `https://api.groq.com/openai/v1/models` and Google GenAI.
+    * Preserved 100% backward-compatible 2-tuple resolver `get_client_for_request(...)`.
+  - `src/agent.py`:
+    * Implemented Zero-Cloud-Cost `auto_detect_execution_plan(user_prompt)` using fast deterministic classification (Boilerplate -> `gemini-2.5-flash-lite`, Architecture/Security -> `gemini-2.5-pro`, General Dev -> `gemini-3.6-flash`) without making any external cloud API calls.
+    * Upgraded `run_agent_pipeline(...)`:
+      - Resolves active key context across `GOOGLE`, `GROQ`, and `OLLAMA`.
+      - Acquires pre-request atomic token lease (`governor.acquire_lease`) with agent-specific output/thinking caps and automatic input truncation if needed.
+      - Paces parallel requests via `pacing_delay_s`.
+      - Calls Google GenAI or Groq Cloud REST with enforced `max_output_tokens` and thinking config.
+      - Reconciles exact usage metadata (`usage_metadata.prompt_token_count`, `candidates_token_count`, `thoughts_token_count`) via `governor.commit_lease(...)` upon success (or releases lease on failure).
+      - Tracks local Ollama fallback execution under `OLLAMA:LOCAL` leases.
+  - `src/supervisor.py`:
+    * Integrated limit-aware dynamic concurrency scaling in `process_complete_development_cycle` / `execute_build_directive`.
+    * When running in `OFFLINE_ONLY` or when 0 cloud keys are active, caps parallel worker threads to `min(max_workers, 4)` to protect the 8GB RTX 4060 VRAM from thrashing.
+    * When active cloud keys are available, dynamically scales effective workers via `governor.calculate_safe_concurrency(...)` and staggers worker dispatch (`0.15s` sleep) for orderly atomic lease acquisition.
+    * Added `execute_build_directive = process_complete_development_cycle` alias on `ProjectSupervisor`.
+  - `test/test_scripts/test_stage14_2_pipeline.py`:
+    * Implemented 6-part automated certification suite testing sub-agent registry schema, multi-provider key registration (`GOOGLE`, `GROQ`, `OLLAMA`), financial shield paid key isolation, zero-cost deterministic classification, mocked end-to-end pipeline lease enforcement & token reconciliation, and supervisor dynamic scaling.
+- **Verification Results**:
+  - `test/test_scripts/test_stage14_2_pipeline.py`: **100% PASS (6/6 tests passed in ~3s)**
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 0.63s)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

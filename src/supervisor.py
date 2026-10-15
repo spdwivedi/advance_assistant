@@ -7,9 +7,11 @@ import concurrent.futures
 import threading
 from src.config import (
     DEFAULT_ISOLATION_ENABLED, MAX_SWARM_WORKERS, 
-    SWARM_REGISTRY_FILE, SEARCH_DATA_DIR, PROJECT_LOG_DIR
+    SWARM_REGISTRY_FILE, SEARCH_DATA_DIR, PROJECT_LOG_DIR,
+    DEFAULT_EXECUTION_MODE
 )
 from src.agent import run_agent_pipeline, governor
+from src.key_manager import key_manager
 from src.permissions import execute_command, normalize_cross_platform_path
 from src.memory_manager import (
     record_env_location, defragment_and_consolidate_books, 
@@ -202,7 +204,8 @@ class ProjectSupervisor:
 
     def process_complete_development_cycle(self, master_instruction: str, mode_override: str = None, profile_level: str = "MAX", constraining_profile: str = "HIGH_RPM_TPM"):
         """
-        Executes an architecture-aware cross-platform multi-phase system compilation loop.
+        Executes an architecture-aware cross-platform multi-phase system compilation loop
+        with dynamic limit-aware concurrency scaling and atomic lease staggered queueing.
         """
         tasks_status = {0: {"agent_role": "Orchestrator", "description": "Analyzing specifications and isolated project history blueprints", "status": "RUNNING"}}
         self.print_dashboard(tasks_status, active_op="Orchestrator initializing context-aware blueprint mapping...", constraining_profile=constraining_profile)
@@ -267,14 +270,35 @@ Goal: {master_instruction}"""
                 )
                 tasks_status[f"prep_{idx}"]["status"] = "DONE"
 
-        # Phase 2: Concurrent Multi-Thread Swarm Processing
-        self.print_dashboard(tasks_status, active_op=f"Spawning swarm workforce with allocation of {self.max_workers} threads...", constraining_profile=constraining_profile)
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = [
-                executor.submit(self.run_sub_agent_worker, idx + 1, task, tasks_status, mode_override, profile_level, constraining_profile)
-                for idx, task in enumerate(coding_tasks)
-            ]
+        # Phase 2: Concurrent Multi-Thread Swarm Processing with Limit-Aware Dynamic Scaling
+        routing_status = key_manager.get_routing_status()
+        active_cloud_keys = routing_status.get("active_keys", 0)
+
+        effective_mode = mode_override or DEFAULT_EXECUTION_MODE
+        if effective_mode == "OFFLINE_ONLY" or active_cloud_keys == 0:
+            effective_workers = min(self.max_workers, 4)
+        else:
+            safe_calc = governor.calculate_safe_concurrency(
+                provider="GOOGLE",
+                tier="FREE",
+                model_name="gemini-3.6-flash",
+                active_keys_count=max(1, active_cloud_keys)
+            )
+            effective_workers = min(self.max_workers, safe_calc)
+
+        effective_workers = max(1, effective_workers)
+
+        self.print_dashboard(tasks_status, active_op=f"Spawning dynamic swarm workforce with allocation of {effective_workers} threads...", constraining_profile=constraining_profile)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=effective_workers) as executor:
+            futures = []
+            for idx, task in enumerate(coding_tasks):
+                fut = executor.submit(
+                    self.run_sub_agent_worker,
+                    idx + 1, task, tasks_status, mode_override, profile_level, constraining_profile
+                )
+                futures.append(fut)
+                time.sleep(0.15)  # Stagger worker submissions slightly so threads acquire atomic leases in orderly queue
             concurrent.futures.wait(futures)
 
         # Phase 3: Quality Assurance Shell Execution Validation
@@ -333,3 +357,6 @@ Goal: {master_instruction}"""
 
         self.print_dashboard(tasks_status, active_op=f"Build cycle complete! Core layers stored safely inside: {self.target_destination}", constraining_profile=constraining_profile)
         log_action("SUPERVISOR", "CYCLE_COMPLETE", {"workspace": self.target_destination, "project_name": self.project_name})
+
+    # Backward compatibility alias
+    execute_build_directive = process_complete_development_cycle
