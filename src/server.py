@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-from src.token_governor import TokenGovernor
+from src.token_governor import TokenGovernor, token_governor
 from src.supervisor import ProjectSupervisor
 from src.memory_manager import (
     get_last_env_location,
@@ -66,7 +66,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-governor = TokenGovernor()
+governor = token_governor
+TokenGovernorInstance = governor
 
 # Global thread-safe execution state
 execution_lock = threading.Lock()
@@ -105,16 +106,64 @@ class ExecutePayload(BaseModel):
     max_workers: Optional[int] = None
 
 
-class AddKeyPayload(BaseModel):
+class ModelLimitsUpdateRequest(BaseModel):
+    provider: str
+    tier: str
+    model_name: str
+    working_limits: Dict[str, int]
+    strict_limits: Optional[Dict[str, int]] = None
+
+
+class AddProviderModelRequest(BaseModel):
+    provider: str
+    tier: str
+    model_name: str
+    strict_limits: Dict[str, int]
+    working_limits: Dict[str, int]
+
+
+class FinancialShieldUpdateRequest(BaseModel):
+    paid_tier_locked: Optional[bool] = None
+    daily_paid_token_cap: Optional[int] = None
+    per_build_paid_token_cap: Optional[int] = None
+    enforce_working_limits: Optional[bool] = None
+    safety_margin_percent: Optional[int] = None
+
+
+class SubAgentUpdateRequest(BaseModel):
+    agent_name: str
+    model: Optional[str] = None
+    provider: Optional[str] = None
+    complexity_level: Optional[str] = None
+    max_input_tokens: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+    thinking_budget: Optional[int] = None
+    rpm: Optional[int] = None
+    tpm: Optional[int] = None
+    rpd: Optional[int] = None
+    strengths: Optional[List[str]] = None
+    weaknesses: Optional[List[str]] = None
+    ideal_for: Optional[List[str]] = None
+
+
+class KeyRegisterRequest(BaseModel):
     key: str
     tier: Optional[str] = "FREE"
     label: Optional[str] = ""
     is_selected: Optional[bool] = True
+    provider: Optional[str] = "GOOGLE"
+
+# Backward compatibility alias
+AddKeyPayload = KeyRegisterRequest
 
 
-class TestKeyPayload(BaseModel):
+class KeyTestRequest(BaseModel):
     key: Optional[str] = None
     id: Optional[str] = None
+    provider: Optional[str] = "GOOGLE"
+
+# Backward compatibility alias
+TestKeyPayload = KeyTestRequest
 
 
 class TierModePayload(BaseModel):
@@ -160,6 +209,8 @@ def get_detailed_key_telemetry() -> Dict[str, Any]:
     """
     status = key_manager.get_routing_status()
     masked_keys = key_manager.get_masked_keys()
+    shield = getattr(governor, "quotas", {}).get("financial_shield", {})
+    paid_tier_locked = bool(shield.get("paid_tier_locked", False))
     return {
         "routing_policy": status.get("routing_policy", "GLOBAL_HYBRID"),
         "pinned_key_id": status.get("pinned_key_id"),
@@ -170,8 +221,38 @@ def get_detailed_key_telemetry() -> Dict[str, Any]:
         "active_keys": status.get("active_keys", 0),
         "exhausted_keys": status.get("exhausted_keys", 0),
         "active_tier_mode": status.get("routing_policy", "GLOBAL_HYBRID"),
+        "google_keys": status.get("google_keys", 0),
+        "groq_keys": status.get("groq_keys", 0),
+        "selected_google_keys": status.get("selected_google_keys", 0),
+        "selected_groq_keys": status.get("selected_groq_keys", 0),
+        "paid_tier_locked": paid_tier_locked,
         "keys_summary": masked_keys
     }
+
+
+SUB_AGENTS_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".agent_memory", "sub_agents.json"))
+
+
+def _load_sub_agents() -> Dict[str, Any]:
+    """Loads configured sub-agent profiles from .agent_memory/sub_agents.json."""
+    if os.path.exists(SUB_AGENTS_FILE):
+        try:
+            with open(SUB_AGENTS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
+def _save_sub_agents(data: Dict[str, Any]) -> bool:
+    """Persists updated sub-agent profiles to .agent_memory/sub_agents.json."""
+    try:
+        os.makedirs(os.path.dirname(SUB_AGENTS_FILE), exist_ok=True)
+        with open(SUB_AGENTS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return True
+    except Exception:
+        return False
 
 
 SWARM_PROFILES_FILE = os.path.join(os.path.dirname(SWARM_REGISTRY_FILE), "swarm_profiles.json")
@@ -414,7 +495,155 @@ def get_telemetry() -> Dict[str, Any]:
     return {
         "models": telemetry_data,
         "snippets": snippets,
+        "reset_schedule": "01:30 PM IST (Midnight PT)",
+        "reset_Schedule": "01:30 PM IST (Midnight PT)",
+        "shield_threshold": "85% TPM",
+        "key_pool": get_detailed_key_telemetry(),
+        "hierarchy": governor.get_hierarchy_telemetry()
+    }
+
+
+# ==============================================================================
+# STAGE 14.3 HIERARCHICAL GOVERNOR, SUB-AGENT BOUNDS & SHIELD REST API
+# ==============================================================================
+
+@app.get("/api/governor/hierarchy")
+def get_governor_hierarchy() -> Dict[str, Any]:
+    """
+    Returns full Provider -> Tier -> Model hierarchy telemetry, sub-agent bounds,
+    and multi-provider key pool metrics.
+    """
+    return {
+        "status": "success",
+        "hierarchy": governor.get_hierarchy_telemetry(),
+        "sub_agents": _load_sub_agents(),
         "key_pool": get_detailed_key_telemetry()
+    }
+
+
+@app.post("/api/governor/limits")
+def update_governor_model_limits(req: ModelLimitsUpdateRequest) -> Dict[str, Any]:
+    """
+    Updates working limits and optional strict limits for a model in the provider hierarchy.
+    """
+    try:
+        res = governor.update_model_limits(
+            provider=req.provider,
+            tier=req.tier,
+            model_name=req.model_name,
+            working_limits=req.working_limits,
+            strict_limits=req.strict_limits
+        )
+        return {
+            "status": "success",
+            **res
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/governor/provider-model")
+def add_governor_provider_model(req: AddProviderModelRequest) -> Dict[str, Any]:
+    """
+    Dynamically registers or updates a model under provider and tier with strict & working limits.
+    """
+    try:
+        res = governor.add_or_update_provider_model(
+            provider=req.provider,
+            tier=req.tier,
+            model_name=req.model_name,
+            strict_limits=req.strict_limits,
+            working_limits=req.working_limits
+        )
+        return {
+            "status": "success",
+            **res
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/governor/shield")
+def update_governor_financial_shield(req: FinancialShieldUpdateRequest) -> Dict[str, Any]:
+    """
+    Modifies Financial Shield properties (paid_tier_locked, daily_paid_token_cap, etc.).
+    """
+    try:
+        res = governor.update_financial_shield(
+            paid_tier_locked=req.paid_tier_locked,
+            daily_paid_token_cap=req.daily_paid_token_cap,
+            per_build_paid_token_cap=req.per_build_paid_token_cap,
+            enforce_working_limits=req.enforce_working_limits,
+            safety_margin_percent=req.safety_margin_percent
+        )
+        return {
+            "status": "success",
+            **res
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/governor/sub-agents")
+def get_governor_sub_agents() -> Dict[str, Any]:
+    """
+    Retrieves configured sub-agent profiles and bounds from .agent_memory/sub_agents.json.
+    """
+    return {
+        "status": "success",
+        "sub_agents": _load_sub_agents()
+    }
+
+
+@app.post("/api/governor/sub-agents")
+def update_governor_sub_agents(req: SubAgentUpdateRequest) -> Dict[str, Any]:
+    """
+    Updates an agent role's input/output/thinking bounds, persists cleanly to .agent_memory/sub_agents.json,
+    and returns the updated dictionary.
+    """
+    if not req.agent_name or not req.agent_name.strip():
+        raise HTTPException(status_code=400, detail="agent_name cannot be empty.")
+
+    sub_agents = _load_sub_agents()
+    name = req.agent_name.strip()
+    if name not in sub_agents:
+        sub_agents[name] = {}
+
+    agent = sub_agents[name]
+    if req.model is not None:
+        agent["model"] = req.model
+    if req.provider is not None:
+        agent["provider"] = req.provider.upper()
+    if req.complexity_level is not None:
+        agent["complexity_level"] = req.complexity_level
+    if req.max_input_tokens is not None:
+        agent["max_input_tokens"] = int(req.max_input_tokens)
+    if req.max_output_tokens is not None:
+        agent["max_output_tokens"] = int(req.max_output_tokens)
+    if req.thinking_budget is not None:
+        agent["thinking_budget"] = int(req.thinking_budget)
+    if req.rpm is not None:
+        agent["rpm"] = int(req.rpm)
+    if req.tpm is not None:
+        agent["tpm"] = int(req.tpm)
+    if req.rpd is not None:
+        agent["rpd"] = int(req.rpd)
+    if req.strengths is not None:
+        agent["strengths"] = req.strengths
+    if req.weaknesses is not None:
+        agent["weaknesses"] = req.weaknesses
+    if req.ideal_for is not None:
+        agent["ideal_for"] = req.ideal_for
+
+    if not _save_sub_agents(sub_agents):
+        raise HTTPException(status_code=500, detail="Failed to persist sub_agents.json")
+
+    return {
+        "status": "success",
+        "message": f"Updated bounds for sub-agent '{name}'.",
+        "agent_name": name,
+        "agent": agent,
+        "sub_agents": sub_agents
     }
 
 
@@ -581,9 +810,9 @@ def get_api_keys() -> Dict[str, Any]:
 
 
 @app.post("/api/keys")
-def add_api_key(payload: AddKeyPayload) -> Dict[str, Any]:
+def add_api_key(payload: KeyRegisterRequest) -> Dict[str, Any]:
     """
-    Adds a new Gemini API key to the key pool with designated tier, label, and selection state.
+    Adds a new Gemini or Groq API key to the key pool with designated provider, tier, label, and selection state.
     """
     if not payload.key or not payload.key.strip():
         raise HTTPException(status_code=400, detail="API key string cannot be empty.")
@@ -592,7 +821,8 @@ def add_api_key(payload: AddKeyPayload) -> Dict[str, Any]:
             key_str=payload.key,
             tier=payload.tier or "FREE",
             label=payload.label or "",
-            is_selected=payload.is_selected if payload.is_selected is not None else True
+            is_selected=payload.is_selected if payload.is_selected is not None else True,
+            provider=payload.provider or "GOOGLE"
         )
         return {
             "status": "success",
@@ -618,14 +848,14 @@ def delete_api_key(key_id: str) -> Dict[str, Any]:
 
 
 @app.post("/api/keys/test")
-def test_api_key(payload: TestKeyPayload) -> Dict[str, Any]:
+def test_api_key(payload: KeyTestRequest) -> Dict[str, Any]:
     """
-    Tests live authentication against Google GenAI for a new or existing API key.
+    Tests live authentication against Google GenAI or Groq Cloud for a new or existing API key.
     """
     if payload.id:
         result = key_manager.test_key_by_id(payload.id)
     elif payload.key:
-        result = key_manager.test_key(payload.key)
+        result = key_manager.test_key(payload.key, provider=payload.provider or "GOOGLE")
     else:
         raise HTTPException(status_code=400, detail="Must provide either 'key' or 'id' to test.")
 
@@ -872,6 +1102,7 @@ async def websocket_telemetry(websocket: WebSocket):
                 "quotas": quotas,
                 "knowledge_telemetry": get_knowledge_base_telemetry(),
                 "key_pool": get_detailed_key_telemetry(),
+                "hierarchy": governor.get_hierarchy_telemetry(),
                 "timestamp": time.time()
             }
 

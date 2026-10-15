@@ -704,3 +704,37 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 14.3: FastAPI Hierarchical Governor, Sub-Agent Bounds & Multi-Provider Key REST API
+- **Date**: 2026-10-15
+- **Goal**: Expose full management, live telemetry, and configuration REST and WebSocket endpoints in `src/server.py` for the hierarchical Provider-Tier-Model quota governor, sub-agent bounds, and multi-provider key pool.
+- **Key Deliverables Implemented**:
+  - `src/server.py`:
+    * Added `GET /api/governor/hierarchy`: Exposes `governor.get_hierarchy_telemetry()`, loads and embeds `.agent_memory/sub_agents.json`, and attaches multi-provider `key_pool` telemetry.
+    * Added `POST /api/governor/limits` (`ModelLimitsUpdateRequest`): Updates model `working_limits` and optional `strict_limits` in the persistent `provider_quotas.json`.
+    * Added `POST /api/governor/provider-model` (`AddProviderModelRequest`): Dynamically registers or updates models under any provider (`GOOGLE`, `GROQ`, `OLLAMA`, `ANTHROPIC`, `OPENAI`, etc.) and tier directly via REST.
+    * Added `POST /api/governor/shield` (`FinancialShieldUpdateRequest`): Toggles `paid_tier_locked`, updates `daily_paid_token_cap`, `per_build_paid_token_cap`, and persists changes into `provider_quotas.json`.
+    * Added `GET /api/governor/sub-agents`: Reads and returns configured sub-agent profiles from `.agent_memory/sub_agents.json`.
+    * Added `POST /api/governor/sub-agents` (`SubAgentUpdateRequest`): Updates an agent role's input/output/thinking caps and RPM/TPM/RPD bounds, safely persists to disk, and returns updated profiles.
+    * Upgraded `POST /api/keys` (`KeyRegisterRequest`): Accepts `provider: str = "GOOGLE"` alongside `key`, `tier`, `label`, `is_selected` and passes `provider` to `key_manager.add_key(...)`. Preserves `AddKeyPayload` alias.
+    * Upgraded `POST /api/keys/test` (`KeyTestRequest`): Accepts `provider: str = "GOOGLE"` and passes to `key_manager.test_key(req.key, provider=req.provider)`. Preserves `TestKeyPayload` alias.
+    * Upgraded `get_detailed_key_telemetry()`: Enriched with provider breakdown counts (`google_keys`, `groq_keys`, `selected_google_keys`, `selected_groq_keys`, `active_free`, `active_paid`, `paid_tier_locked`) alongside `keys_summary`.
+    * Upgraded `GET /api/telemetry` & `WebSocket /ws/telemetry`: Attached live `hierarchy` block alongside existing `models`, `snippets`, `reset_schedule`, and `key_pool`.
+  - `test/test_scripts/test_stage14_3_server.py`:
+    * Comprehensive `fastapi.testclient.TestClient` test suite verifying:
+      1. `GET /api/governor/hierarchy` provider trees, financial shield, sub-agents, and key pool.
+      2. `POST /api/governor/limits` model working limits update and persistence.
+      3. `POST /api/governor/provider-model` dynamic registration of `ANTHROPIC/PAID/claude-3-7-sonnet`.
+      4. `POST /api/governor/shield` toggling `paid_tier_locked` and updating token caps.
+      5. `GET & POST /api/governor/sub-agents` input/output/thinking bounds updates and persistence.
+      6. `POST /api/keys` multi-provider registration (`GOOGLE` and `GROQ`), listing in `GET /api/keys`, testing, and deletion cleanup.
+      7. `GET /api/telemetry` and `WebSocket /ws/telemetry` frame streaming with enriched `hierarchy` and `key_pool`.
+- **Verification Results**:
+  - `test/test_scripts/test_stage14_3_server.py`: **100% PASS (8/8 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 2.44s)**
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_stage14_2_pipeline.py`: **100% PASS (6/6 tests passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.
