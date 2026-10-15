@@ -4,6 +4,7 @@ import os
 SEARCH_DATA_DIR = os.path.abspath("./.search_data")
 SWARM_REGISTRY_FILE = os.path.abspath("./.agent_memory/swarm_registry.json")
 TOKEN_LEDGER_FILE = os.path.abspath("./.agent_memory/token_ledger.json")
+PROVIDER_QUOTAS_FILE = os.path.abspath("./.agent_memory/provider_quotas.json")
 
 # Isolated Testing Paths
 TEST_DATA_DIR = os.path.abspath("./test/test_data")
@@ -180,21 +181,155 @@ TIER_POOLS = {
 }
 
 # ------------------------------------------------------------------------------
-# HARD FREE-TIER MODEL LIMITS REGISTRY (Google AI Studio Exact Boundaries)
+# HIERARCHICAL PROVIDER-TIER-MODEL QUOTA DEFINITIONS
 # ------------------------------------------------------------------------------
-MODEL_REGISTRY = {
-    "gemini-3.1-pro-preview": {"rpm": 25,   "tpm": 2000000, "rpd": 250},
-    "gemini-2.5-pro":         {"rpm": 150,  "tpm": 2000000, "rpd": 1000},
-    "gemini-3.6-flash":       {"rpm": 1000, "tpm": 2000000, "rpd": 10000},
-    "gemini-3.5-flash":       {"rpm": 1000, "tpm": 2000000, "rpd": 10000},
-    "gemini-3-flash-preview": {"rpm": 1000, "tpm": 2000000, "rpd": 10000},
-    "gemini-2.5-flash":       {"rpm": 1000, "tpm": 1000000, "rpd": 10000},
-    "gemini-3.5-flash-lite":  {"rpm": 4000, "tpm": 4000000, "rpd": 150000},
-    "gemini-3.1-flash-lite":  {"rpm": 4000, "tpm": 4000000, "rpd": 150000},
-    "gemini-2.5-flash-lite":  {"rpm": 4000, "tpm": 4000000, "rpd": 999999},  # Unlimited
-    "qwen2.5-coder:32b":      {"rpm": 999,  "tpm": 9900000, "rpd": 999999},
-    "qwen2.5-coder:7b":       {"rpm": 999,  "tpm": 9900000, "rpd": 999999}
+DEFAULT_PROVIDER_QUOTAS = {
+    "GOOGLE": {
+        "FREE": {
+            "gemini-3.1-pro-preview": {
+                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 25, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 4, "tpm": 180000, "rpd": 20, "max_input_tokens": 16000, "max_output_tokens": 4096, "thinking_budget": 2048}
+            },
+            "gemini-2.5-pro": {
+                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 50, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 4, "tpm": 180000, "rpd": 40, "max_input_tokens": 16000, "max_output_tokens": 4096, "thinking_budget": 2048}
+            },
+            "gemini-3.6-flash": {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 12, "tpm": 200000, "rpd": 425, "max_input_tokens": 8000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3.5-flash": {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 12, "tpm": 200000, "rpd": 425, "max_input_tokens": 8000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-2.5-flash": {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 12, "tpm": 200000, "rpd": 425, "max_input_tokens": 8000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3-flash-preview": {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 12, "tpm": 200000, "rpd": 425, "max_input_tokens": 8000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3.5-flash-lite": {
+                "strict_limits": {"rpm": 30, "tpm": 250000, "rpd": 1500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 25, "tpm": 200000, "rpd": 1250, "max_input_tokens": 4000, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "gemini-3.1-flash-lite": {
+                "strict_limits": {"rpm": 30, "tpm": 250000, "rpd": 1500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 25, "tpm": 200000, "rpd": 1250, "max_input_tokens": 4000, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "gemini-2.5-flash-lite": {
+                "strict_limits": {"rpm": 30, "tpm": 250000, "rpd": 1500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 25, "tpm": 200000, "rpd": 1250, "max_input_tokens": 4000, "max_output_tokens": 2048, "thinking_budget": 0}
+            }
+        },
+        "PAID": {
+            "gemini-3.1-pro-preview": {
+                "strict_limits": {"rpm": 150, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 15, "tpm": 150000, "rpd": 150, "max_input_tokens": 24000, "max_output_tokens": 4096, "thinking_budget": 2048}
+            },
+            "gemini-2.5-pro": {
+                "strict_limits": {"rpm": 150, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 15, "tpm": 150000, "rpd": 150, "max_input_tokens": 24000, "max_output_tokens": 4096, "thinking_budget": 2048}
+            },
+            "gemini-3.6-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 250000, "rpd": 1000, "max_input_tokens": 12000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3.5-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 250000, "rpd": 1000, "max_input_tokens": 12000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-2.5-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 250000, "rpd": 1000, "max_input_tokens": 12000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3-flash-preview": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 250000, "rpd": 1000, "max_input_tokens": 12000, "max_output_tokens": 4096, "thinking_budget": 512}
+            },
+            "gemini-3.5-flash-lite": {
+                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 120, "tpm": 300000, "rpd": 3000, "max_input_tokens": 6000, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "gemini-3.1-flash-lite": {
+                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 120, "tpm": 300000, "rpd": 3000, "max_input_tokens": 6000, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "gemini-2.5-flash-lite": {
+                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 120, "tpm": 300000, "rpd": 3000, "max_input_tokens": 6000, "max_output_tokens": 2048, "thinking_budget": 0}
+            }
+        }
+    },
+    "GROQ": {
+        "FREE": {
+            "llama-3.3-70b-versatile": {
+                "strict_limits": {"rpm": 30, "tpm": 12000, "rpd": 1000, "max_input_tokens": 8192, "max_output_tokens": 4096},
+                "working_limits": {"rpm": 24, "tpm": 10000, "rpd": 850, "max_input_tokens": 4096, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "llama-3.1-8b-instant": {
+                "strict_limits": {"rpm": 30, "tpm": 20000, "rpd": 14400, "max_input_tokens": 8192, "max_output_tokens": 4096},
+                "working_limits": {"rpm": 25, "tpm": 16000, "rpd": 12000, "max_input_tokens": 4096, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "qwen-2.5-coder-32b": {
+                "strict_limits": {"rpm": 30, "tpm": 15000, "rpd": 1000, "max_input_tokens": 8192, "max_output_tokens": 4096},
+                "working_limits": {"rpm": 24, "tpm": 12000, "rpd": 850, "max_input_tokens": 4096, "max_output_tokens": 2048, "thinking_budget": 0}
+            }
+        },
+        "PAID": {
+            "llama-3.3-70b-versatile": {
+                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 100000, "rpd": 2000, "max_input_tokens": 8192, "max_output_tokens": 4096, "thinking_budget": 0}
+            },
+            "llama-3.1-8b-instant": {
+                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 100000, "rpd": 2000, "max_input_tokens": 8192, "max_output_tokens": 4096, "thinking_budget": 0}
+            },
+            "qwen-2.5-coder-32b": {
+                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 60, "tpm": 100000, "rpd": 2000, "max_input_tokens": 8192, "max_output_tokens": 4096, "thinking_budget": 0}
+            }
+        }
+    },
+    "OLLAMA": {
+        "LOCAL": {
+            "qwen2.5-coder:32b": {
+                "strict_limits": {"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
+                "working_limits": {"rpm": 30, "tpm": 250000, "rpd": 999999, "max_input_tokens": 4096, "max_output_tokens": 2048, "thinking_budget": 0}
+            },
+            "qwen2.5-coder:7b": {
+                "strict_limits": {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
+                "working_limits": {"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 4096, "max_output_tokens": 2048, "thinking_budget": 0}
+            }
+        }
+    }
 }
+
+# ------------------------------------------------------------------------------
+# DYNAMIC MODEL REGISTRY & LIMITS (Derived dynamically from DEFAULT_PROVIDER_QUOTAS)
+# ------------------------------------------------------------------------------
+MODEL_REGISTRY = {}
+
+# Populate primary models from Google Free tier and Ollama Local tier
+for _m_name, _m_cfg in DEFAULT_PROVIDER_QUOTAS.get("GOOGLE", {}).get("FREE", {}).items():
+    _limits = _m_cfg.get("strict_limits", {})
+    MODEL_REGISTRY[_m_name] = {
+        "rpm": _limits.get("rpm", 15),
+        "tpm": _limits.get("tpm", 250000),
+        "rpd": _limits.get("rpd", 500)
+    }
+
+for _m_name, _m_cfg in DEFAULT_PROVIDER_QUOTAS.get("OLLAMA", {}).get("LOCAL", {}).items():
+    _limits = _m_cfg.get("strict_limits", {})
+    MODEL_REGISTRY[_m_name] = {
+        "rpm": _limits.get("rpm", 60),
+        "tpm": _limits.get("tpm", 500000),
+        "rpd": _limits.get("rpd", 999999)
+    }
+
+# Backward compatibility alias
+MODEL_LIMITS = MODEL_REGISTRY
 
 # Research & Specification Profiles
 RESEARCH_PROFILES = {

@@ -628,3 +628,38 @@ This document tracks all prompt executions, file additions, architecture extensi
   * `src/key_manager.py`: **100% UNTOUCHED**
   * `src/testing_bridge.py`: **100% UNTOUCHED**
 - Stage Status: COMPLETED. Ready for v6.0 Production Release.
+
+
+## Stage 14.1: Hierarchical Provider-Tier-Model Quota Engine & Atomic Lease Token Governor
+- **Date**: 2026-10-15
+- **Goal**: Transition from flat legacy model limits and post-only token governor to a clean, hierarchical Provider (`GOOGLE`, `GROQ`, `OLLAMA`) -> Tier (`FREE`, `PAID`, `LOCAL`) -> Model architecture featuring Pre-Request Atomic Token Leases, Input/Output/Thinking token separation, Strict vs. Working Limits, and a Paid Tier Financial Shield.
+- **Key Deliverables Implemented**:
+  - `src/config.py`:
+    * Added `PROVIDER_QUOTAS_FILE = os.path.abspath("./.agent_memory/provider_quotas.json")`.
+    * Defined `DEFAULT_PROVIDER_QUOTAS` cleanly structured across Providers (`GOOGLE`, `GROQ`, `OLLAMA`), Tiers (`FREE`, `PAID`, `LOCAL`), and Models with distinct `strict_limits` and `working_limits` (RPM, TPM, RPD, Max Input, Max Output, Thinking Budget).
+    * Maintained dynamic derivation of `MODEL_REGISTRY` and `MODEL_LIMITS` for full backward compatibility across legacy callers.
+    * Preserved all execution modes, research profiles, and `MAX_SWARM_WORKERS = 17`.
+  - `src/token_governor.py`:
+    * Implemented `HierarchicalTokenGovernor` with thread-safe re-entrant locking (`threading.RLock()`).
+    * Structured `.agent_memory/provider_quotas.json` to persist the full hierarchy and `financial_shield` (`paid_tier_locked`, `daily_paid_token_cap=500000`, `enforce_working_limits=True`, `safety_margin_percent=85`).
+    * Structured `.agent_memory/token_ledger.json` tracking usage with 1:30 PM IST daily reset (Midnight PT), `paid_tokens_today`, `bucket_usage` (`{provider}:{tier}:{key_id}:{model}` with discrete `input_tokens_today`, `output_tokens_today`, `thinking_tokens_today`), `model_usage`, and `project_usage`.
+    * Implemented `acquire_lease(...)`: Atomic pre-request reservation computing in-flight load, rolling 60s windows, staggered pacing delays (`pacing_delay_s`), input truncation checks, and immediate blocking if `paid_tier_locked=True` or limits are exceeded. Automatically expires orphaned leases older than 180s.
+    * Implemented `commit_lease(...)`: Post-request exact reconciliation of actual input, output, and thinking tokens, releasing the lease and persisting exact usage into ledger and rolling windows.
+    * Implemented `release_lease(lease_id)` for early cancellation.
+    * Added hierarchy CRUD methods: `get_hierarchy_telemetry()`, `update_model_limits()`, `add_or_update_provider_model()`, `update_financial_shield()`, and `calculate_safe_concurrency()`.
+    * Preserved 100% backward-compatible wrappers (`inspect_and_cool_allocation`, `render_live_telemetry_snippet`, `can_execute`, `record_execution`, `get_telemetry_string`, `get_model_selection_context`, `reset_if_new_day`, `is_model_allowed_by_profile`, `sync_wsl_time_from_internet`).
+    * Exported aliases `TokenGovernor = HierarchicalTokenGovernor` and singleton `token_governor`.
+  - `test/test_scripts/test_hierarchical_governor.py`:
+    * Created automated unit test verifying quota initialization, 5-lease pre-request atomic concurrency on 4 RPM model (first 4 approved with staggered delays 0s, 15s, 30s, 45s; 5th blocked before execution), post-request exact token reconciliation, Paid Tier Financial Shield locking/unlocking with FREE & LOCAL isolation, dynamic provider addition, safe concurrency scaling, and legacy compatibility.
+- **Verification Results**:
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_governor.py`: **100% PASS**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 0.40s)**
+- **Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+  - `src/agent.py`: **100% UNTOUCHED**
+  - `src/supervisor.py`: **100% UNTOUCHED**
+  - `src/logger.py`: **100% UNTOUCHED**
+  - `src/key_manager.py`: **100% UNTOUCHED**
+  - `src/testing_bridge.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.
