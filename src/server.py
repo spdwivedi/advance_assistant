@@ -16,7 +16,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from src.token_governor import TokenGovernor, token_governor
-from src.supervisor import ProjectSupervisor
+from src.supervisor import (ProjectSupervisor, request_build_stop, toggle_build_pause, reset_build_lifecycle, check_build_lifecycle, generate_preflight_blueprint, execute_approved_blueprint)
 from src.memory_manager import (
     get_last_env_location,
     get_knowledge_base_telemetry,
@@ -48,7 +48,8 @@ from src.config import (
     LOCAL_WORKER_MODEL,
     SWARM_REGISTRY_FILE,
     DEFAULT_ISOLATION_ENABLED,
-    MAX_SWARM_WORKERS
+    MAX_SWARM_WORKERS,
+    PROJECT_LOG_DIR
 )
 
 # Initialize application and token governor
@@ -74,7 +75,9 @@ TokenGovernorInstance = governor
 execution_lock = threading.Lock()
 execution_state: Dict[str, Any] = {
     "is_running": False,
+    "is_paused": False,
     "status": "IDLE",
+    "current_phase": "IDLE",
     "project_name": None,
     "target_path": None,
     "goal": None,
@@ -129,6 +132,30 @@ class FinancialShieldUpdateRequest(BaseModel):
     per_build_paid_token_cap: Optional[int] = None
     enforce_working_limits: Optional[bool] = None
     safety_margin_percent: Optional[int] = None
+
+
+class PausePayload(BaseModel):
+    paused: Optional[bool] = None
+
+
+class BlueprintPreviewRequest(BaseModel):
+    goal: str
+    target_dir: str = "/tmp"
+    project_name: Optional[str] = None
+    execution_mode: str = "AUTO_DETECT"
+    orchestrator_model: Optional[str] = None
+    use_existing_context: bool = True
+
+
+class BlueprintExecuteRequest(BaseModel):
+    target_dir: str
+    project_name: Optional[str] = None
+    goal: str = "Approved Blueprint Execution"
+    tasks: List[Dict[str, Any]]
+    max_workers: int = 8
+    execution_mode: str = "HYBRID_CLOUD"
+    research_profile: str = "BASIC"
+    model_profile: str = "HIGH_RPM_TPM"
 
 
 class SubAgentUpdateRequest(BaseModel):
@@ -527,7 +554,8 @@ def get_governor_hierarchy() -> Dict[str, Any]:
         "status": "success",
         "hierarchy": governor.get_hierarchy_telemetry(),
         "sub_agents": _load_sub_agents(),
-        "key_pool": get_detailed_key_telemetry()
+        "key_pool": get_detailed_key_telemetry(),
+        "cost_estimate": governor.get_cost_and_savings_estimate()
     }
 
 
@@ -930,6 +958,45 @@ def set_tier_mode(payload: TierModePayload) -> Dict[str, Any]:
     }
 
 
+def _run_background_blueprint(
+    target_dest: str,
+    project_name: str,
+    goal: str,
+    tasks: list,
+    mode: str,
+    profile: str,
+    constrain: str,
+    max_workers: int
+):
+    """Worker function executed inside a detached background thread for approved blueprint execution."""
+    try:
+        res = execute_approved_blueprint(
+            tasks=tasks,
+            target_destination=target_dest,
+            project_name=project_name,
+            goal=goal,
+            max_workers=max_workers,
+            execution_mode=mode,
+            research_profile=profile,
+            model_profile=constrain,
+            isolate=False
+        )
+        final_status = res.get("status", "COMPLETED")
+        with execution_lock:
+            execution_state["status"] = final_status
+            execution_state["current_phase"] = final_status
+            execution_state["end_time"] = time.time()
+    except Exception as exc:
+        with execution_lock:
+            execution_state["status"] = "FAILED"
+            execution_state["current_phase"] = "FAILED"
+            execution_state["error"] = str(exc)
+            execution_state["end_time"] = time.time()
+    finally:
+        with execution_lock:
+            execution_state["is_running"] = False
+
+
 def _run_background_build(
     target_dest: str,
     project_name: str,
@@ -956,6 +1023,7 @@ def _run_background_build(
         )
         with execution_lock:
             execution_state["status"] = "COMPLETED"
+            execution_state["current_phase"] = "COMPLETED"
         try:
             reg = _load_json(SWARM_REGISTRY_FILE, {})
             reg["status"] = "COMPLETED"
@@ -965,6 +1033,7 @@ def _run_background_build(
     except Exception as exc:
         with execution_lock:
             execution_state["status"] = "FAILED"
+            execution_state["current_phase"] = "FAILED"
             execution_state["error"] = str(exc)
         try:
             reg = _load_json(SWARM_REGISTRY_FILE, {})
@@ -1016,7 +1085,9 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
         active_max_workers = max(1, min(int(raw_workers), 16))
 
         execution_state["is_running"] = True
+        execution_state["is_paused"] = False
         execution_state["status"] = "RUNNING"
+        execution_state["current_phase"] = "STARTING"
         execution_state["project_name"] = project_name
         execution_state["target_path"] = target_dest
         execution_state["goal"] = payload.goal
@@ -1119,6 +1190,7 @@ async def websocket_telemetry(websocket: WebSocket):
                 "knowledge_telemetry": get_knowledge_base_telemetry(),
                 "key_pool": get_detailed_key_telemetry(),
                 "hierarchy": governor.get_hierarchy_telemetry(),
+                "cost_estimate": governor.get_cost_and_savings_estimate(),
                 "timestamp": time.time()
             }
 
@@ -1609,3 +1681,310 @@ async def websocket_logs(
 
 if __name__ == "__main__":
     uvicorn.run("src.server:app", host="0.0.0.0", port=8000, reload=False)
+
+
+# ==============================================================================
+# STAGE 15.2 LIFECYCLE, WORKSPACE SCANNER, FILE INSPECTOR & BLUEPRINT API
+# ==============================================================================
+
+@app.post("/api/execute/stop")
+def stop_build() -> Dict[str, Any]:
+    """
+    Halts any actively running supervisor build or blueprint execution immediately.
+    """
+    res = request_build_stop()
+    with execution_lock:
+        execution_state["is_running"] = False
+        execution_state["status"] = "CANCELLED"
+        execution_state["current_phase"] = "CANCELLED_BY_USER"
+        execution_state["end_time"] = time.time()
+    return {"status": "success", "state": "CANCELLED"}
+
+
+@app.post("/api/execute/pause")
+def pause_build(payload: Optional[PausePayload] = None) -> Dict[str, Any]:
+    """
+    Toggles or sets the pause state for the active development cycle.
+    """
+    is_pause = payload.paused if payload else None
+    res = toggle_build_pause(is_pause)
+    is_paused = res.get("paused", False)
+    with execution_lock:
+        execution_state["is_paused"] = is_paused
+        if is_paused:
+            execution_state["current_phase"] = "PAUSED"
+        elif execution_state.get("is_running"):
+            execution_state["current_phase"] = "RUNNING"
+    return {"status": "success", "paused": is_paused, "state": res.get("state")}
+
+
+@app.get("/api/governor/cost-estimate")
+def get_governor_cost_estimate() -> Dict[str, Any]:
+    """
+    Returns actual paid cloud spend and estimated savings from free/local models.
+    """
+    return {
+        "status": "success",
+        "cost_estimate": governor.get_cost_and_savings_estimate()
+    }
+
+
+@app.get("/api/workspace/scan")
+def scan_workspace(path: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Stage 15.2 Continuous Iterative Workspace Scanner:
+    Inspects existing projects, calculates file counts, sizes, extensions, and
+    detects historical architecture blueprint ledgers for continuous development.
+    """
+    target_raw = path if path else get_last_env_location()
+    norm_path = normalize_wsl_path(target_raw)
+
+    clean_p_name = re.sub(r'[\W_]+', '_', str(os.path.basename(norm_path.rstrip("/")))).strip('_').lower()
+    ledger_path = os.path.join(PROJECT_LOG_DIR, clean_p_name, "blueprint_ledger.json")
+
+    if not os.path.exists(norm_path):
+        return {
+            "status": "success",
+            "exists": False,
+            "resolved_path": norm_path,
+            "project_name": os.path.basename(norm_path.rstrip("/")) or "workspace",
+            "file_count": 0,
+            "files": [],
+            "language_breakdown": {},
+            "has_existing_ledger": os.path.exists(ledger_path)
+        }
+
+    files_list = []
+    ext_counts = {}
+    ignored_dirs = {".git", "node_modules", "venv", ".venv", "__pycache__", "dist", "build", ".staging_temp"}
+
+    for root, dirs, files in os.walk(norm_path):
+        dirs[:] = [d for d in dirs if d not in ignored_dirs and not d.startswith(".")]
+        for f in sorted(files):
+            if len(files_list) >= 300:
+                break
+            full_p = os.path.join(root, f)
+            rel_p = os.path.relpath(full_p, norm_path).replace(chr(92), "/")
+            try:
+                st = os.stat(full_p)
+                sz = st.st_size
+                mtime_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))
+            except Exception:
+                sz = 0
+                mtime_str = ""
+            ext = os.path.splitext(f)[1].lower() or "no_ext"
+            ext_counts[ext] = ext_counts.get(ext, 0) + 1
+            files_list.append({
+                "rel_path": rel_p,
+                "size_bytes": sz,
+                "ext": ext,
+                "last_modified": mtime_str
+            })
+        if len(files_list) >= 300:
+            break
+
+    return {
+        "status": "success",
+        "exists": True,
+        "resolved_path": norm_path,
+        "project_name": os.path.basename(norm_path.rstrip("/")) or "workspace",
+        "file_count": len(files_list),
+        "files": files_list,
+        "language_breakdown": ext_counts,
+        "has_existing_ledger": os.path.exists(ledger_path)
+    }
+
+
+@app.get("/api/workspace/file")
+def get_workspace_file(workspace_dir: str, file_path: str) -> Dict[str, Any]:
+    """
+    Stage 15.2 Live Workspace File Inspector:
+    Resolves and securely inspects source code and configuration files within
+    allowed workspace boundaries, enforcing path traversal and sensitive file guards.
+    """
+    if not workspace_dir or not file_path:
+        raise HTTPException(status_code=400, detail="Both 'workspace_dir' and 'file_path' are required.")
+
+    clean_parts = file_path.replace(chr(92), "/").split("/")
+    if ".." in clean_parts:
+        raise HTTPException(status_code=400, detail="Path traversal forbidden.")
+
+    norm_ws = normalize_wsl_path(workspace_dir)
+    clean_rel = file_path.strip().replace(chr(92), "/").lstrip("/")
+    full_resolved = os.path.normpath(os.path.join(norm_ws, clean_rel))
+
+    if not (full_resolved.startswith(norm_ws) or full_resolved.startswith("/tmp") or full_resolved.startswith("/mnt/")):
+        raise HTTPException(status_code=400, detail="Target path is outside allowed workspace boundaries.")
+
+    base_lower = os.path.basename(full_resolved).lower()
+    blocked_sensitive = [".env", "api_keys.json", "id_rsa", "id_ed25519", "shadow", "passwd", "sudoers"]
+    if any(b in base_lower for b in blocked_sensitive) or "/etc/" in full_resolved:
+        raise HTTPException(status_code=403, detail=f"Access to sensitive file '{base_lower}' is blocked.")
+
+    if not os.path.exists(full_resolved) or not os.path.isfile(full_resolved):
+        raise HTTPException(status_code=404, detail=f"File '{file_path}' not found in workspace.")
+
+    try:
+        size_b = os.path.getsize(full_resolved)
+        with open(full_resolved, "r", encoding="utf-8", errors="replace") as f:
+            content_str = f.read(204800)  # Up to 200 KB
+        lines = content_str.splitlines()
+        st = os.stat(full_resolved)
+        mtime_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))
+
+        ext = os.path.splitext(full_resolved)[1].lower()
+        ext_map = {
+            ".py": "python", ".js": "javascript", ".jsx": "javascript",
+            ".ts": "typescript", ".tsx": "typescript", ".json": "json",
+            ".md": "markdown", ".html": "html", ".css": "css",
+            ".sh": "bash", ".bash": "bash", ".sql": "sql",
+            ".yaml": "yaml", ".yml": "yaml", ".txt": "plaintext"
+        }
+        inferred_lang = ext_map.get(ext, "plaintext")
+
+        return {
+            "status": "success",
+            "file_path": clean_rel,
+            "full_path": full_resolved,
+            "size_bytes": size_b,
+            "line_count": len(lines),
+            "language": inferred_lang,
+            "last_modified": mtime_str,
+            "content": content_str
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(exc)}")
+
+
+@app.post("/api/blueprint/preview")
+def create_blueprint_preview(req: BlueprintPreviewRequest) -> Dict[str, Any]:
+    """
+    Stage 15.2 Pre-Flight Blueprint Generator:
+    Produces a structured file task list with CREATE/MODIFY actions, model/agent
+    assignments, and token budget estimations without modifying workspace files.
+    """
+    if not req.goal or not req.goal.strip():
+        raise HTTPException(status_code=400, detail="A non-empty 'goal' is required.")
+
+    try:
+        blueprint = generate_preflight_blueprint(
+            goal=req.goal,
+            target_dir=req.target_dir,
+            project_name=req.project_name,
+            execution_mode=req.execution_mode,
+            orchestrator_model=req.orchestrator_model,
+            use_existing_context=req.use_existing_context
+        )
+        return {
+            "status": "success",
+            "blueprint": blueprint
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to generate blueprint preview: {str(exc)}")
+
+
+@app.get("/api/blueprint/preview")
+def get_latest_blueprint_preview() -> Dict[str, Any]:
+    """
+    Retrieves the most recent blueprint preview from .agent_memory/blueprint_preview.json.
+    """
+    preview_file = os.path.abspath("./.agent_memory/blueprint_preview.json")
+    if os.path.exists(preview_file):
+        try:
+            with open(preview_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return {"status": "success", "blueprint": data}
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Error reading blueprint preview: {str(exc)}")
+    return {"status": "not_found", "blueprint": None}
+
+
+@app.post("/api/blueprint/execute")
+def execute_blueprint(req: BlueprintExecuteRequest) -> Dict[str, Any]:
+    """
+    Stage 15.2 Approved Blueprint Execution:
+    Executes a pre-screened list of selected file tasks in the background,
+    respecting lifecycle cancellation/pause events and updating swarm registry.
+    """
+    if not req.tasks:
+        raise HTTPException(status_code=400, detail="A non-empty 'tasks' list is required.")
+
+    with execution_lock:
+        if execution_state["is_running"]:
+            raise HTTPException(
+                status_code=409,
+                detail=f"A build job is actively running for project '{execution_state['project_name']}'."
+            )
+
+        target_dest = normalize_wsl_path(req.target_dir)
+        project_name = req.project_name or os.path.basename(target_dest.rstrip("/")) or "default_project"
+
+        try:
+            token_governor.reset_build_counter(project_name)
+        except Exception:
+            pass
+
+        swarm_conf = _get_or_init_swarm_profiles()
+        active_swarm_id = swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM")
+        active_orchestrator = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        active_max_workers = max(1, min(int(req.max_workers), 16))
+
+        execution_state["is_running"] = True
+        execution_state["is_paused"] = False
+        execution_state["status"] = "RUNNING"
+        execution_state["current_phase"] = "BLUEPRINT_EXECUTION"
+        execution_state["project_name"] = project_name
+        execution_state["target_path"] = target_dest
+        execution_state["goal"] = req.goal
+        execution_state["mode"] = req.execution_mode
+        execution_state["profile"] = req.research_profile
+        execution_state["constrain"] = req.model_profile
+        execution_state["active_swarm_id"] = active_swarm_id
+        execution_state["orchestrator_engine"] = active_orchestrator
+        execution_state["max_workers"] = active_max_workers
+        execution_state["start_time"] = time.time()
+        execution_state["end_time"] = None
+        execution_state["error"] = None
+
+    try:
+        current_registry = _load_json(SWARM_REGISTRY_FILE, {})
+        current_registry.update({
+            "project_name": project_name,
+            "project_root": target_dest,
+            "active_workspace": target_dest,
+            "active_swarm_id": active_swarm_id,
+            "orchestrator_engine": active_orchestrator,
+            "max_available_workers": active_max_workers,
+            "status": "RUNNING"
+        })
+        _save_json(SWARM_REGISTRY_FILE, current_registry)
+    except Exception:
+        pass
+
+    worker_thread = threading.Thread(
+        target=_run_background_blueprint,
+        args=(
+            target_dest,
+            project_name,
+            req.goal,
+            req.tasks,
+            req.execution_mode,
+            req.research_profile,
+            req.model_profile,
+            active_max_workers
+        ),
+        daemon=True
+    )
+    worker_thread.start()
+
+    return {
+        "status": "started",
+        "message": f"Approved blueprint execution initiated for project '{project_name}'.",
+        "execution_state": {
+            "project_name": project_name,
+            "target_path": target_dest,
+            "selected_tasks_count": len([t for t in req.tasks if t.get("selected", True)])
+        }
+    }

@@ -181,6 +181,14 @@ def run_agent_pipeline(
     Coordinates tool discovery, precision memory snippet injection, atomic pre-request token leases,
     exact usage reconciliation, and seamless fallback across Google GenAI, Groq LPU, and local Ollama.
     """
+    try:
+        from src.supervisor import check_build_lifecycle
+        if not check_build_lifecycle():
+            log_action(tier, "BUILD_CANCELLED_IN_PIPELINE", {"prompt": user_prompt[:80], "project": project_name})
+            return "[BUILD_CANCELLED]: Execution aborted by user cancellation."
+    except ImportError:
+        pass
+
     active_mode = mode_override or DEFAULT_EXECUTION_MODE
     profile_level = profile_override or DEFAULT_RESEARCH_PROFILE
     constraining_profile = constraining_profile_override or DEFAULT_MODEL_CONSTRAINING_PROFILE
@@ -272,6 +280,13 @@ RULES FOR SYSTEM COMMAND GENERATION:
             ctx = key_manager.resolve_key_context(model_name=model_id, tier_preference=tier_pref, provider=target_provider)
             if not ctx.get("key_id") or (target_provider == "GOOGLE" and not ctx.get("client") and not ctx.get("raw_key")):
                 continue
+
+            try:
+                from src.supervisor import check_build_lifecycle
+                if not check_build_lifecycle():
+                    return "[BUILD_CANCELLED]: Execution aborted by user cancellation."
+            except ImportError:
+                pass
 
             # Pre-Request Atomic Token Lease Acquisition
             lease = governor.acquire_lease(
@@ -427,6 +442,13 @@ RULES FOR SYSTEM COMMAND GENERATION:
         log_action(tier, "OFFLINE_CORE_FALLBACK", {"model": LOCAL_WORKER_MODEL, "project_name": project_name}, model_name=LOCAL_WORKER_MODEL)
         local_user_prompt = user_prompt + "\nStrictly remember to use the format: EXECUTE: WRITE_FILE: <path> | <code>. Do not include markdown blocks or conversational introductions."
         
+        try:
+            from src.supervisor import check_build_lifecycle
+            if not check_build_lifecycle():
+                return "[BUILD_CANCELLED]: Execution aborted by user cancellation."
+        except ImportError:
+            pass
+
         loc_lease = governor.acquire_lease(
             model_name=LOCAL_WORKER_MODEL,
             prompt_text=local_user_prompt,

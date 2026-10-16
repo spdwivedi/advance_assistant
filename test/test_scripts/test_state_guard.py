@@ -18,7 +18,8 @@ MEMORY_FILES = [
     "swarm_profiles.json",
     "swarm_registry.json",
     "sub_agents.json",
-    "catalog_index.json"
+    "catalog_index.json",
+    "blueprint_preview.json"
 ]
 
 @contextmanager

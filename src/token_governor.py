@@ -946,6 +946,81 @@ class HierarchicalTokenGovernor:
             return f"[RPM: {current_rpm}/{limits['rpm']} | TPM: {tpm_formatted}/{max_tpm_formatted} | RPD: {usage.get('rpd', 0)}/{limits['rpd']}]"
 
 
+    def get_cost_and_savings_estimate(self) -> Dict[str, Any]:
+        """
+        Calculates actual spend on PAID cloud models and estimated financial savings
+        from FREE tier and LOCAL Ollama models using reference cloud API rates.
+        """
+        with self.lock:
+            USD_TO_INR = 84.0
+            actual_paid_spend_usd = 0.0
+            estimated_savings_usd = 0.0
+            free_local_tokens = 0
+            provider_cost_map: Dict[str, float] = {}
+
+            bucket_usage = self.ledger.get("bucket_usage", {})
+            for b_key, b_data in bucket_usage.items():
+                parts = b_key.split(":")
+                if len(parts) >= 4:
+                    prov = parts[0]
+                    tier = parts[1]
+                    key_id = parts[2]
+                    model = ":".join(parts[3:])
+                else:
+                    prov = "UNKNOWN"
+                    tier = "FREE"
+                    model = b_key
+
+                in_tok = b_data.get("input_tokens_today", 0)
+                out_tok = b_data.get("output_tokens_today", 0)
+                think_tok = b_data.get("thinking_tokens_today", 0)
+                tot_tok = b_data.get("total_tokens_today", in_tok + out_tok + think_tok)
+
+                # Pricing calculation per 1M tokens
+                m_lower = model.lower()
+                if "pro" in m_lower:
+                    rate_in = 1.25
+                    rate_out = 5.00
+                elif "flash-lite" in m_lower:
+                    rate_in = 0.075
+                    rate_out = 0.30
+                elif "flash" in m_lower:
+                    rate_in = 0.15
+                    rate_out = 0.60
+                elif prov == "GROQ" or "llama" in m_lower or "qwen-2.5-coder-32b" in m_lower:
+                    rate_in = 0.59
+                    rate_out = 0.79
+                elif prov == "OLLAMA" or "qwen2.5-coder" in m_lower:
+                    # Benchmark rate against saved cloud tokens
+                    rate_in = 0.25
+                    rate_out = 1.00
+                else:
+                    rate_in = 0.15
+                    rate_out = 0.60
+
+                if tier == "PAID":
+                    spend = (in_tok * rate_in + (out_tok + think_tok) * rate_out) / 1_000_000.0
+                    actual_paid_spend_usd += spend
+                    provider_cost_map[prov] = provider_cost_map.get(prov, 0.0) + spend
+                else:
+                    free_local_tokens += tot_tok
+                    savings = (in_tok * rate_in + (out_tok + think_tok) * rate_out) / 1_000_000.0
+                    estimated_savings_usd += savings
+                    if prov not in provider_cost_map:
+                        provider_cost_map[prov] = 0.0
+
+            return {
+                "actual_paid_spend_usd": round(actual_paid_spend_usd, 4),
+                "actual_paid_spend_inr": round(actual_paid_spend_usd * USD_TO_INR, 2),
+                "estimated_savings_usd": round(estimated_savings_usd, 4),
+                "estimated_savings_inr": round(estimated_savings_usd * USD_TO_INR, 2),
+                "paid_tokens_today": self.paid_tokens_today,
+                "paid_tokens_current_build": self.paid_tokens_current_build,
+                "free_and_local_tokens_today": free_local_tokens,
+                "breakdown_by_provider": {p: round(v, 4) for p, v in provider_cost_map.items()}
+            }
+
+
 # Aliases for 100% backward compatibility
 TokenGovernor = HierarchicalTokenGovernor
 token_governor = HierarchicalTokenGovernor()

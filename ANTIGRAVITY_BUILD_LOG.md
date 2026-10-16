@@ -831,3 +831,39 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.2: Backend Build Stop/Pause Engine, Iterative Blueprint Preview/Execute API, File Inspector & Cost Estimator
+- **Date**: 2026-10-16
+- **Goal**: Implement thread-safe build stop/pause lifecycle controls, iterative workspace scanning and pre-flight blueprint approval execution, live workspace file inspection with path traversal and sensitive file guards, and real-time cloud cost and savings estimation across governor matrices and WebSocket telemetry.
+- **Key Deliverables Implemented**:
+  - `src/supervisor.py`:
+    * Added thread-safe lifecycle events: `build_cancel_event = threading.Event()`, `build_pause_event = threading.Event()` (default `.set()`).
+    * Implemented module-level lifecycle helpers: `request_build_stop()`, `toggle_build_pause(pause=None)`, `reset_build_lifecycle()`, and `check_build_lifecycle()` polling every 0.25s while paused.
+    * Integrated `check_build_lifecycle()` before supervisor execution phases and inside `_isolated_worker_task`.
+    * Implemented `generate_preflight_blueprint(target_dir, goal, project_name, execution_mode, orchestrator_model, use_existing_context)` for dry-run decomposition plans with `CREATE` vs `MODIFY` task tagging, model/tier allocations, token estimates, and persistence to `.agent_memory/blueprint_preview.json`.
+    * Implemented `execute_approved_blueprint(tasks, target_destination, project_name, goal, max_workers, execution_mode, research_profile, model_profile, isolate)` with existing code injection (up to 6,000 chars) for `MODIFY` tasks, concurrent worker pool execution, and real-time swarm registry tracking.
+  - `src/agent.py`:
+    * Integrated `check_build_lifecycle()` at the entry of `run_agent_pipeline` prior to acquiring token leases, ensuring cancelled builds immediately abort without consuming tokens.
+  - `src/server.py`:
+    * Exposed lifecycle endpoints: `POST /api/execute/stop` (stops build, clears domain locks, sets status to `CANCELLED`) and `POST /api/execute/pause` (toggles or sets pause state, sets status to `PAUSED` or `RUNNING`).
+    * Exposed workspace scanner: `GET /api/workspace/scan` scanning directories up to 300 files (ignoring `.git`, `node_modules`, `venv`, etc.) with file metadata, extension/language breakdown, and existing ledger detection.
+    * Exposed blueprint endpoints: `POST /api/blueprint/preview` and `GET /api/blueprint/preview` for pre-flight task preview, and `POST /api/blueprint/execute` for background execution of approved tasks.
+    * Exposed file inspector: `GET /api/workspace/file` with strict workspace boundary checks, blocking path traversal `..` (HTTP 400), blocking sensitive files (`.env`, `api_keys.json`, `/etc/`, HTTP 403), limiting text content to 200 KB, and auto-detecting syntax language.
+    * Exposed cost estimator: `GET /api/governor/cost-estimate` and enriched `GET /api/governor/hierarchy` and `/ws/telemetry` frames with live `cost_estimate`.
+  - `src/token_governor.py`:
+    * Implemented `get_cost_and_savings_estimate() -> Dict[str, Any]` calculating actual paid spend vs cloud savings benchmarked across Pro, Flash, Flash-Lite, Groq, and local Ollama models in both USD ($) and INR (Rs 84.0/$) currencies.
+  - Test Isolation Snapshot Guard (`test/test_scripts/test_state_guard.py`):
+    * Added `blueprint_preview.json` to monitored state snapshot files in `preserve_agent_memory()`.
+  - Comprehensive Test Suite (`test/test_scripts/test_stage15_2_backend.py`):
+    * Added automated test suite verifying lifecycle controls, workspace scanner, blueprint preview and execution, file inspector with security guards, and cost estimator calculations.
+- **Verification Results**:
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 0.43s)**
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (8/8 tests passed)**
+  - `test/test_scripts/test_stage14_2_pipeline.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_stage14_3_server.py`: **100% PASS (8/8 tests passed)**
+  - Post-test memory inspection: **100% clean, zero state pollution across `.agent_memory/`**.
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

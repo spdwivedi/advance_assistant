@@ -19,6 +19,89 @@ from src.memory_manager import (
 )
 from src.logger import log_action
 
+# Thread-safe lifecycle events
+build_cancel_event = threading.Event()
+build_pause_event = threading.Event()
+build_pause_event.set()  # Initialized set so unpaused by default
+
+
+def request_build_stop() -> dict:
+    """
+    Signals all active supervisor threads and agent pipelines to abort immediately.
+    Wakes any paused threads, marks registry as CANCELLED, and clears domain locks.
+    """
+    build_cancel_event.set()
+    build_pause_event.set()
+    try:
+        if os.path.exists(SWARM_REGISTRY_FILE):
+            with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data["status"] = "CANCELLED"
+            data["domain_locks"] = {}
+            with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+    except Exception:
+        pass
+    log_action("SUPERVISOR", "BUILD_STOP_REQUESTED", {"state": "CANCELLED"})
+    return {"status": "success", "state": "CANCELLED"}
+
+
+def toggle_build_pause(pause: bool = None) -> dict:
+    """
+    Pauses or resumes the active build cycle.
+    If pause is None, toggles current pause state.
+    """
+    if pause is None:
+        if build_pause_event.is_set():
+            build_pause_event.clear()
+            new_state = "PAUSED"
+        else:
+            build_pause_event.set()
+            new_state = "RUNNING"
+    elif pause:
+        build_pause_event.clear()
+        new_state = "PAUSED"
+    else:
+        build_pause_event.set()
+        new_state = "RUNNING"
+
+    try:
+        if os.path.exists(SWARM_REGISTRY_FILE):
+            with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data["status"] = new_state
+            with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+    except Exception:
+        pass
+
+    is_paused = not build_pause_event.is_set()
+    log_action("SUPERVISOR", "BUILD_PAUSE_TOGGLED", {"paused": is_paused, "state": new_state})
+    return {"status": "success", "paused": is_paused, "state": new_state}
+
+
+def reset_build_lifecycle() -> None:
+    """Clears cancel event and unpauses lifecycle controls for a fresh build."""
+    build_cancel_event.clear()
+    build_pause_event.set()
+
+
+def check_build_lifecycle() -> bool:
+    """
+    Checks whether the current build should continue.
+    Returns False immediately if build_cancel_event is set.
+    If build_pause_event is cleared, waits in 0.25s intervals until unpaused or cancelled.
+    Returns True if execution may proceed.
+    """
+    if build_cancel_event.is_set():
+        return False
+    while not build_pause_event.is_set():
+        if build_cancel_event.is_set():
+            return False
+        time.sleep(0.25)
+    return not build_cancel_event.is_set()
+
+
 class ProjectSupervisor:
     def __init__(self, target_destination: str, isolate: bool = None, max_workers: int = None, project_name: str = None, test_name: str = None):
         """
@@ -169,6 +252,9 @@ class ProjectSupervisor:
 
     def run_sub_agent_worker(self, task_id: int, task_description: str, tasks_status: dict, mode_override: str = None, profile_level: str = "MEDIUM", constraining_profile: str = "HIGH_RPM_TPM"):
         """Worker Thread v6.0: Operates strictly inside its assigned sub-plan domain."""
+        if not check_build_lifecycle():
+            tasks_status[task_id] = {"agent_role": f"SubAgent-{task_id}", "description": task_description, "status": "CANCELLED"}
+            return
         agent_role = f"SubAgent-{task_id}"
         tasks_status[task_id] = {"agent_role": agent_role, "description": task_description, "status": "RUNNING"}
         
@@ -207,6 +293,7 @@ class ProjectSupervisor:
         Executes an architecture-aware cross-platform multi-phase system compilation loop
         with dynamic limit-aware concurrency scaling and atomic lease staggered queueing.
         """
+        reset_build_lifecycle()
         try:
             from src.token_governor import token_governor
             token_governor.reset_build_counter(self.project_name)
@@ -258,6 +345,10 @@ Goal: {master_instruction}"""
         tasks_status[0]["status"] = "DONE"
         self.print_dashboard(tasks_status, active_op="Blueprint breakdown finalized.", constraining_profile=constraining_profile)
 
+        if not check_build_lifecycle():
+            tasks_status[0]["status"] = "CANCELLED"
+            return
+
         # Phase 1: Config & Boilerplate Setup
         if prep_tasks:
             for idx, prep_task in enumerate(prep_tasks):
@@ -275,6 +366,10 @@ Goal: {master_instruction}"""
                     test_name=self.test_name
                 )
                 tasks_status[f"prep_{idx}"]["status"] = "DONE"
+
+        if not check_build_lifecycle():
+            tasks_status[0]["status"] = "CANCELLED"
+            return
 
         # Phase 2: Concurrent Multi-Thread Swarm Processing with Limit-Aware Dynamic Scaling
         routing_status = key_manager.get_routing_status()
@@ -306,6 +401,10 @@ Goal: {master_instruction}"""
                 futures.append(fut)
                 time.sleep(0.15)  # Stagger worker submissions slightly so threads acquire atomic leases in orderly queue
             concurrent.futures.wait(futures)
+
+        if not check_build_lifecycle():
+            tasks_status[0]["status"] = "CANCELLED"
+            return
 
         # Phase 3: Quality Assurance Shell Execution Validation
         self.print_dashboard(tasks_status, active_op="Initiating compilation unit validation tests...", constraining_profile=constraining_profile)
@@ -366,3 +465,290 @@ Goal: {master_instruction}"""
 
     # Backward compatibility alias
     execute_build_directive = process_complete_development_cycle
+
+
+def generate_preflight_blueprint(
+    goal: str,
+    target_dir: str = "/tmp",
+    project_name: str = None,
+    execution_mode: str = "AUTO_DETECT",
+    orchestrator_model: str = None,
+    use_existing_context: bool = True
+) -> dict:
+    """
+    Stage 15.2 Pre-Flight Blueprint Generator:
+    Scans the target workspace to detect existing files, decomposes the master goal
+    into discrete file tasks with action flags (CREATE vs. MODIFY), agent assignments,
+    and token cost estimates WITHOUT executing or modifying any project files.
+    """
+    from src.agent import auto_detect_execution_plan, run_agent_pipeline, governor
+    from src.config import normalize_wsl_path
+
+    norm_target_dir = normalize_wsl_path(target_dir)
+    proj_name = project_name or os.path.basename(norm_target_dir.rstrip("/")) or "default_project"
+
+    # Scan existing files
+    existing_files = []
+    ignored_dirs = {".git", "node_modules", "venv", ".venv", "__pycache__", "dist", "build", ".staging_temp"}
+    if os.path.exists(norm_target_dir):
+        for root, dirs, files in os.walk(norm_target_dir):
+            dirs[:] = [d for d in dirs if d not in ignored_dirs and not d.startswith(".")]
+            for f in sorted(files):
+                full_p = os.path.join(root, f)
+                rel_p = os.path.relpath(full_p, norm_target_dir).replace(chr(92), "/")
+                existing_files.append(rel_p)
+
+    existing_set = set(existing_files)
+    historical_context = ""
+    if use_existing_context and existing_files:
+        sample_files = existing_files[:30]
+        historical_context = f"\nExisting Project Workspace Files:\n" + "\n".join(sample_files)
+
+    orch_model = orchestrator_model or "gemini-3.6-flash"
+
+    planning_prompt = f"""Decompose this software development goal into discrete, file-specific task directives.
+Assign exactly one specific target relative filename per task line (e.g., 'src/auth.py: Implement JWT authentication').
+Group setup/configuration files first, followed by specialized business modules.{historical_context}
+Output simple directives (one per line). Do NOT write bullets or numbers.
+
+Goal: {goal}"""
+
+    try:
+        raw_output = run_agent_pipeline(
+            user_prompt=f"project:{proj_name} | {planning_prompt}",
+            tier="FAST",
+            target_workspace=norm_target_dir,
+            mode_override=execution_mode if execution_mode != "AUTO_DETECT" else "HYBRID_CLOUD",
+            profile_override="BASIC",
+            project_name=proj_name
+        )
+    except Exception:
+        raw_output = goal
+
+    raw_lines = [l.strip() for l in (raw_output or "").splitlines() if l.strip() and not l.startswith("=") and not l.startswith("#")]
+    raw_lines = [l for l in raw_lines if not l.lower().startswith("here is") and not l.lower().startswith("here are")]
+    if not raw_lines:
+        raw_lines = [goal]
+
+    tasks = []
+    total_est_tokens = 0
+
+    for idx, line in enumerate(raw_lines):
+        detected = re.findall(r'[\w\-./]+\.[a-zA-Z0-9]+', line)
+        if detected:
+            rel_file_path = detected[0].strip('`"\'').lstrip("/")
+        else:
+            lower = line.lower()
+            if any(k in lower for k in ["package.json", "npm"]):
+                rel_file_path = "package.json"
+            elif any(k in lower for k in ["requirements.txt", "pip"]):
+                rel_file_path = "requirements.txt"
+            elif "docker" in lower:
+                rel_file_path = "Dockerfile"
+            elif "readme" in lower:
+                rel_file_path = "README.md"
+            else:
+                rel_file_path = f"src/task_{idx+1}.py"
+
+        action = "MODIFY" if rel_file_path in existing_set else "CREATE"
+        plan = auto_detect_execution_plan(line, project_name=proj_name)
+        provider_name = governor.resolve_provider(plan["target_model"])
+        est_in = 800 + (len(line) * 2)
+        est_out = 1200
+        total_est_tokens += (est_in + est_out)
+
+        tasks.append({
+            "task_id": f"task_{idx+1}",
+            "target_file": rel_file_path,
+            "action": action,
+            "assigned_agent": plan["selected_agent"],
+            "assigned_model": plan["target_model"],
+            "provider": provider_name,
+            "target_tier": plan["target_tier"],
+            "directive": line,
+            "estimated_input_tokens": est_in,
+            "estimated_output_tokens": est_out,
+            "selected": True
+        })
+
+    blueprint = {
+        "blueprint_id": f"bp_{int(time.time())}",
+        "project_name": proj_name,
+        "target_dir": norm_target_dir,
+        "goal": goal,
+        "orchestrator_model": orch_model,
+        "created_at": time.strftime("%Y-%m-%d %H:%M:%S IST"),
+        "existing_files_detected": len(existing_files),
+        "estimated_total_tokens": total_est_tokens,
+        "tasks": tasks
+    }
+
+    try:
+        mem_dir = os.path.abspath("./.agent_memory")
+        os.makedirs(mem_dir, exist_ok=True)
+        preview_path = os.path.join(mem_dir, "blueprint_preview.json")
+        with open(preview_path, "w", encoding="utf-8") as f:
+            json.dump(blueprint, f, indent=4)
+    except Exception:
+        pass
+
+    return blueprint
+
+
+def execute_approved_blueprint(
+    tasks: list,
+    target_destination: str,
+    project_name: str = None,
+    goal: str = "Approved Blueprint Execution",
+    max_workers: int = 8,
+    execution_mode: str = "HYBRID_CLOUD",
+    research_profile: str = "BASIC",
+    model_profile: str = "HIGH_RPM_TPM",
+    isolate: bool = False
+) -> dict:
+    """
+    Stage 15.2 Approved Blueprint Execution:
+    Executes a pre-screened list of selected file tasks in the workspace.
+    For MODIFY actions on existing files, injects existing code into directives.
+    Continuously monitors lifecycle stop/pause signals and updates swarm registry.
+    """
+    from src.config import normalize_wsl_path
+    from src.token_governor import token_governor
+
+    norm_dest = normalize_wsl_path(target_destination)
+    proj_name = project_name or os.path.basename(norm_dest.rstrip("/")) or "default_project"
+
+    supervisor = ProjectSupervisor(
+        target_destination=norm_dest,
+        isolate=isolate,
+        max_workers=max_workers,
+        project_name=proj_name
+    )
+
+    reset_build_lifecycle()
+    try:
+        token_governor.reset_build_counter(proj_name)
+    except Exception:
+        pass
+
+    selected_tasks = [t for t in tasks if t.get("selected", True)]
+    tasks_status = {}
+    completed_files = []
+
+    try:
+        prep_kw = ["delete", "remove", "clean", "package.json", "requirements.txt", "init", "config", "dockerfile"]
+        prep_tasks = []
+        coding_tasks = []
+
+        for t in selected_tasks:
+            t_file = t.get("target_file", "")
+            t_dir = t.get("directive", "")
+            if any(kw in t_file.lower() or kw in t_dir.lower() for kw in prep_kw):
+                prep_tasks.append(t)
+            else:
+                coding_tasks.append(t)
+
+        for t in selected_tasks:
+            if t.get("action") == "MODIFY":
+                full_f = os.path.normpath(os.path.join(supervisor.active_workspace, t.get("target_file", "")))
+                if os.path.exists(full_f):
+                    try:
+                        with open(full_f, "r", encoding="utf-8", errors="replace") as ef:
+                            existing_code = ef.read()[:6000]
+                        t["directive"] = (
+                            f"{t.get('directive', '')}\n\n"
+                            f"--- EXISTING FILE CONTENT TO UPDATE/EXTEND ({t.get('target_file')}) ---\n"
+                            f"{existing_code}\n"
+                            f"--- END EXISTING FILE CONTENT ---\n"
+                            f"Preserve existing functions while implementing the required updates."
+                        )
+                    except Exception:
+                        pass
+
+        for idx, pt in enumerate(prep_tasks):
+            if not check_build_lifecycle():
+                break
+            task_key = f"prep_{idx}"
+            task_desc = f"{pt.get('target_file')}: {pt.get('directive')}"
+            tasks_status[task_key] = {"agent_role": "Boilerplate", "description": task_desc, "status": "RUNNING"}
+            supervisor.print_dashboard(tasks_status, active_op=f"Executing blueprint setup: {pt.get('target_file')}")
+            
+            run_agent_pipeline(
+                user_prompt=f"project:{proj_name} | {task_desc}",
+                tier=pt.get("target_tier", "FAST"),
+                target_workspace=supervisor.active_workspace,
+                mode_override=execution_mode,
+                profile_override=research_profile,
+                constraining_profile_override=model_profile,
+                project_name=proj_name
+            )
+            tasks_status[task_key]["status"] = "DONE"
+            completed_files.append(pt.get("target_file"))
+
+        if check_build_lifecycle() and coding_tasks:
+            workers_count = min(len(coding_tasks), supervisor.max_workers)
+            workers_count = max(1, workers_count)
+            supervisor.print_dashboard(tasks_status, active_op=f"Running blueprint swarm on {len(coding_tasks)} tasks with {workers_count} workers...")
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=workers_count) as executor:
+                futures = []
+                for idx, ct in enumerate(coding_tasks):
+                    if not check_build_lifecycle():
+                        break
+                    t_id = idx + 1
+                    t_desc = f"{ct.get('target_file')}: {ct.get('directive')}"
+                    fut = executor.submit(
+                        supervisor.run_sub_agent_worker,
+                        t_id, t_desc, tasks_status, execution_mode, research_profile, model_profile
+                    )
+                    futures.append((fut, ct.get("target_file")))
+                    time.sleep(0.1)
+
+                for fut, f_name in futures:
+                    try:
+                        fut.result()
+                        completed_files.append(f_name)
+                    except Exception:
+                        pass
+
+        if supervisor.isolate and os.path.exists(supervisor.active_workspace):
+            try:
+                for item in os.listdir(supervisor.active_workspace):
+                    s_item = os.path.join(supervisor.active_workspace, item)
+                    d_item = os.path.join(supervisor.target_destination, item)
+                    if os.path.isdir(s_item):
+                        shutil.copytree(s_item, d_item, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(s_item, d_item)
+                shutil.rmtree(supervisor.active_workspace, ignore_errors=True)
+            except Exception:
+                pass
+
+        final_status = "CANCELLED" if build_cancel_event.is_set() else "COMPLETED"
+        try:
+            with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+                reg = json.load(f)
+            reg["status"] = final_status
+            reg["domain_locks"] = {}
+            with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+                json.dump(reg, f, indent=4)
+        except Exception:
+            pass
+
+        return {
+            "status": final_status,
+            "project_name": proj_name,
+            "target_dir": norm_dest,
+            "total_tasks": len(selected_tasks),
+            "completed_tasks": len(completed_files),
+            "completed_files": completed_files
+        }
+
+    except Exception as exc:
+        log_action("SUPERVISOR", "BLUEPRINT_EXEC_FAILED", {"error": str(exc), "project": proj_name})
+        return {
+            "status": "FAILED",
+            "error": str(exc),
+            "project_name": proj_name,
+            "target_dir": norm_dest
+        }
