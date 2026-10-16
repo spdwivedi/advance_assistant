@@ -1,5 +1,17 @@
 import os
 import sys
+
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+_scripts_dir = os.path.abspath(os.path.dirname(__file__))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+from test_state_guard import preserve_agent_memory
+
+import os
+import sys
 import json
 import time
 from unittest.mock import MagicMock, patch
@@ -158,7 +170,9 @@ def run_pipeline_cert_suite():
         "label": "Mock Google Free Key"
     }
 
-    with patch.object(key_manager, "resolve_key_context", return_value=mock_ctx):
+    with patch.object(key_manager, "resolve_key_context", return_value=mock_ctx), \
+         patch("src.agent.verify_action_result_offline", return_value=True), \
+         patch("src.agent.synthesize_and_update_memory", return_value=None):
         out = run_agent_pipeline(
             user_prompt="Build config file",
             tier="HIGH",
@@ -230,4 +244,5 @@ def run_pipeline_cert_suite():
     print("=" * 80 + "\n")
 
 if __name__ == "__main__":
-    run_pipeline_cert_suite()
+    with preserve_agent_memory():
+        run_pipeline_cert_suite()

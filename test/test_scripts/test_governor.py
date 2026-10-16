@@ -1,3 +1,15 @@
+import os
+import sys
+
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+_scripts_dir = os.path.abspath(os.path.dirname(__file__))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+from test_state_guard import preserve_agent_memory
+
 import sys
 import os
 
@@ -30,4 +42,5 @@ def test_governor_limits():
     print("✅ Token Governor Test Complete!\n")
 
 if __name__ == "__main__":
-    test_governor_limits()
+    with preserve_agent_memory():
+        test_governor_limits()

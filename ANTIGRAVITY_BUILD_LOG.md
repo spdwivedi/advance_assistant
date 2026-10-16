@@ -777,3 +777,57 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.1: State & Memory Book Hygiene, WSL Path Normalizer, Per-Build Paid Cap & Test Isolation
+- **Date**: 2026-10-16
+- **Goal**: Restore pristine agent memory and knowledge book hygiene, implement a universal Windows-to-WSL path normalizer, enforce the per-build paid token cap (150k) across supervisor build cycles, and introduce a zero-pollution snapshot guard to preserve `.agent_memory/` integrity across all verification suites.
+- **Key Deliverables Implemented**:
+  - `src/config.py`:
+    * Implemented universal `normalize_wsl_path(path_str: str) -> str`: Converts standard Windows paths (`D:/...`, `C:\...`) and accidental repo-prefixed Windows paths (`/home/.../D:/...`) into canonical `/mnt/<drive>/...` WSL mount paths with sanitized slashes, handling empty/null input safely.
+  - `src/permissions.py`:
+    * Integrated `normalize_wsl_path` into `set_active_workspace`, `validate_path`, and `save_location_to_history`.
+    * Upgraded `normalize_cross_platform_path` to handle Windows drive paths while preserving relative paths for target directory resolution.
+    * Hardened regex patterns against unescaped character class brackets.
+  - `src/server.py`:
+    * Wired `normalize_wsl_path` into `POST /api/execute` target directory resolution and `GET /api/history` location canonicalization.
+    * Wired `token_governor.reset_build_counter(project_name)` at the start of `POST /api/execute`.
+  - `src/token_governor.py`:
+    * Enforced `per_build_paid_token_cap` (150,000) alongside `daily_paid_token_cap` (500,000).
+    * Added `paid_tokens_current_build: 0` and `active_build_project: "default_project"` to state ledger.
+    * Added `reset_build_counter(self, project_name="default_project")` method.
+    * Enforced `PER_BUILD_PAID_TOKEN_CAP_REACHED` lease rejection reason when cumulative build tokens exceed cap.
+    * Reconciled both today and build counters in `commit_lease` on success.
+    * Exposed properties `@property active_build_project`, `paid_tokens_current_build`, and `paid_tokens_today`.
+    * Included `paid_tokens_current_build` and `per_build_paid_token_cap` in `get_hierarchy_telemetry()`.
+    * Fixed `financial_shield` telemetry dictionary key access.
+  - `src/supervisor.py`:
+    * Wired `token_governor.reset_build_counter(project_name)` at the inception of `process_complete_development_cycle`.
+  - `src/memory_manager.py`:
+    * Hardened `_resolve_book_path` to reject empty book names or names sanitizing to `""` or `".md"`, preventing creation of nameless ghost files.
+    * Updated catalog sync in `list_all_books_detailed()` to automatically populate and persist an inverted `tags_index` (mapping each tag -> list of `category/filename` books).
+  - Memory & State Hygiene (.agent_memory/):
+    * Reset `.agent_memory/token_ledger.json` to a clean zeroed production state for today's date.
+    * Reset `.agent_memory/provider_quotas.json` from canonical `DEFAULT_PROVIDER_QUOTAS` (removing dummy `ANTHROPIC` test entries and resetting `gemini-2.5-flash` limits).
+    * Cleaned `.agent_memory/env_history.json` to retain only valid WSL project paths (`/mnt/d/...`, `/tmp`).
+    * Reset `.agent_memory/swarm_registry.json` to an idle, clean state.
+    * Deleted nameless ghost book `.agent_memory/books/coding/.md`.
+    * Cleaned duplicate test note blocks from `.agent_memory/books/coding/fastapi.md`.
+    * Repaired truncated exception handling code block in `.agent_memory/books/coding/auth_implementation.md`.
+    * Removed nested outer ```` ```markdown ```` wrappers in `computation_robustness_and_verification.md` and `python_async.md`.
+    * Removed leftover scratch logs (`frontend/*.log`, `npm_debug.log`, `logs/projects/sup_cert_test/`).
+  - Test Isolation Snapshot Guard (`test/test_scripts/test_state_guard.py`):
+    * Created `preserve_agent_memory()` context manager snapshotting `token_ledger.json`, `provider_quotas.json`, `api_keys.json`, `env_history.json`, `swarm_profiles.json`, `swarm_registry.json`, `sub_agents.json`, and `catalog_index.json` in memory.
+    * Restores files byte-for-byte in `finally:` block and reloads singleton states (`token_governor`, `key_manager`).
+    * Wrapped test execution in `test_hierarchical_governor.py`, `test_stage14_2_pipeline.py`, `test_stage14_3_server.py`, `test_v6_full_suite.py`, and `test_governor.py`.
+    * Added Test 7 (`per_build_paid_token_cap`) and Test 8 (`normalize_wsl_path`) to `test_hierarchical_governor.py`.
+- **Verification Results**:
+  - `test/test_scripts/test_hierarchical_governor.py`: **100% PASS (8/8 tests passed)**
+  - `test/test_scripts/test_stage14_2_pipeline.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_stage14_3_server.py`: **100% PASS (8/8 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed in 1.64s)**
+  - `test/test_scripts/test_governor.py`: **100% PASS**
+  - Post-test memory inspection: **100% clean, zero test artifacts or state pollution detected**.
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

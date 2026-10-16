@@ -1,5 +1,17 @@
 import os
 import sys
+
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+_scripts_dir = os.path.abspath(os.path.dirname(__file__))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+from test_state_guard import preserve_agent_memory
+
+import os
+import sys
 import json
 import time
 
@@ -224,9 +236,80 @@ def run_test_suite():
     print(f"  [PASS] Backward-compatible inspect_and_cool_allocation, snippet, and record_execution operational")
     passed += 1
 
+    # --------------------------------------------------------------------------
+    # TEST 7: Per-Build Paid Token Cap Enforcement & Build Counter Reset
+    # --------------------------------------------------------------------------
+    print("\n--- TEST 7: Per-Build Paid Token Cap Enforcement & Build Counter Reset ---")
+    total += 1
+    gov.reset_build_counter("test_build_proj")
+    assert gov.active_build_project == "test_build_proj"
+    assert gov.paid_tokens_current_build == 0
+
+    # Acquire lease for PAID tier within cap
+    res = gov.acquire_lease(
+        model_name="gemini-2.5-pro",
+        prompt_text="test prompt",
+        tier="PAID",
+        key_id="default",
+        requested_output_tokens=1000
+    )
+    assert res["allowed"] is True, f"Expected lease to succeed, got {res.get('reason')}"
+    lease_id = res["lease_id"]
+    gov.commit_lease(
+        lease_id=lease_id,
+        model_name="gemini-2.5-pro",
+        actual_input_tokens=1000,
+        actual_output_tokens=2000,
+        actual_thinking_tokens=0,
+        tier="PAID",
+        success=True
+    )
+    assert gov.paid_tokens_current_build == 3000
+
+    # Advance paid build tokens near cap and verify per-build cap blocks
+    gov.ledger["paid_tokens_current_build"] = 145000
+    res_huge = gov.acquire_lease(
+        model_name="gemini-2.5-pro",
+        prompt_text="Hello reasoning swarm worker",
+        tier="PAID",
+        key_id="default"
+    )
+    assert res_huge["allowed"] is False, "Expected lease to be rejected by per-build cap"
+    assert res_huge["reason"] == "PER_BUILD_PAID_TOKEN_CAP_REACHED", f"Expected PER_BUILD_PAID_TOKEN_CAP_REACHED, got {res_huge.get('reason')}"
+
+    # Reset build counter
+    gov.reset_build_counter("next_proj")
+    assert gov.paid_tokens_current_build == 0
+    assert gov.active_build_project == "next_proj"
+    print(f"  [PASS] Per-build paid token cap enforced and reset_build_counter verified")
+    passed += 1
+    # --------------------------------------------------------------------------
+    # TEST 8: Universal Windows-to-WSL Path Normalizer
+    # --------------------------------------------------------------------------
+    print("\n--- TEST 8: Universal Windows-to-WSL Path Normalizer ---")
+    total += 1
+    from src.config import normalize_wsl_path
+
+    p1 = normalize_wsl_path("D:/Project_Files/Assistant_Projects/TaskVault_App")
+    p2 = normalize_wsl_path("C:\\Users\\ACER\\Project")
+    p3 = normalize_wsl_path("/home/assistantuser/advance_assistant/D:/Project_Files/Test")
+    p4 = normalize_wsl_path("")
+    p5 = normalize_wsl_path(None)
+
+    if os.name != "nt":
+        assert p1 == "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App", f"Unexpected p1: {p1}"
+        assert p2 == "/mnt/c/Users/ACER/Project", f"Unexpected p2: {p2}"
+        assert p3 == "/mnt/d/Project_Files/Test", f"Unexpected p3: {p3}"
+    assert p4 == "/tmp", f"Expected /tmp for empty path, got {p4}"
+    assert p5 == "/tmp", f"Expected /tmp for None, got {p5}"
+
+    print(f"  [PASS] normalize_wsl_path successfully normalizes Windows, embedded, and empty paths")
+    passed += 1
+
     print("\n" + "=" * 80)
     print(f" STAGE 14.1 CERTIFICATION COMPLETE: {passed}/{total} (100% PASS)")
     print("=" * 80 + "\n")
 
 if __name__ == "__main__":
-    run_test_suite()
+    with preserve_agent_memory():
+        run_test_suite()

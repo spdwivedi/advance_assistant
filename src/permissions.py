@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 from src.logger import log_action
+from src.config import normalize_wsl_path
 
 # Safe baseline command execution prefix list across WSL and Windows
 ALLOWED_SAFE_COMMANDS = [
@@ -12,18 +13,56 @@ ALLOWED_SAFE_COMMANDS = [
 ]
 
 
-def normalize_cross_platform_path(path_str: str) -> str:
+_active_workspace: str = os.getcwd()
+
+
+def set_active_workspace(workspace_path: str) -> str:
     """
-    Translates Windows drive paths (e.g. D:\\Project_Files or D:/Project_Files)
+    Sets the active workspace path, converts Windows paths to canonical WSL mounts,
+    and updates environment history.
+    """
+    global _active_workspace
+    _active_workspace = normalize_wsl_path(workspace_path)
+    save_location_to_history(_active_workspace)
+    return _active_workspace
+
+
+def validate_path(path_str: str) -> str:
+    """Validates and canonicalizes paths across Windows/WSL boundaries."""
+    return normalize_wsl_path(path_str)
+
+
+def save_location_to_history(location_path: str) -> str:
+    """Canonicalizes target location and writes to env_history.json."""
+    norm = normalize_wsl_path(location_path)
+    try:
+        from src.memory_manager import save_env_location
+        save_env_location(norm)
+    except Exception:
+        pass
+    return norm
+
+
+def normalize_cross_platform_path(path_str: str) -> str:
+    r"""
+    Translates Windows drive paths (e.g. D:\Project_Files or D:/Project_Files)
     into native WSL mount paths (/mnt/d/Project_Files) for Linux execution environments.
+    Preserves relative paths for target_dir resolution.
     """
     if not path_str:
         return path_str
-    clean = path_str.replace("\\", "/")
-    if re.match(r'^[a-zA-Z]:', clean):
-        drive_letter = clean[0].lower()
-        clean = f"/mnt/{drive_letter}" + clean[2:]
-    return os.path.normpath(clean)
+    cleaned = path_str.strip().strip('"').strip("'")
+    embedded_win = re.search(r"[\\/]([a-zA-Z]):[\\/](.*)$", cleaned)
+    if embedded_win and os.name != "nt":
+        drive = embedded_win.group(1).lower()
+        rest = embedded_win.group(2).replace(chr(92), "/")
+        return os.path.normpath(f"/mnt/{drive}/{rest}")
+    win_match = re.match(r"^([a-zA-Z]):[\\/](.*)$", cleaned)
+    if win_match and os.name != "nt":
+        drive = win_match.group(1).lower()
+        rest = win_match.group(2).replace(chr(92), "/")
+        return os.path.normpath(f"/mnt/{drive}/{rest}")
+    return os.path.normpath(cleaned)
 
 
 def sanitize_file_content(content: str, filepath: str) -> str:

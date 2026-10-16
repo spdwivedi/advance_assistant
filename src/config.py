@@ -1,4 +1,29 @@
 import os
+import re
+
+def normalize_wsl_path(path_str: str) -> str:
+    r"""
+    Converts Windows drive paths (e.g., 'D:/Project_Files/...' or 'C:\Users\...')
+    into canonical WSL mount paths ('/mnt/d/Project_Files/...') when running on Linux/WSL,
+    and normalizes slashes cleanly.
+    """
+    if not path_str or not isinstance(path_str, str):
+        return "/tmp"
+    cleaned = path_str.strip().strip('"').strip("'")
+    # Detect accidental repo-prefixed Windows path: /home/.../D:/Project_Files/...
+    embedded_win = re.search(r"[/\\]([a-zA-Z]):[/\\](.*)$", cleaned)
+    if embedded_win and os.name != "nt":
+        drive = embedded_win.group(1).lower()
+        rest = embedded_win.group(2).replace('\\', "/")
+        return os.path.abspath(f"/mnt/{drive}/{rest}")
+    # Detect standard Windows drive path: D:/... or D:\...
+    win_match = re.match(r"^([a-zA-Z]):[/\\](.*)$", cleaned)
+    if win_match and os.name != "nt":
+        drive = win_match.group(1).lower()
+        rest = win_match.group(2).replace('\\', "/")
+        return os.path.abspath(f"/mnt/{drive}/{rest}")
+    return os.path.abspath(os.path.expanduser(cleaned))
+
 
 # Base Directory Paths
 SEARCH_DATA_DIR = os.path.abspath("./.search_data")
@@ -12,7 +37,7 @@ TEST_LOGS_DIR = os.path.abspath("./test/test_logs")
 TEST_SCRIPTS_DIR = os.path.abspath("./test/test_scripts")
 
 # Windows Native Cross-Platform Test Path
-WIN_TEST_DATA_DIR = "D:/Project_Files/Assistant_Projects/Test_Win_Data"
+WIN_TEST_DATA_DIR = normalize_wsl_path("D:/Project_Files/Assistant_Projects/Test_Win_Data")
 
 # Project-Scoped Workspace Isolated Logs Directory
 PROJECT_LOGS_DIR = os.path.abspath("./logs/projects")
@@ -24,7 +49,7 @@ for t_dir in [TEST_DATA_DIR, TEST_LOGS_DIR, TEST_SCRIPTS_DIR, PROJECT_LOGS_DIR]:
 
 # Attempt to initialize Windows Test Data directory if D: drive path is accessible
 try:
-    if os.path.exists("D:/Project_Files/Assistant_Projects"):
+    if os.path.exists(normalize_wsl_path("D:/Project_Files/Assistant_Projects")):
         os.makedirs(WIN_TEST_DATA_DIR, exist_ok=True)
 except Exception:
     pass

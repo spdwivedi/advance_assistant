@@ -207,6 +207,12 @@ class ProjectSupervisor:
         Executes an architecture-aware cross-platform multi-phase system compilation loop
         with dynamic limit-aware concurrency scaling and atomic lease staggered queueing.
         """
+        try:
+            from src.token_governor import token_governor
+            token_governor.reset_build_counter(self.project_name)
+        except Exception:
+            pass
+
         tasks_status = {0: {"agent_role": "Orchestrator", "description": "Analyzing specifications and isolated project history blueprints", "status": "RUNNING"}}
         self.print_dashboard(tasks_status, active_op="Orchestrator initializing context-aware blueprint mapping...", constraining_profile=constraining_profile)
 

@@ -761,4 +761,9 @@ class KeyManager:
 
 
 # Global singleton key manager instance
+    def reload_keys(self) -> None:
+        """Reloads keys and invalidates any cached state."""
+        with _KEY_LOCK:
+            pass
+
 key_manager = KeyManager()

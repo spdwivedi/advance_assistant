@@ -1,7 +1,6 @@
 
 
 ## Operation Insight [2026-08-06 12:03:17]
-```markdown
 ## Computational Robustness & Verification
 To ensure computational robustness and verification for your project, follow these steps:
 1. **Code Review**: Conduct a thorough code review to identify potential issues and ensure that all components are working as expected.
@@ -40,7 +39,6 @@ cd /mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator/tests
 time python -m unittest discover
 ```
 This script changes to the tests directory, runs all unit tests using `unittest`, and measures execution time.
-```markdown
 ```
 
 By following these steps, you can ensure that your project is robust and reliable.

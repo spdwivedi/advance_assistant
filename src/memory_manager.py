@@ -100,31 +100,34 @@ def extract_keywords(text: str) -> List[str]:
 def _resolve_book_path(category: str, book_name: str) -> str:
     """
     Strict path helper that sanitizes category and book_name, ensures the .md extension,
-    and blocks path traversal outside .agent_memory/books/.
+    blocks path traversal, and forbids empty book names or names sanitizing to empty / .md.
     """
     if not category or not category.strip():
         category = "general"
     category = category.strip().lower()
 
-    if not book_name or not book_name.strip():
-        raise ValueError("Book name cannot be empty")
+    if not book_name or not isinstance(book_name, str):
+        raise ValueError("Invalid empty book name")
 
-    book_name = book_name.strip()
-    if not book_name.endswith(".md"):
-        book_name += ".md"
+    cleaned_name = book_name.strip()
+    if not cleaned_name or cleaned_name in (".", ".md", ""):
+        raise ValueError("Invalid empty book name")
 
     # Block path traversal attempts
     if ".." in category or "/" in category or "\\" in category:
         raise ValueError("Path traversal attempt in category")
-    if ".." in book_name or "/" in book_name or "\\" in book_name:
+    if ".." in cleaned_name or "/" in cleaned_name or "\\" in cleaned_name:
         raise ValueError("Path traversal attempt in book name")
 
-    base_name = book_name[:-3].strip()
-    if not base_name:
-        raise ValueError("Book name cannot be empty")
+    if not cleaned_name.endswith(".md"):
+        cleaned_name += ".md"
+
+    base_name = cleaned_name[:-3].strip()
+    if not base_name or base_name == ".":
+        raise ValueError("Invalid empty book name")
 
     books_dir_abs = os.path.abspath(BOOKS_DIR)
-    target_path = os.path.abspath(os.path.join(BOOKS_DIR, category, book_name))
+    target_path = os.path.abspath(os.path.join(BOOKS_DIR, category, cleaned_name))
 
     if not target_path.startswith(books_dir_abs):
         raise ValueError(f"Path traversal detected: {target_path} is outside {books_dir_abs}")
@@ -352,14 +355,34 @@ def _save_json(filepath: str, data: dict):
 
 
 def rebuild_catalog_index() -> dict:
+    """
+    Scans the .agent_memory/books directory and root docs, rebuilding catalog_index.json.
+    Automatically populates tags_index as an inverted index mapping each tag -> list of 'category/filename' books.
+    """
     existing = _load_json(CATALOG_INDEX_FILE, {})
-    tags_index = existing.get("tags_index", {})
+    raw_tags_index = existing.get("tags_index", {})
+
+    inverted_tags: Dict[str, List[str]] = {}
+    if isinstance(raw_tags_index, dict):
+        for k, v in raw_tags_index.items():
+            if isinstance(v, list):
+                if "/" in k:
+                    # Legacy format: book_key -> list of tags
+                    for t in v:
+                        t_clean = str(t).strip().lower()
+                        if t_clean:
+                            inverted_tags.setdefault(t_clean, [])
+                            if k not in inverted_tags[t_clean]:
+                                inverted_tags[t_clean].append(k)
+                else:
+                    # Inverted format: tag -> list of book_keys
+                    inverted_tags[k.lower()] = [str(b) for b in v]
 
     catalog = {
         "last_updated": get_ist_now_str(),
         "root_docs": [],
         "categories": {},
-        "tags_index": tags_index
+        "tags_index": inverted_tags
     }
     for root_file in glob.glob(f"{MEMORY_DIR}/*.md"):
         filename = os.path.basename(root_file)
@@ -368,15 +391,48 @@ def rebuild_catalog_index() -> dict:
             "path": root_file,
             "size_bytes": os.path.getsize(root_file)
         })
+
     for cat_dir in glob.glob(f"{BOOKS_DIR}/*"):
         if os.path.isdir(cat_dir):
             category_name = os.path.basename(cat_dir)
             catalog["categories"][category_name] = []
-            for book_file in glob.glob(f"{cat_dir}/*.md"):
+            for book_file in sorted(glob.glob(f"{cat_dir}/*.md")):
                 b_name = os.path.basename(book_file)
                 if b_name.startswith(".") or len(b_name) <= 3:
                     continue
                 size_b = os.path.getsize(book_file)
+                book_key = f"{category_name}/{b_name}"
+
+                derived_tags = set()
+                derived_tags.add(category_name.lower())
+
+                for tag, blist in inverted_tags.items():
+                    if book_key in blist:
+                        derived_tags.add(tag)
+
+                base = b_name.replace(".md", "").lower()
+                for part in re.split(r"[_\-\s]+", base):
+                    if len(part) >= 3 and part not in STOPWORDS and part not in {"and", "the", "for", "with", "setup", "example", "general", "file"}:
+                        derived_tags.add(part)
+
+                try:
+                    with open(book_file, "r", encoding="utf-8", errors="ignore") as bf_f:
+                        header = bf_f.read(1500)
+                    m = re.search(r"\*\*Tags:\*\*\s*(.*)", header, re.IGNORECASE)
+                    if m:
+                        for t in m.group(1).split(","):
+                            tc = t.strip().lower()
+                            if tc:
+                                derived_tags.add(tc)
+                except Exception:
+                    pass
+
+                sorted_tags = sorted(list(derived_tags))
+                for t in sorted_tags:
+                    inverted_tags.setdefault(t, [])
+                    if book_key not in inverted_tags[t]:
+                        inverted_tags[t].append(book_key)
+
                 catalog["categories"][category_name].append({
                     "title": b_name.replace(".md", "").replace("_", " ").title(),
                     "filename": b_name,
@@ -384,11 +440,23 @@ def rebuild_catalog_index() -> dict:
                     "size_bytes": size_b,
                     "estimated_tokens": max(1, size_b // 4),
                     "last_modified": _get_file_mtime_ist(book_file),
-                    "tags": tags_index.get(f"{category_name}/{b_name}", [category_name])
+                    "tags": sorted_tags
                 })
+
+    all_existing_book_keys = set()
+    for cat_name, books in catalog["categories"].items():
+        for b in books:
+            all_existing_book_keys.add(f"{cat_name}/{b['filename']}")
+
+    pruned_tags_index = {}
+    for tag, blist in sorted(inverted_tags.items()):
+        valid_books = [b for b in blist if b in all_existing_book_keys]
+        if valid_books:
+            pruned_tags_index[tag] = sorted(valid_books)
+
+    catalog["tags_index"] = pruned_tags_index
     _save_json(CATALOG_INDEX_FILE, catalog)
     return catalog
-
 
 def get_catalog_index() -> dict:
     if not os.path.exists(CATALOG_INDEX_FILE):
@@ -528,7 +596,7 @@ def list_all_books_detailed() -> Dict[str, Any]:
                         summary = ""
 
                 book_key = f"{cat_name}/{b_name}"
-                book_tags = tags_index.get(book_key, [cat_name])
+                book_tags = [t for t, blist in tags_index.items() if isinstance(blist, list) and book_key in blist] or (tags_index.get(book_key, [cat_name]) if isinstance(tags_index.get(book_key), list) else [cat_name])
 
                 book_entry = {
                     "category": cat_name,
@@ -580,7 +648,7 @@ def read_book_content(category: str, book_name: str) -> Dict[str, Any]:
     catalog = get_catalog_index()
     tags_index = catalog.get("tags_index", {})
     clean_name = os.path.basename(book_path)
-    book_tags = tags_index.get(f"{category}/{clean_name}", [category])
+    book_tags = [t for t, blist in tags_index.items() if isinstance(blist, list) and f"{category}/{clean_name}" in blist] or (tags_index.get(f"{category}/{clean_name}", [category]) if isinstance(tags_index.get(f"{category}/{clean_name}"), list) else [category])
 
     return {
         "category": category,

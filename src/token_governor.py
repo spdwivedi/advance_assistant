@@ -116,6 +116,8 @@ class HierarchicalTokenGovernor:
                         # Ensure all essential root keys exist
                         content.setdefault("last_reset_date", get_ist_date_str())
                         content.setdefault("paid_tokens_today", 0)
+                        content.setdefault("paid_tokens_current_build", 0)
+                        content.setdefault("active_build_project", "default_project")
                         content.setdefault("bucket_usage", {})
                         content.setdefault("model_usage", {})
                         content.setdefault("project_usage", {})
@@ -305,12 +307,15 @@ class HierarchicalTokenGovernor:
             effective_tpm = rolling_tok_count + in_flight_tokens
             effective_rpd = requests_today + in_flight_count
 
-            # 6. Paid Tier Daily Token Cap Check
+            # 6. Paid Tier Daily & Per-Build Token Cap Checks
             if tier_upper == "PAID":
                 daily_paid_cap = shield.get("daily_paid_token_cap", 500000)
+                per_build_cap = shield.get("per_build_paid_token_cap", 150000)
                 paid_today = self.ledger.get("paid_tokens_today", 0)
+                paid_build = self.ledger.get("paid_tokens_current_build", 0)
+
                 if (paid_today + in_flight_paid_tokens + reserved_total) > daily_paid_cap:
-                    log_action("GOVERNOR", "PAID_DAILY_CAP_EXCEEDED", {
+                    log_action("GOVERNOR", "DAILY_PAID_TOKEN_CAP_REACHED", {
                         "paid_today": paid_today,
                         "in_flight": in_flight_paid_tokens,
                         "reserved_total": reserved_total,
@@ -318,8 +323,22 @@ class HierarchicalTokenGovernor:
                     })
                     return {
                         "allowed": False,
-                        "reason": "PAID_DAILY_CAP_EXCEEDED",
+                        "reason": "DAILY_PAID_TOKEN_CAP_REACHED",
                         "retry_after_s": 3600,
+                        "limits": active_limits
+                    }
+
+                if (paid_build + in_flight_paid_tokens + reserved_total) > per_build_cap:
+                    log_action("GOVERNOR", "PER_BUILD_PAID_TOKEN_CAP_REACHED", {
+                        "paid_current_build": paid_build,
+                        "in_flight": in_flight_paid_tokens,
+                        "reserved_total": reserved_total,
+                        "cap": per_build_cap
+                    })
+                    return {
+                        "allowed": False,
+                        "reason": "PER_BUILD_PAID_TOKEN_CAP_REACHED",
+                        "retry_after_s": 60,
                         "limits": active_limits
                     }
 
@@ -511,9 +530,10 @@ class HierarchicalTokenGovernor:
                 p_dict["total_requests"] = p_dict.get("total_requests", 0) + 1
                 p_dict["total_tokens"] = p_dict.get("total_tokens", 0) + total_actual
 
-            # 7. Paid Tier Daily Counter
+            # 7. Paid Tier Daily & Per-Build Counter
             if tier_upper == "PAID":
                 self.ledger["paid_tokens_today"] = self.ledger.get("paid_tokens_today", 0) + total_actual
+                self.ledger["paid_tokens_current_build"] = self.ledger.get("paid_tokens_current_build", 0) + total_actual
 
             self._save_ledger_internal()
 
@@ -524,6 +544,46 @@ class HierarchicalTokenGovernor:
                 "lease_id": lease_id,
                 "bucket": bucket_key
             }
+
+    @property
+    def active_build_project(self) -> str:
+        with self.lock:
+            return self.ledger.get("active_build_project", "default_project")
+
+    @property
+    def paid_tokens_current_build(self) -> int:
+        with self.lock:
+            return self.ledger.get("paid_tokens_current_build", 0)
+
+    @property
+    def paid_tokens_today(self) -> int:
+        with self.lock:
+            return self.ledger.get("paid_tokens_today", 0)
+
+    def reset_build_counter(self, project_name: str = "default_project") -> None:
+        """
+        Resets paid_tokens_current_build = 0 and sets active_build_project = project_name
+        at the start of a new build cycle.
+        """
+        with self.lock:
+            self.ledger["paid_tokens_current_build"] = 0
+            self.ledger["active_build_project"] = project_name
+            self._save_ledger_internal()
+            log_action("GOVERNOR", "BUILD_COUNTER_RESET", {
+                "project_name": project_name,
+                "paid_tokens_current_build": 0
+            })
+
+    def reload_state(self) -> None:
+        """Reloads quotas and ledger from disk and clears in-memory tracking structures."""
+        with self.lock:
+            self.in_flight_leases.clear()
+            self.rolling_requests.clear()
+            self.rolling_tokens.clear()
+            self._last_bucket_request_time.clear()
+            self.quotas = self._load_quotas_internal()
+            self.ledger = self._load_ledger_internal()
+            self._check_and_reset_daily_caps_internal()
 
     def release_lease(self, lease_id: str) -> bool:
         """Explicitly cancels an in-flight pre-reservation without charging tokens."""
@@ -579,9 +639,13 @@ class HierarchicalTokenGovernor:
                             "total_tokens_today": b_usage.get("total_tokens_today", 0)
                         }
 
+            shield = self.quotas.get("financial_shield", {})
             return {
-                "financial_shield": self.quotas.get("financial_shield", {}),
+                "financial_shield": shield,
                 "paid_tokens_today": self.ledger.get("paid_tokens_today", 0),
+                "paid_tokens_current_build": self.ledger.get("paid_tokens_current_build", 0),
+                "per_build_paid_token_cap": shield.get("per_build_paid_token_cap", 150000),
+                "active_build_project": self.ledger.get("active_build_project", "default_project"),
                 "last_reset_date": self.ledger.get("last_reset_date", ""),
                 "active_in_flight_leases": len(self.in_flight_leases),
                 "providers": providers_out

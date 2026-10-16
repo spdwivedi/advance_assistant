@@ -1,5 +1,5 @@
 {
-    "last_updated": "2026-08-08 06:00:23",
+    "last_updated": "2026-10-16 07:40:29",
     "root_docs": [
         {
             "filename": "LEARNINGS.md",
@@ -22,126 +22,398 @@
         "tech_stack": [],
         "tools": [],
         "cs_fundamentals": [],
+        "architecture": [],
         "frameworks": [
             {
                 "title": "Sqlalchemy Asyncio Implementation",
                 "filename": "sqlalchemy_asyncio_implementation.md",
                 "path": "/home/assistantuser/advance_assistant/.agent_memory/books/frameworks/sqlalchemy_asyncio_implementation.md",
-                "size_bytes": 1453
+                "size_bytes": 1453,
+                "estimated_tokens": 363,
+                "last_modified": "2026-08-06 13:16:33",
+                "tags": [
+                    "asyncio",
+                    "frameworks",
+                    "implementation",
+                    "sqlalchemy"
+                ]
             }
         ],
         "cloud": [],
+        "security": [],
         "history": [],
         "design_patterns": [],
+        "devops": [],
+        "general": [],
         "coding": [
-            {
-                "title": "Computation Robustness And Verification",
-                "filename": "computation_robustness_and_verification.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/computation_robustness_and_verification.md",
-                "size_bytes": 1734
-            },
-            {
-                "title": "Fastapi Async Sqlalchemy",
-                "filename": "fastapi_async_sqlalchemy.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_async_sqlalchemy.md",
-                "size_bytes": 1334
-            },
-            {
-                "title": "Sqlalchemy Database Setup",
-                "filename": "sqlalchemy_database_setup.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_database_setup.md",
-                "size_bytes": 927
-            },
             {
                 "title": "Auth Implementation",
                 "filename": "auth_implementation.md",
                 "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/auth_implementation.md",
-                "size_bytes": 819
+                "size_bytes": 878,
+                "estimated_tokens": 219,
+                "last_modified": "2026-10-16 07:34:17",
+                "tags": [
+                    "auth",
+                    "coding",
+                    "implementation"
+                ]
             },
             {
-                "title": "Fastapi Sqlalchemy Postgresql",
-                "filename": "fastapi_sqlalchemy_postgresql.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_sqlalchemy_postgresql.md",
-                "size_bytes": 1342
-            },
-            {
-                "title": "Python Async",
-                "filename": "python_async.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/python_async.md",
-                "size_bytes": 3757
-            },
-            {
-                "title": "React Metrics Component",
-                "filename": "react_metrics_component.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_metrics_component.md",
-                "size_bytes": 1235
-            },
-            {
-                "title": "User Authentication Service",
-                "filename": "user_authentication_service.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/user_authentication_service.md",
-                "size_bytes": 2683
-            },
-            {
-                "title": "Fastapi And Sqlalchemy Example",
-                "filename": "fastapi_and_sqlalchemy_example.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_and_sqlalchemy_example.md",
-                "size_bytes": 1171
-            },
-            {
-                "title": "Sqlalchemy",
-                "filename": "sqlalchemy.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy.md",
-                "size_bytes": 10138
-            },
-            {
-                "title": "Flask Backend Setup",
-                "filename": "flask_backend_setup.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/flask_backend_setup.md",
-                "size_bytes": 899
-            },
-            {
-                "title": "Reactmetricscomponent",
-                "filename": "reactmetricscomponent.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/reactmetricscomponent.md",
-                "size_bytes": 1027
-            },
-            {
-                "title": "Sqlalchemy Async Postgresql",
-                "filename": "sqlalchemy_async_postgresql.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_async_postgresql.md",
-                "size_bytes": 973
-            },
-            {
-                "title": "General Coding",
-                "filename": "general_coding.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/general_coding.md",
-                "size_bytes": 8890
-            },
-            {
-                "title": "React Typescript",
-                "filename": "react_typescript.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_typescript.md",
-                "size_bytes": 11675
+                "title": "Computation Robustness And Verification",
+                "filename": "computation_robustness_and_verification.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/computation_robustness_and_verification.md",
+                "size_bytes": 1710,
+                "estimated_tokens": 427,
+                "last_modified": "2026-10-16 07:34:25",
+                "tags": [
+                    "coding",
+                    "computation",
+                    "robustness",
+                    "verification"
+                ]
             },
             {
                 "title": "Fastapi",
                 "filename": "fastapi.md",
                 "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi.md",
-                "size_bytes": 14835
+                "size_bytes": 13548,
+                "estimated_tokens": 3387,
+                "last_modified": "2026-10-16 07:34:00",
+                "tags": [
+                    "coding",
+                    "fastapi"
+                ]
             },
             {
-                "title": "Sqlalchemy Orm Cheatsheet",
-                "filename": "sqlalchemy_orm_cheatsheet.md",
-                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_orm_cheatsheet.md",
-                "size_bytes": 1489
+                "title": "Fastapi And Sqlalchemy Example",
+                "filename": "fastapi_and_sqlalchemy_example.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_and_sqlalchemy_example.md",
+                "size_bytes": 1171,
+                "estimated_tokens": 292,
+                "last_modified": "2026-08-06 13:24:30",
+                "tags": [
+                    "coding",
+                    "fastapi",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "Fastapi Async Sqlalchemy",
+                "filename": "fastapi_async_sqlalchemy.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_async_sqlalchemy.md",
+                "size_bytes": 1334,
+                "estimated_tokens": 333,
+                "last_modified": "2026-08-06 13:21:55",
+                "tags": [
+                    "async",
+                    "coding",
+                    "fastapi",
+                    "sqlalchemy"
+                ]
             },
             {
                 "title": "Fastapi Sqlalchemy",
                 "filename": "fastapi_sqlalchemy.md",
                 "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_sqlalchemy.md",
-                "size_bytes": 1597
+                "size_bytes": 1597,
+                "estimated_tokens": 399,
+                "last_modified": "2026-08-06 13:36:41",
+                "tags": [
+                    "coding",
+                    "fastapi",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "Fastapi Sqlalchemy Postgresql",
+                "filename": "fastapi_sqlalchemy_postgresql.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/fastapi_sqlalchemy_postgresql.md",
+                "size_bytes": 1342,
+                "estimated_tokens": 335,
+                "last_modified": "2026-08-06 11:04:07",
+                "tags": [
+                    "coding",
+                    "fastapi",
+                    "postgresql",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "File Operations",
+                "filename": "file_operations.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/file_operations.md",
+                "size_bytes": 450,
+                "estimated_tokens": 112,
+                "last_modified": "2026-10-15 18:26:29",
+                "tags": [
+                    "coding",
+                    "operations"
+                ]
+            },
+            {
+                "title": "Flask Backend Setup",
+                "filename": "flask_backend_setup.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/flask_backend_setup.md",
+                "size_bytes": 899,
+                "estimated_tokens": 224,
+                "last_modified": "2026-08-06 11:58:38",
+                "tags": [
+                    "backend",
+                    "coding",
+                    "flask"
+                ]
+            },
+            {
+                "title": "General Coding",
+                "filename": "general_coding.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/general_coding.md",
+                "size_bytes": 8890,
+                "estimated_tokens": 2222,
+                "last_modified": "2026-08-07 20:22:33",
+                "tags": [
+                    "coding"
+                ]
+            },
+            {
+                "title": "Python Async",
+                "filename": "python_async.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/python_async.md",
+                "size_bytes": 3721,
+                "estimated_tokens": 930,
+                "last_modified": "2026-10-16 07:34:25",
+                "tags": [
+                    "async",
+                    "coding",
+                    "python"
+                ]
+            },
+            {
+                "title": "React Metrics Component",
+                "filename": "react_metrics_component.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_metrics_component.md",
+                "size_bytes": 1235,
+                "estimated_tokens": 308,
+                "last_modified": "2026-08-06 13:29:33",
+                "tags": [
+                    "coding",
+                    "component",
+                    "metrics",
+                    "react"
+                ]
+            },
+            {
+                "title": "React Typescript",
+                "filename": "react_typescript.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/react_typescript.md",
+                "size_bytes": 11675,
+                "estimated_tokens": 2918,
+                "last_modified": "2026-08-07 20:22:33",
+                "tags": [
+                    "coding",
+                    "react",
+                    "typescript"
+                ]
+            },
+            {
+                "title": "Reactmetricscomponent",
+                "filename": "reactmetricscomponent.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/reactmetricscomponent.md",
+                "size_bytes": 1027,
+                "estimated_tokens": 256,
+                "last_modified": "2026-08-06 11:01:23",
+                "tags": [
+                    "coding",
+                    "reactmetricscomponent"
+                ]
+            },
+            {
+                "title": "Sqlalchemy",
+                "filename": "sqlalchemy.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy.md",
+                "size_bytes": 10138,
+                "estimated_tokens": 2534,
+                "last_modified": "2026-08-07 20:22:33",
+                "tags": [
+                    "coding",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "Sqlalchemy Async Postgresql",
+                "filename": "sqlalchemy_async_postgresql.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_async_postgresql.md",
+                "size_bytes": 973,
+                "estimated_tokens": 243,
+                "last_modified": "2026-08-06 13:32:51",
+                "tags": [
+                    "async",
+                    "coding",
+                    "postgresql",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "Sqlalchemy Database Setup",
+                "filename": "sqlalchemy_database_setup.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_database_setup.md",
+                "size_bytes": 927,
+                "estimated_tokens": 231,
+                "last_modified": "2026-08-06 13:18:23",
+                "tags": [
+                    "coding",
+                    "database",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "Sqlalchemy Orm Cheatsheet",
+                "filename": "sqlalchemy_orm_cheatsheet.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/sqlalchemy_orm_cheatsheet.md",
+                "size_bytes": 1489,
+                "estimated_tokens": 372,
+                "last_modified": "2026-08-06 13:22:15",
+                "tags": [
+                    "cheatsheet",
+                    "coding",
+                    "orm",
+                    "sqlalchemy"
+                ]
+            },
+            {
+                "title": "User Authentication Service",
+                "filename": "user_authentication_service.md",
+                "path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/user_authentication_service.md",
+                "size_bytes": 2683,
+                "estimated_tokens": 670,
+                "last_modified": "2026-08-06 13:32:34",
+                "tags": [
+                    "authentication",
+                    "coding",
+                    "service",
+                    "user"
+                ]
             }
+        ],
+        "ai_ml": [],
+        "databases": []
+    },
+    "tags_index": {
+        "async": [
+            "coding/fastapi_async_sqlalchemy.md",
+            "coding/python_async.md",
+            "coding/sqlalchemy_async_postgresql.md"
+        ],
+        "asyncio": [
+            "frameworks/sqlalchemy_asyncio_implementation.md"
+        ],
+        "auth": [
+            "coding/auth_implementation.md"
+        ],
+        "authentication": [
+            "coding/user_authentication_service.md"
+        ],
+        "backend": [
+            "coding/flask_backend_setup.md"
+        ],
+        "cheatsheet": [
+            "coding/sqlalchemy_orm_cheatsheet.md"
+        ],
+        "coding": [
+            "coding/auth_implementation.md",
+            "coding/computation_robustness_and_verification.md",
+            "coding/fastapi.md",
+            "coding/fastapi_and_sqlalchemy_example.md",
+            "coding/fastapi_async_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy_postgresql.md",
+            "coding/file_operations.md",
+            "coding/flask_backend_setup.md",
+            "coding/general_coding.md",
+            "coding/python_async.md",
+            "coding/react_metrics_component.md",
+            "coding/react_typescript.md",
+            "coding/reactmetricscomponent.md",
+            "coding/sqlalchemy.md",
+            "coding/sqlalchemy_async_postgresql.md",
+            "coding/sqlalchemy_database_setup.md",
+            "coding/sqlalchemy_orm_cheatsheet.md",
+            "coding/user_authentication_service.md"
+        ],
+        "component": [
+            "coding/react_metrics_component.md"
+        ],
+        "computation": [
+            "coding/computation_robustness_and_verification.md"
+        ],
+        "database": [
+            "coding/sqlalchemy_database_setup.md"
+        ],
+        "fastapi": [
+            "coding/fastapi.md",
+            "coding/fastapi_and_sqlalchemy_example.md",
+            "coding/fastapi_async_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy_postgresql.md"
+        ],
+        "flask": [
+            "coding/flask_backend_setup.md"
+        ],
+        "frameworks": [
+            "frameworks/sqlalchemy_asyncio_implementation.md"
+        ],
+        "implementation": [
+            "coding/auth_implementation.md",
+            "frameworks/sqlalchemy_asyncio_implementation.md"
+        ],
+        "metrics": [
+            "coding/react_metrics_component.md"
+        ],
+        "operations": [
+            "coding/file_operations.md"
+        ],
+        "orm": [
+            "coding/sqlalchemy_orm_cheatsheet.md"
+        ],
+        "postgresql": [
+            "coding/fastapi_sqlalchemy_postgresql.md",
+            "coding/sqlalchemy_async_postgresql.md"
+        ],
+        "python": [
+            "coding/python_async.md"
+        ],
+        "react": [
+            "coding/react_metrics_component.md",
+            "coding/react_typescript.md"
+        ],
+        "reactmetricscomponent": [
+            "coding/reactmetricscomponent.md"
+        ],
+        "robustness": [
+            "coding/computation_robustness_and_verification.md"
+        ],
+        "service": [
+            "coding/user_authentication_service.md"
+        ],
+        "sqlalchemy": [
+            "coding/fastapi_and_sqlalchemy_example.md",
+            "coding/fastapi_async_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy.md",
+            "coding/fastapi_sqlalchemy_postgresql.md",
+            "coding/sqlalchemy.md",
+            "coding/sqlalchemy_async_postgresql.md",
+            "coding/sqlalchemy_database_setup.md",
+            "coding/sqlalchemy_orm_cheatsheet.md",
+            "frameworks/sqlalchemy_asyncio_implementation.md"
+        ],
+        "typescript": [
+            "coding/react_typescript.md"
+        ],
+        "user": [
+            "coding/user_authentication_service.md"
+        ],
+        "verification": [
+            "coding/computation_robustness_and_verification.md"
         ]
     }
 }

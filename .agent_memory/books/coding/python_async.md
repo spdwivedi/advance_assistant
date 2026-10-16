@@ -2,7 +2,6 @@
 
 ### Consolidated Entry [2026-08-07 20:22:33] (From: task_class_template.md)
 ## Operation Insight [2026-08-06 13:22:04]
-```markdown
 ## Domain Task Class Template
 
 This template provides a basic structure for defining and executing domain-specific tasks within a project. The `DomainTask40` class includes essential components such as a constructor to initialize task attributes (`task_id` and `description`) and an execute method that can be customized to implement the specific logic required for the task.
@@ -22,11 +21,9 @@ class MySpecificTask(DomainTask40):
         # Custom task logic here
         print(f"Executing custom task {self.task_id}: {self.description}")
 ```
-```markdown
 ### Notes:
 - Ensure that the `execute` method is implemented in any subclass to avoid runtime errors.
 - Customize the class attributes and methods as needed to fit your project requirements.
-```markdown
 
 ### Consolidated Entry [2026-08-07 20:22:33] (From: domain_task_82.md)
 ## Operation Insight [2026-08-06 13:34:39]

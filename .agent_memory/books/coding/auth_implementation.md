@@ -1,5 +1,3 @@
-
-
 ## Operation Insight [2026-08-06 11:07:07]
 ```python
 # Role-based authorization decorator
@@ -21,5 +19,7 @@ def requires_role(role):
             except jwt.ExpiredSignatureError:
                 abort(401)
             except jwt.InvalidTokenError:
-                abort
+                abort(401)
+        return decorated_function
+    return decorator
 ```

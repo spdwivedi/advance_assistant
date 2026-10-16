@@ -103,3 +103,58 @@
 [2026-08-08 06:00:23.495 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-08-08 06:00:23"}
 [2026-08-08 06:00:23.497 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [FRAGMENT_CONSOLIDATED] [ENV:LOCAL] {"from": "domain_task_test99.txt.md", "into": "fastapi.md"}
 [2026-08-08 06:00:41.349 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 1}
+[2026-10-13 13:49:02.213 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-10-13 13:49:02"}
+[2026-10-15 03:04:47.286 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "databases", "book_name": "test_redis_cache.md"}
+[2026-10-15 03:04:47.288 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "databases", "book_name": "test_redis_cache.md", "title": "Async Pipeline Connection"}
+[2026-10-15 03:04:47.290 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "databases", "book_name": "test_redis_cache.md"}
+[2026-10-15 03:06:01.243 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md"}
+[2026-10-15 03:06:01.247 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md", "title": "Token Refresh Protocol"}
+[2026-10-15 03:06:01.251 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md"}
+[2026-10-15 03:06:38.066 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md"}
+[2026-10-15 03:06:38.069 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md", "title": "Token Refresh Protocol"}
+[2026-10-15 03:06:38.072 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "security", "book_name": "oauth2_flows.md"}
+[2026-10-15 03:06:38.080 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-10-15 03:06:38"}
+[2026-10-15 16:09:17.385 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:11:45.789 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:11:45.794 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 16:11:45.797 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:12:50.332 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:12:50.337 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 16:12:50.340 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:15:09.521 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 16:15:09.526 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 16:15:09.529 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:02:38.006 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:02:38.011 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 17:02:38.014 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:05:56.048 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:05:56.053 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 17:05:56.055 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:07:16.114 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 17:07:16.121 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 17:07:16.124 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 18:22:43.315 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to alloc", "project_name": "stage14_pipeline_test"}
+[2026-10-15 18:22:43.315 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_START] [ENV:LOCAL] {"staged_files": 3}
+[2026-10-15 18:22:49.974 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_EXCEPTION] [ENV:LOCAL] {"file": "/home/assistantuser/advance_assistant/.search_data/fastapi_async_background_tasks_pydantic_v2_impleme.json", "error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to allocate CUDA0 buffer of size 5718749184\nerror loading model: unable to allocate CUDA0 buffer (status code: 500)"}
+[2026-10-15 18:23:00.778 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_EXCEPTION] [ENV:LOCAL] {"file": "/home/assistantuser/advance_assistant/.search_data/output_simple_configuration__execute__write_file__.json", "error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to allocate CUDA0 buffer of size 5718749184\nerror loading model: unable to allocate CUDA0 buffer (status code: 500)"}
+[2026-10-15 18:23:08.304 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DELTA_SYNC_EXCEPTION] [ENV:LOCAL] {"file": "/home/assistantuser/advance_assistant/.search_data/build_config_file.json", "error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to allocate CUDA0 buffer of size 5718749184\nerror loading model: unable to allocate CUDA0 buffer (status code: 500)"}
+[2026-10-15 18:23:08.305 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [DEFRAG_START] [ENV:LOCAL] {"timestamp": "2026-10-15 18:23:08"}
+[2026-10-15 18:23:53.972 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to alloc", "project_name": "stage14_pipeline_test"}
+[2026-10-15 18:24:16.614 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 18:24:16.619 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 18:24:16.623 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 18:26:29.079 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_BOOK_MUTATED] [ENV:LOCAL] {"path": "/home/assistantuser/advance_assistant/.agent_memory/books/coding/file_operations.md", "project_name": "stage14_pipeline_test"}
+[2026-10-15 18:26:31.176 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 18:26:31.182 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 18:26:31.185 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 20:29:31.800 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 20:29:31.805 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 20:29:31.808 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 20:29:58.778 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to alloc", "project_name": "stage14_pipeline_test"}
+[2026-10-15 22:48:14.043 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [SYNTHESIS_SKIPPED_OR_EXCEPT] [ENV:LOCAL] {"error": "llama-server process has terminated: exit status 1: cudaMalloc failed: out of memory\nalloc_tensor_range: failed to alloc", "project_name": "stage14_pipeline_test"}
+[2026-10-15 22:48:19.826 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-15 22:48:19.833 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-15 22:48:19.836 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      [2026-10-16 08:24:06.650 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-16 08:24:06.658 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-16 08:24:06.663 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}

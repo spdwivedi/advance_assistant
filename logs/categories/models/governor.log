@@ -10,3 +10,65 @@
 [2026-08-08 05:10:57.689 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
 [2026-08-08 05:45:08.815 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
 [2026-08-08 06:00:23.489 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-10-15 17:05:33.980 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 17:05:33.981 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 17:05:34.283 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-15 17:05:46.515 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 150000}
+[2026-10-15 17:07:13.491 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 17:07:13.492 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 17:07:13.797 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-15 17:07:14.125 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 150000}
+[2026-10-15 18:21:54.873 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [LEASE_RELEASED_FAILED_EXEC] [ENV:LOCAL] {"lease_id": "lease_691b4761f851", "bucket": "OLLAMA:LOCAL:local_worker:qwen2.5-coder:7b"}
+[2026-10-15 18:24:05.942 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 18:24:05.945 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 18:24:06.247 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-15 18:26:29.273 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 18:26:29.276 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 18:26:29.578 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-15 20:29:52.365 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 20:29:52.372 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 20:29:52.673 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-15 22:48:08.962 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-15 22:48:08.963 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-15 22:48:09.273 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:28:31.271 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:44:13.218 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 07:44:13.224 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 07:44:13.526 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:44:13.532 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:45:15.683 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 07:45:15.684 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 07:45:15.987 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:45:15.993 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:46:06.497 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 07:46:06.497 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 07:46:06.803 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:46:06.809 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:46:43.485 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 07:46:43.486 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 07:46:43.792 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:46:43.798 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:47:30.742 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:47:55.328 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:48:08.595 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:48:08.595 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 6145, "cap": 150000}
+[2026-10-16 07:50:04.066 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 07:50:04.067 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 07:50:04.372 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 07:50:04.378 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 07:50:04.379 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 6152, "cap": 150000}
+[2026-10-16 07:50:04.379 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-16 08:09:39.794 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-10-16 08:23:45.868 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 08:23:45.871 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 08:23:46.172 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 08:23:46.179 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 08:23:46.179 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 6152, "cap": 150000}
+[2026-10-16 08:23:46.180 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-16 08:24:16.932 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 100000}
+[2026-10-16 08:26:03.039 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-16 08:26:03.042 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-16 08:26:03.344 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-16 08:26:03.349 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-16 08:26:03.351 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 6152, "cap": 150000}
+[2026-10-16 08:26:03.351 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}

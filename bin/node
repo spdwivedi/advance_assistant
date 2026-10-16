@@ -1,0 +1,2 @@
+#!/bin/sh
+exec "/home/assistantuser/.antigravity-ide-server/bin/2.5.5-ecfbad74d93962fc8ca485d93ab9b4f3d4cb6cf8/node" "$@"

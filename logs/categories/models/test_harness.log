@@ -24,3 +24,7 @@
 [2026-08-08 06:00:23.498 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [DEFRAG_TEST_COMPLETE] [ENV:LOCAL] {"fragment_purged": true, "test_script": "test_defrag"}
 [2026-08-08 06:00:39.815 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [OFFLINE_PIPELINE_TEST_COMPLETE] [ENV:LOCAL] {"workspace": "/home/assistantuser/advance_assistant/test/test_data/test_project", "test_script": "test_offline_pipeline"}
 [2026-08-08 06:00:39.825 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [TEST_SEARCH_GROUNDING_START] [ENV:LOCAL] {"project_name": "test_search_suite", "test_script": "test_search_grounding"}
+[2026-10-15 17:05:46.515 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-10-15 17:07:14.125 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-10-16 08:09:39.801 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}
+[2026-10-16 08:24:16.933 IST] [MODEL:TEST_HARNESS] [CAT:GENERAL] [GOVERNOR_TEST_COMPLETE] [ENV:LOCAL] {"model": "gemini-3.5-flash", "blocked_properly": true, "test_script": "test_governor"}

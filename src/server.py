@@ -36,6 +36,7 @@ from src.key_manager import key_manager
 import src.key_manager
 src.key_manager._KEY_LOCK = threading.RLock()
 from src.config import (
+    normalize_wsl_path,
     DEFAULT_EXECUTION_MODE,
     DEFAULT_RESEARCH_PROFILE,
     DEFAULT_MODEL_CONSTRAINING_PROFILE,
@@ -365,9 +366,18 @@ def get_history() -> Dict[str, Any]:
     and current unified topic knowledge base telemetry.
     """
     env_data = _load_json(ENV_HISTORY_FILE, {"history": [], "last_location": ""})
+    raw_hist = env_data.get("history", [])
+    clean_hist = []
+    seen = set()
+    for p in raw_hist:
+        if p:
+            norm_p = normalize_wsl_path(p)
+            if norm_p not in seen:
+                seen.add(norm_p)
+                clean_hist.append(norm_p)
     return {
-        "history": env_data.get("history", []),
-        "last_location": get_last_env_location(),
+        "history": clean_hist,
+        "last_location": normalize_wsl_path(get_last_env_location()),
         "knowledge_telemetry": get_knowledge_base_telemetry()
     }
 
@@ -984,8 +994,14 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
                 detail=f"A build job is actively running for project '{execution_state['project_name']}'."
             )
 
-        target_dest = payload.target_path if payload.target_path else get_last_env_location()
+        target_raw = payload.target_path if payload.target_path else get_last_env_location()
+        target_dest = normalize_wsl_path(target_raw)
         project_name = payload.project_name or "default_project"
+
+        try:
+            token_governor.reset_build_counter(project_name)
+        except Exception:
+            pass
         active_mode = payload.mode or DEFAULT_EXECUTION_MODE
         active_profile = payload.profile or DEFAULT_RESEARCH_PROFILE
         active_constrain = payload.constrain or DEFAULT_MODEL_CONSTRAINING_PROFILE
