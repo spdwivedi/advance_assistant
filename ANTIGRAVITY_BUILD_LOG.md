@@ -948,3 +948,40 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.5: Swarm Monitor (/swarm) 3-Tab Minimalist Activity View, Minimizable Agent Drawer & Live Generated Code Inspector
+- **Date**: 2026-10-17
+- **Goal**: Complete redesign of `frontend/src/pages/SwarmMonitor.tsx` into a 3-tab minimalist activity view with progressive disclosure, eliminating single-page clutter, providing top control bar quick-actions (Provider filter, Key Policy switcher, build pause/stop controls, global logs navigation), interactive minimizable agent detail drawer, full workspace and generated code inspector with copy code and syntax lines, and provider/tier filtered model quota cards.
+- **Key Deliverables Implemented**:
+  - `frontend/src/pages/SwarmMonitor.tsx`:
+    * **Compact Top Control Bar**:
+      - Left: Live WebSocket status pill (`🟢 WebSocket Live` vs `🟡 HTTP Polling`), Active Project & Build Status Pill (`RUNNING`, `PAUSED`, `COMPLETED`, `IDLE`), and Active Workspace path pill with tooltip.
+      - Right Quick-Actions: Provider filter dropdown (`ALL`, `GOOGLE`, `GROQ`, `OLLAMA`), Key policy quick-switcher dropdown (`GLOBAL_HYBRID`, `FREE_POOL`, `PAID_POOL`, `SINGLE_PINNED` dispatching `POST /api/keys/policy`), Build lifecycle buttons (`⏸️ Pause` / `▶️ Resume` dispatching `POST /api/execute/pause`, `🛑 Stop` dispatching `POST /api/execute/stop`), and `📜 Global Execution Logs` button navigating to `/logs`.
+    * **3-Tab View Switcher Bar**:
+      - Tab 1: `⚡ Active Agents & Tasks` (Active workforce grid + minimizable task inspector + bottom execution trace)
+      - Tab 2: `📄 Generated Files & Code` (Completed & locked files + workspace scan + live code viewer)
+      - Tab 3: `📊 Live Model Quotas` (Live token governor quota progress bars + discrete token breakdown)
+    * **Tab 1: Active Agents & Tasks (Minimalist Cards & Minimizable Drawer)**:
+      - Minimalist Workforce Grid: Master Orchestrator + dynamic workers (up to 16 workers supported, default 9) with `"Show All Workers"` vs `"Active Only"` filter toggle.
+      - Each card displays ONLY 4 concise items: (1) Agent ID & Role, (2) Model & Provider Pill, (3) Status Badge (`🟢 WORKING`, `⏸️ PAUSED`, `⚪ STANDBY`), and (4) Target File Pill with exclusive lock indicator.
+      - Click-to-Open Minimizable Agent Detail Panel: Displays full role, assigned model, provider, active key routing channel, exclusive domain file lock, `"👁️ Inspect Target File Code"` (switches to Tab 2 and opens file), `"📜 View Agent Logs in Log Center"`, `"Minimize ▾ / Expand ▴"`, and `"Close ✕"`.
+      - Minimizable Live Execution Trace Bar: Collapsible terminal strip that defaults to a compact 1-line summary bar showing latest log event, event count, `"Expand Trace ▴ / Minimize Trace ▾"` toggle, and `"📜 /logs"` shortcut.
+    * **Tab 2: Generated Files & Code (Workspace Scan & Code Inspector)**:
+      - Sub-list filter pills: `All Files`, `✅ Completed`, `🔒 Locked`, and `📁 Workspace Scan`.
+      - `"Scan Full Workspace"` action button calling `GET /api/workspace/scan?path=...`.
+      - Compact file rows with Path, Status Badge (`COMPLETED`, `LOCKED`, `WORKSPACE`), Assigned Worker, and `"👁️ View Code"` button.
+      - Collapsible Code Inspector Drawer calling `GET /api/workspace/file?workspace_dir=...&file_path=...`, displaying file header, language badge, line count, byte size, `"Copy Code"` with copied feedback, minimize/close buttons, and monospace code view with line numbers gutter.
+    * **Tab 3: Live Model Quotas (Filtered by Provider & Tier)**:
+      - Uses `hierarchy` telemetry from `/ws/telemetry` and `/api/governor/hierarchy` with fallback to `quotas.models`.
+      - Dual filtering by Top Bar Provider dropdown (`ALL`, `GOOGLE`, `GROQ`, `OLLAMA`) and secondary Tier pills (`ALL`, `FREE`, `PAID`, `LOCAL`).
+      - Compact Model Quota Cards: Model name, Provider & Tier badge, 60s RPM progress bar, 60s TPM progress bar with 85% Financial Shield alert, and Active In-Flight Leases count.
+      - Click-to-expand details showing discrete Input Tokens, Output Tokens, Thinking Tokens, Daily Requests (RPD), Working vs Strict Limits comparison table, and `"Configure in Governor (/governor)"` shortcut.
+- **Verification Results**:
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `vite build`: **100% SUCCESS (0 errors, 2.19s build time)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed)**
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.
