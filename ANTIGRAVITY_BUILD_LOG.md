@@ -1094,3 +1094,46 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.8: Unified Master Certification Suite, Repository Tree Sync & Documentation Finalization
+- **Date**: 2026-10-17
+- **Goal**: Finalize Advance Assistant OS v6.0 by upgrading the Master Certification Harness to execute all Stage 14 and Stage 15 test suites with zero state pollution, synchronizing the repository directory tree, auditing `.agent_memory/` hygiene, and thoroughly documenting the platform architecture in `README.md`.
+- **Key Deliverables Implemented**:
+  - `test/test_scripts/test_v6_full_suite.py`:
+    * Maintained all 28 existing checks (Sections 1 through 7) covering Core Health & Config, Multi-Key Matrix & Routing, Testing Bridge & VRAM Arbitrator, Swarm Concurrency Scaling, Multi-Stream Logs & Traversal Guards, Memory Snippets & Book CRUD Roundtrip, and Dual WebSockets.
+    * Added **Section 8: Stage 14 & 15 Hierarchical Governor, Blueprint & Lifecycle Suite** (6 new checks, total 34 checks):
+      - `GET /api/governor/hierarchy`: Verified multi-provider quota hierarchy (`GOOGLE`, `GROQ`, `OLLAMA`) and `per_build_paid_token_cap` (150K).
+      - `GET /api/governor/cost-estimate`: Verified USD/INR spend and Free/Local cloud savings calculations.
+      - `POST /api/execute/pause` & `POST /api/execute/stop`: Verified build pause/resume toggle and stop cancellation.
+      - `GET /api/workspace/scan`: Verified workspace file inventory scan, total file counts, and language breakdown.
+      - `GET /api/workspace/file`: Verified file reading, line count calculation, language detection, and HTTP 400 traversal & HTTP 403 sensitive key file guards.
+      - `POST & GET /api/blueprint/preview`: Verified pre-flight dry-run blueprint generation and cached preview retrieval.
+    * Wrapped execution in `with preserve_agent_memory():` from `test_state_guard.py`.
+  - `test/test_scripts/run_all_tests.py`:
+    * Upgraded into the Unified Master System Certification Harness running all 5 certification suites sequentially via subprocess:
+      1. `test_hierarchical_governor.py` (8/8 checks passed)
+      2. `test_stage14_2_pipeline.py` (6/6 checks passed)
+      3. `test_stage14_3_server.py` (8/8 checks passed)
+      4. `test_stage15_2_backend.py` (6/6 checks passed)
+      5. `test_v6_full_suite.py` (34/34 checks passed)
+    * Renders a clean ASCII Master Certification Summary Table showing Suite File, Duration, Status, and Checks.
+    * Achieved **100% PASS (62/62 checks passed across 5/5 suites in under 7 seconds)**.
+    * Entire harness wrapped in `with preserve_agent_memory():` guaranteeing zero test pollution.
+  - **Repository Tree & Memory Hygiene**:
+    * Regenerated `project_tree.txt` and `all_file_paths.txt` via `generate_tree.py`.
+    * Confirmed zero ghost `.md` files in `.agent_memory/books/coding/` and zero stray log files in root or `frontend/`.
+    * Audited `.agent_memory/token_ledger.json`, `.agent_memory/provider_quotas.json`, `.agent_memory/api_keys.json`, `.agent_memory/env_history.json`, and `.agent_memory/swarm_registry.json`.
+  - **Documentation Finalization (`README.md`)**:
+    * Documented the 3-Level Hierarchical Token Governor (`Provider -> Tier -> Model`) with working limits vs strict limits.
+    * Documented Two-Phase Atomic Pre/Post Token Leases (`acquire_lease`, `commit_lease`, `release_lease`).
+    * Documented Paid Tier Financial Shield (`paid_tier_locked`, `per_build_paid_token_cap`, `daily_paid_token_cap`) and Cost/Savings Estimator.
+    * Documented Continuous Iterative Blueprint & Dry-Run Workflow (`/api/workspace/scan`, `/api/blueprint/preview`, `/api/blueprint/execute`, `/api/workspace/file`, `/api/execute/pause`, `/api/execute/stop`).
+    * Documented the 8 Minimalist Progressive-Disclosure Web Consoles (`/`, `/swarm`, `/agents`, `/knowledge`, `/governor`, `/keys`, `/logs`, `/tools`) and the Global Top Control Bar (`Layout.tsx`).
+- **Verification Results**:
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `vite build`: **100% SUCCESS (0 errors, 2.15s build time)**
+  - `run_all_tests.py`: **100% PASS (5/5 Suites, 62/62 checks passed in 6.98s)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED (ADVANCE ASSISTANT OS v6.0 STAGE 15 SERIES FULLY FINALIZED).

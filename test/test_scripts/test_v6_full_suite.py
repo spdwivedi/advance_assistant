@@ -1,3 +1,5 @@
+import shutil
+from unittest.mock import patch
 import os
 import sys
 
@@ -23,6 +25,7 @@ Comprehensive test suite certifying every subsystem across Stages 1 through 13:
 5. Multi-Stream Log Center & Path Traversal Guard
 6. Precision Memory Snippet Engine & Book CRUD Roundtrip
 7. Dual WebSocket Streams (/ws/telemetry & /ws/logs)
+8. Stage 14 & 15 Hierarchical Governor, Iterative Blueprint, File Inspector & Lifecycle Suite
 ================================================================================
 """
 
@@ -371,6 +374,164 @@ def test_dual_websocket_streams():
         record_fail("WebSocket /ws/logs", str(exc))
 
 
+
+
+def test_hierarchical_governor_blueprint_and_lifecycle():
+    print("\n--- 8. Testing Stage 14 & 15 Hierarchical Governor, Blueprint & Lifecycle ---")
+
+    # 8.1 GET /api/governor/hierarchy
+    try:
+        res = client.get("/api/governor/hierarchy")
+        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+        data = res.json()
+        assert data.get("status") == "success"
+        hierarchy = data.get("hierarchy", {})
+        providers = hierarchy.get("providers", {})
+        assert "GOOGLE" in providers
+        assert "GROQ" in providers
+        assert "OLLAMA" in providers
+        financial_shield = hierarchy.get("financial_shield", {})
+        assert "per_build_paid_token_cap" in financial_shield
+        assert "daily_paid_token_cap" in financial_shield
+        record_pass(
+            "GET /api/governor/hierarchy",
+            f"Providers: {list(providers.keys())}, per_build_cap={financial_shield.get('per_build_paid_token_cap')}"
+        )
+    except Exception as exc:
+        record_fail("GET /api/governor/hierarchy", str(exc))
+
+    # 8.2 GET /api/governor/cost-estimate
+    try:
+        res = client.get("/api/governor/cost-estimate")
+        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+        data = res.json()
+        assert data.get("status") == "success"
+        cost_est = data.get("cost_estimate", {})
+        assert "actual_paid_spend_usd" in cost_est
+        assert "actual_paid_spend_inr" in cost_est
+        assert "estimated_savings_usd" in cost_est
+        assert "estimated_savings_inr" in cost_est
+        spend_usd = cost_est.get("actual_paid_spend_usd", 0.0)
+        spend_inr = cost_est.get("actual_paid_spend_inr", 0.0)
+        saved_usd = cost_est.get("estimated_savings_usd", 0.0)
+        saved_inr = cost_est.get("estimated_savings_inr", 0.0)
+        record_pass(
+            "GET /api/governor/cost-estimate",
+            f"Spend: ${spend_usd:.4f} (₹{spend_inr:.2f}) • Saved: ${saved_usd:.4f} (₹{saved_inr:.2f})"
+        )
+    except Exception as exc:
+        record_fail("GET /api/governor/cost-estimate", str(exc))
+
+    # 8.3 POST /api/execute/pause & POST /api/execute/stop
+    try:
+        # Pause
+        res_pause = client.post("/api/execute/pause", json={"paused": True})
+        assert res_pause.status_code == 200
+        assert res_pause.json().get("paused") is True
+
+        # Unpause / Resume
+        res_resume = client.post("/api/execute/pause", json={"paused": False})
+        assert res_resume.status_code == 200
+        assert res_resume.json().get("paused") is False
+
+        # Stop
+        res_stop = client.post("/api/execute/stop")
+        assert res_stop.status_code == 200
+        assert res_stop.json().get("state") == "CANCELLED"
+        record_pass("POST /api/execute/pause & /api/execute/stop", "Lifecycle pause/resume and cancellation verified")
+    except Exception as exc:
+        record_fail("POST /api/execute/pause & /api/execute/stop", str(exc))
+
+    # 8.4 GET /api/workspace/scan
+    try:
+        res = client.get(f"/api/workspace/scan?path={PROJECT_ROOT}")
+        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+        data = res.json()
+        assert data.get("status") == "success"
+        file_count = data.get("file_count", len(data.get("files", [])))
+        assert file_count > 0, f"Expected file_count > 0, got {file_count}"
+        assert len(data.get("files", [])) > 0
+        record_pass(
+            "GET /api/workspace/scan",
+            f"Scanned workspace '{data.get('project_name')}': {file_count} files, {len(data.get('language_breakdown', {}))} filetypes"
+        )
+    except Exception as exc:
+        record_fail("GET /api/workspace/scan", str(exc))
+
+    # 8.5 GET /api/workspace/file (including Security Guardrails)
+    try:
+        # Valid file read
+        res_valid = client.get(f"/api/workspace/file?workspace_dir={PROJECT_ROOT}&file_path=src/config.py")
+        assert res_valid.status_code == 200
+        f_data = res_valid.json()
+        assert f_data.get("status") == "success"
+        assert f_data.get("language") == "python"
+        assert f_data.get("line_count", 0) > 0
+
+        # Traversal Security Guard (HTTP 400)
+        res_trav = client.get(f"/api/workspace/file?workspace_dir={PROJECT_ROOT}&file_path=../../etc/passwd")
+        assert res_trav.status_code == 400
+
+        # Sensitive File Security Guard (HTTP 403)
+        res_sens = client.get(f"/api/workspace/file?workspace_dir={PROJECT_ROOT}&file_path=.agent_memory/api_keys.json")
+        assert res_sens.status_code == 403
+
+        record_pass(
+            "GET /api/workspace/file",
+            f"Verified file read ({f_data.get('line_count')} lines), path traversal 400, and sensitive key 403 blocks"
+        )
+    except Exception as exc:
+        record_fail("GET /api/workspace/file", str(exc))
+
+    # 8.6 POST /api/blueprint/preview & GET /api/blueprint/preview
+    test_preview_ws = "/tmp/test_v6_full_preview_ws"
+    os.makedirs(test_preview_ws, exist_ok=True)
+    existing_file = os.path.join(test_preview_ws, "src", "existing.py")
+    os.makedirs(os.path.dirname(existing_file), exist_ok=True)
+    with open(existing_file, "w", encoding="utf-8") as f:
+        f.write("# existing code\ndef old_func(): pass\n")
+
+    try:
+        preview_payload = {
+            "goal": "Build authentication with src/auth.py, update src/existing.py, and setup requirements.txt",
+            "target_dir": test_preview_ws,
+            "project_name": "preview_cert_project",
+            "use_existing_context": True
+        }
+
+        mock_decomposition = (
+            "Setup requirements.txt with pyjwt and cryptography\n"
+            "Build src/auth.py with JWT verification middleware\n"
+            "Update src/existing.py with token refresh handlers\n"
+        )
+
+        with patch("src.agent.run_agent_pipeline", return_value=mock_decomposition):
+            res_prev = client.post("/api/blueprint/preview", json=preview_payload)
+
+        assert res_prev.status_code == 200, f"Preview failed: {res_prev.text}"
+        data_prev = res_prev.json()
+        assert data_prev.get("status") == "success"
+        bp = data_prev.get("blueprint", {})
+        assert "blueprint_id" in bp
+        tasks = bp.get("tasks", [])
+        assert len(tasks) == 3
+
+        # Test GET /api/blueprint/preview
+        res_get_prev = client.get("/api/blueprint/preview")
+        assert res_get_prev.status_code == 200
+        get_bp = res_get_prev.json().get("blueprint", {})
+        assert get_bp.get("blueprint_id") == bp.get("blueprint_id")
+
+        record_pass(
+            "POST & GET /api/blueprint/preview",
+            f"Generated dry-run blueprint preview '{bp['blueprint_id']}' with {len(tasks)} tasks; verified cached retrieval"
+        )
+    except Exception as exc:
+        record_fail("POST & GET /api/blueprint/preview", str(exc))
+    finally:
+        shutil.rmtree(test_preview_ws, ignore_errors=True)
+
+
 def main():
     print("=" * 80)
     print(" ADVANCE ASSISTANT OS v6.0 - AUTOMATED E2E SYSTEM CERTIFICATION SUITE")
@@ -384,6 +545,7 @@ def main():
     test_multi_stream_log_center_and_security()
     test_precision_memory_snippet_engine_and_crud()
     test_dual_websocket_streams()
+    test_hierarchical_governor_blueprint_and_lifecycle()
 
     duration = time.time() - start_time
     print("\n" + "=" * 80)
