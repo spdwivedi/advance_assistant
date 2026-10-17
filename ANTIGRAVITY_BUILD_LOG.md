@@ -910,3 +910,41 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.4: Agent Hub (/agents) Minimalist Progressive-Disclosure Redesign, Groq Catalog & Styling Fixes
+- **Date**: 2026-10-17
+- **Goal**: Redesign `AgentHub.tsx` into a clean, minimalist progressive-disclosure workspace with collapsible sections, fix VRAM safety badge and co-residency styling mismatches, and integrate multi-provider Groq Cloud LPU models alongside Google Gemini and Local Ollama across capability matrices and orchestrator selection.
+- **Key Deliverables Implemented**:
+  - `frontend/src/pages/AgentHub.tsx`:
+    * **Badge Styling Property Mismatches Fixed**:
+      - `getVramSafetyTier(sizeGb)` returns both `color` and `className` identically with proper Tailwind border, text, and background classes (`SAFE_GPU`, `HIGH_LOAD`, `PAGED_HYBRID`, `OOM_HAZARDOUS`).
+      - `simVerdict` returns both `badgeColor` and `className` identically for emerald/amber/rose verdict styling in the Dual-Model Co-Residency Simulator.
+      - Standardized unique mapping keys across all lists (`(tagMod, idx) => key={`${tagMod.name}-${idx}`}`).
+    * **Multi-Provider Support (Groq LPU + Google + Ollama)**:
+      - Integrated Groq Cloud LPU models (`qwen-2.5-coder-32b` at 395 TPS, `llama-3.3-70b-versatile` at 280 TPS, `llama-3.1-8b-instant` at 750 TPS) into `DEFAULT_MODEL_PROFILES`.
+      - Added `qwen-2.5-coder-32b (Groq LPU)` and `llama-3.3-70b-versatile (Groq LPU)` to `ORCHESTRATOR_OPTIONS`.
+      - Expanded Provider Filter to support `ALL`, `GOOGLE_GEMINI`, `GROQ`, and `OLLAMA_LOCAL`.
+    * **Compact Top Bar & 3-Tab Switcher**:
+      - Header status with title, bridge connectivity pill (`🟢 Suite Connected` / `🟡 Standalone`), Provider Quick-Filter dropdown, Active Swarm quick-select dropdown, `📜 Global Logs` shortcut, and `Sync` button.
+      - 3-Tab switcher bar: `1. Model Matrix`, `2. VRAM Arbitrator (8GB)`, and `3. Swarm & Role Builder`.
+    * **Tab 1: Model Matrix (Minimalist Progressive Disclosure)**:
+      - Collapsible Empirical Champions Strip with toggle button (`Show / Hide Champions`).
+      - Compact filter and search bar with provider pills, hardware safety dropdown, and live search input.
+      - Minimalist model cards showing only model name, provider badge, track pill, safety & speed pill, and `Details ▾` expand toggle.
+      - Expandable drawer revealing full description, parameters, VRAM footprint, empirical audit scores, capabilities tags, and 1-click `"Set as Phase 0 Orchestrator"` button.
+    * **Tab 2: VRAM Arbitrator (8GB)**:
+      - Compact RTX 4060 8.0 GB live telemetry bar with color-coded progress bar, scavenge/flush idle button, and loaded models chips with 1-click unload.
+      - Collapsible Dual-Model Co-Residency Simulator (`🧪 Co-Residency Simulator`) with header summary verdict badge and expand/collapse toggle.
+      - Minimalist installed Ollama models grid with quick `Sim: Orch` / `Sim: Worker` buttons.
+    * **Tab 3: Swarm & Role Builder**:
+      - Clean swarm roster cards with active badges, orchestrator, concurrency, and collapsible description notes, plus `+ New Custom Swarm` modal.
+      - Phase 0 Master Orchestrator selector cards and 1–16 Worker Concurrency slider with preset chips and `"Save & Activate Swarm"` button.
+- **Verification Results**:
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `vite build`: **100% SUCCESS (0 errors, 2.19s build time, bundle reduced to 534 kB)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed)**
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.
