@@ -1027,3 +1027,70 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.7: Knowledge Base (/knowledge), Log Center (/logs) & Tool Bridges (/tools) Minimalist Progressive-Disclosure Redesign
+- **Date**: 2026-10-17
+- **Goal**: Complete the OS v6.0 minimalist progressive-disclosure transformation across the Knowledge Base, Log Center, and Tool Bridges pages. Eliminate visual congestion, replace giant walls of text and static mock tables with collapsible sections, top dropdowns, fast back-navigation shortcuts, and minimizable inspection panels.
+- **Key Deliverables Implemented**:
+  - `frontend/src/pages/KnowledgeBase.tsx`:
+    * **Compact Top Bar**:
+      - Title + compact telemetry pill (`📚 X Books • Y Sections • Z Tokens`).
+      - Category Filter Dropdown (`ALL` + 9 canonical categories: `coding`, `frameworks`, `cloud`, `devops`, `ai_ml`, `security`, `databases`, `architecture`, `general` and dynamic discovered categories).
+      - Search input filtering books by title, category, or tags.
+      - `+ New Book` button opening modal with title, category, initial content, and tags.
+      - `🧹 Defrag` button triggering `POST /api/memory/defrag` with spinner and toast notification.
+      - `📜 Global Logs` shortcut navigating to `/logs`.
+    * **3-Tab Mode Switcher**:
+      - Tab 1: `📚 Book Explorer & Recipes` (Default active split-pane layout)
+      - Tab 2: `✏️ Raw Markdown Editor` (Full-width distraction-free editor)
+      - Tab 3: `🧪 Precision Context Simulator` (Model injection simulation)
+    * **Tab 1 — Book Explorer & Recipes**:
+      - Left sidebar with compact book rows displaying ONLY: Book Title, Category Badge, and Sections / Tokens Pill (`X sec • Y tok`).
+      - Right workspace with compact header, `"✏️ Open in Editor"` button (switches to Tab 2), and `"+ Append Recipe ▾"` toggle button revealing an inline form to append `## Operation Insight` recipes via `POST /api/memory/book/recipe`.
+      - Collapsible Section Cards (`parse_book_sections`): Collapsed by default, displaying Section `#section_id` & `heading`, `💻 Code` badge, `estimated_tokens tok` badge, and chevron (with `"Expand All / Collapse All"` toggle). Clicking expands Markdown content and keyword pills.
+    * **Tab 2 — Raw Markdown Editor**:
+      - Full-width monospace textarea for selected book's raw Markdown (`GET /api/memory/book/{category}/{book_name}`), editable tags input, `💾 Save Book Changes` (`POST /api/memory/book`), and `🗑️ Delete Book` (`DELETE /api/memory/book/{category}/{book_name}`).
+    * **Tab 3 — Precision Context Simulator**:
+      - Model Selector dropdown with Local Ollama (`qwen2.5-coder:1.5b (600 tok)`, `qwen2.5-coder:7b (1200 tok)`, `qwen2.5-coder:32b (2000 tok)`), Groq LPU (`qwen-2.5-coder-32b (1500 tok)`, `llama-3.3-70b-versatile (1500 tok)`), and Google Gemini (`gemini-3.6-flash (3500 tok)`, `gemini-2.5-pro (3500 tok)`).
+      - Custom Token Budget override input and `▶️ Run Simulation` button (`POST /api/memory/simulate-injection`).
+      - Compact Optimization Summary Strip (`Budget`, `Injected Tokens`, `Raw Book Tokens`, `Tokens Saved %` badge).
+      - Collapsible matched snippet cards and `"View Compiled Prompt String"` drawer.
+  - `frontend/src/pages/LogCenter.tsx`:
+    * **Compact Top Navigation & Stream Bar**:
+      - Title + active stream path & size pill (`🌐 Master Timeline • /logs/master_timeline.log (1.4 MB)`).
+      - Quick-Return navigation buttons: `🚀 Back to Studio (/)` and `⚡ Swarm Monitor (/swarm)` via `useNavigate`.
+      - Stream Type dropdown: `master` (🌐 Master Timeline), `daily` (📅 Daily IST Logs), `category` (🗂️ Category Logs), `model` (🤖 Model Logs), `project` (📁 Project Traces), `test` (🧪 Test Logs).
+      - Secondary target dropdown when `sourceType !== 'master'`.
+      - Live Tail Toggle Pill (`🟢 Live Tail Active` vs `⏸️ Paused` with heartbeat ping) + Auto-scroll checkbox.
+      - Collapsible `⚙️ Options ▾` toggle tray for Tail Limit (`100`–`2000`), Head/Tail ordering, and Export `.json` / `.log` buttons.
+    * **Compact Severity Pills, Model/Category Dropdowns & Search Row**:
+      - Severity filter pills (`ALL`, `INFO`, `SUCCESS`, `WARNING`, `ERROR`) with live facet counters.
+      - Dynamic Model and Category filter dropdowns populated from facets.
+      - Search box with clear button.
+      - `📐 Blueprint Ledger` button when `sourceType === 'project'` and ledger is detected.
+    * **High-Clarity Monospace Log Table & Minimizable JSON Inspector**:
+      - Clean monospace log rows showing `#id`, `timestamp`, `severity` badge, `model` chip, `category` pill, `action` badge, `env` tag, and clean 1-line preview.
+      - Clicking any row opens a minimizable / closable JSON Payload Inspector panel with `"Copy JSON"`, `"Copy Raw Line"`, `"Filter by Model"`, `"Minimize ▾"`, and `"Close ✕"` controls.
+  - `frontend/src/pages/ToolBridges.tsx`:
+    * **Compact Top Bar**:
+      - Title + `🟢 6/6 Bridges Ready` telemetry pill.
+      - Category Filter Dropdown (`ALL`, `AGENTIC_CLI`, `WORKFLOW_MCP`, `MULTIMODAL`), `🔄 Refresh Status` button, and `📜 Full Log Center` shortcut button.
+    * **2-Tab View Switcher**:
+      - Tab 1: `🔌 External Tool & Agentic Bridges` (Default active)
+      - Tab 2: `🛡️ Gatekeeper & Workspace Security`
+    * **Tab 1 — External Tool & Agentic Bridges**:
+      - Minimalist collapsed cards showing ONLY 4 concise items: Adapter Icon & Name, Role / Category Badge, Status Pill (`🟢 READY`), and `Configure / Details ▾` expand button.
+      - Click-to-expand drawer revealing Target Endpoint / Binary Path, Environment Variable Key, CLI Invocation Command Preview, Feature Checkmarks, Integration Note, 1-click `"Copy Config"` button, and `"Logs in /logs"` shortcut.
+      - Covers all 6 system adapters: Aider AI CLI Bridge, RooCode Bridge, n8n Automation Webhook, Antigravity MCP Bridge, Vision Multimodal Engine, and Voice Audio Engine.
+    * **Tab 2 — Gatekeeper & Workspace Security**:
+      - High-clarity guardrail cards displaying active security mechanisms: WSL Universal Path Normalizer (`SEC-01`), Staging Isolation Guard (`SEC-02`), Command Execution Gatekeeper (`SEC-03`), and Path Traversal Shield (`SEC-04`).
+      - 1-click `"Inspect Gatekeeper Logs"` shortcut button directly navigating to `/logs`.
+- **Verification Results**:
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `vite build`: **100% SUCCESS (0 errors, 2.15s build time)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed)**
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

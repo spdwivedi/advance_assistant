@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ScrollText,
   Terminal,
@@ -32,7 +33,10 @@ import {
   CheckCircle2,
   Info,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Sliders,
+  Zap,
+  ArrowUpRight
 } from 'lucide-react';
 
 // ==============================================================================
@@ -172,6 +176,8 @@ function getSeverityIcon(sev: string) {
 // ==============================================================================
 
 export const LogCenter: React.FC = () => {
+  const navigate = useNavigate();
+
   // 1. Source Selection State
   const [sources, setSources] = useState<LogSources | null>(null);
   const [sourceType, setSourceType] = useState<SourceType>('master');
@@ -197,7 +203,9 @@ export const LogCenter: React.FC = () => {
   // 3. UI State
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [inspectedEntry, setInspectedEntry] = useState<LogEntry | null>(null);
+  const [isInspectorMinimized, setIsInspectorMinimized] = useState<boolean>(false);
+  const [isExportTrayOpen, setIsExportTrayOpen] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // 4. WebSocket Live Tail State
@@ -215,7 +223,6 @@ export const LogCenter: React.FC = () => {
   // Refs
   const logContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ----------------------------------------------------------------------------
   // INITIAL SOURCES FETCH
@@ -286,7 +293,7 @@ export const LogCenter: React.FC = () => {
         setSourceName('');
       }
     }
-  }, [sourceType, sources]);
+  }, [sourceType, sources, selectedCategoryDomain]);
 
   // ----------------------------------------------------------------------------
   // QUERY LOGS API
@@ -368,13 +375,11 @@ export const LogCenter: React.FC = () => {
         if (frame.type === 'heartbeat') {
           setLastPulse(new Date());
         } else if (frame.type === 'initial_batch') {
-          // If we had no entries, seed them; otherwise preserve current query view
           setLastPulse(new Date());
         } else if (frame.type === 'new_entries') {
           setLastPulse(new Date());
           if (frame.entries && frame.entries.length > 0) {
             setEntries((prev) => {
-              // Apply local filters before appending if necessary
               const newLines = frame.entries as LogEntry[];
               const updated = [...prev, ...newLines];
               return updated.slice(-tailLimit);
@@ -542,254 +547,97 @@ export const LogCenter: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-slate-950 text-slate-100 font-sans">
       {/* ==================================================================== */}
-      {/* 1. TOP HEADER & TELEMETRY STRIP */}
+      {/* 1. COMPACT TOP NAVIGATION & STREAM BAR */}
       {/* ==================================================================== */}
-      <header className="shrink-0 px-5 py-3 bg-slate-900/90 border-b border-slate-800 backdrop-blur flex flex-wrap items-center justify-between gap-3">
+      <header className="shrink-0 px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 backdrop-blur flex flex-wrap items-center justify-between gap-3">
+        {/* Left: Title + Stream Path & Size Pill */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-glow-sm shrink-0">
-            <ScrollText className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-glow-sm shrink-0">
+            <ScrollText className="w-4 h-4 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
                 Log Center
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/60">
-                  v6.0 Telemetry
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 uppercase">
+                  v6.0
                 </span>
               </h1>
-              {/* Live Tail Pulse Badge */}
-              <div
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-medium border ${
-                  isLiveTail && wsConnected
-                    ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60 shadow-glow-emerald'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
-                }`}
-                title={lastPulse ? `Last pulse: ${lastPulse.toLocaleTimeString()}` : 'WebSocket idle'}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    isLiveTail && wsConnected ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
-                  }`}
-                />
-                <span>{isLiveTail && wsConnected ? 'LIVE TAIL ACTIVE' : 'LIVE TAIL PAUSED'}</span>
+
+              {/* Active Stream Path & Size Pill */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-mono bg-slate-800/80 border border-slate-700/70 text-slate-300">
+                <span className="text-cyan-400 font-semibold">{activeSourceMeta.label}</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400 truncate max-w-[200px]" title={resolvedPath || activeSourceMeta.path}>
+                  {resolvedPath || activeSourceMeta.path}
+                </span>
+                {activeSourceMeta.size > 0 && (
+                  <>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-slate-200">{formatBytes(activeSourceMeta.size)}</span>
+                  </>
+                )}
               </div>
-
-              {/* Incremental New Lines Badge */}
-              {newLinesCount > 0 && (
-                <button
-                  onClick={() => setNewLinesCount(0)}
-                  className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-900/90 text-blue-300 border border-blue-700 hover:bg-blue-800 transition-colors animate-pulse"
-                  title="Click to reset counter"
-                >
-                  +{newLinesCount} new
-                </button>
-              )}
             </div>
-            <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-              <span>{activeSourceMeta.label}</span>
-              <span className="text-slate-600">•</span>
-              <span className="font-mono text-[11px] text-cyan-400">{resolvedPath || activeSourceMeta.path}</span>
-              {activeSourceMeta.size > 0 && (
-                <>
-                  <span className="text-slate-600">•</span>
-                  <span className="font-mono text-slate-300">{formatBytes(activeSourceMeta.size)}</span>
-                </>
-              )}
-            </p>
           </div>
         </div>
 
-        {/* Global Action Buttons */}
-        <div className="flex items-center gap-2">
-          {/* Live Tail Toggle Button */}
+        {/* Right: Quick-Return Buttons, Stream Dropdown, Live Tail & Controls */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* 1-Click Back to Studio */}
           <button
-            onClick={() => setIsLiveTail(!isLiveTail)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-              isLiveTail
-                ? 'bg-emerald-950/70 text-emerald-300 border-emerald-700/80 hover:bg-emerald-900/80'
-                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700/80'
-            }`}
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors shadow-sm"
+            title="Return to Execution Studio"
           >
-            {isLiveTail ? <Pause className="w-3.5 h-3.5 text-emerald-400" /> : <Play className="w-3.5 h-3.5 text-slate-400" />}
-            {isLiveTail ? 'Pause Tail' : 'Resume Tail'}
+            <span>🚀 Studio</span>
           </button>
 
-          {/* Follow Bottom Toggle */}
-          <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/70 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 transition-colors">
-            <input
-              type="checkbox"
-              checked={followBottom}
-              onChange={(e) => setFollowBottom(e.target.checked)}
-              className="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-            />
-            <span className="flex items-center gap-1">
-              <ArrowDownCircle className="w-3.5 h-3.5 text-cyan-400" /> Auto-Scroll
-            </span>
-          </label>
-
-          {/* Refresh Button */}
+          {/* 1-Click Swarm Monitor */}
           <button
-            onClick={() => fetchLogs()}
-            disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors disabled:opacity-50"
-            title="Manual query refresh"
+            onClick={() => navigate('/swarm')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors shadow-sm"
+            title="Open Swarm Monitor"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span>Swarm</span>
           </button>
 
-          {/* Export Dropdown / Buttons */}
-          <div className="flex items-center rounded-lg bg-slate-800/80 border border-slate-700 overflow-hidden text-xs">
-            <button
-              onClick={handleExportJson}
-              className="px-2.5 py-1.5 text-slate-300 hover:text-white hover:bg-slate-700/80 transition-colors flex items-center gap-1"
-              title="Download currently filtered entries as JSON"
+          <span className="w-px h-5 bg-slate-800 hidden sm:block" />
+
+          {/* Stream Type Dropdown */}
+          <div className="flex items-center gap-1 text-xs">
+            <select
+              value={sourceType}
+              onChange={(e) => setSourceType(e.target.value as SourceType)}
+              className="bg-slate-800 border border-slate-700 text-cyan-300 font-semibold rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-cyan-500 shadow-sm"
             >
-              <Download className="w-3.5 h-3.5 text-indigo-400" /> JSON
-            </button>
-            <span className="w-px h-4 bg-slate-700" />
-            <button
-              onClick={handleExportRaw}
-              className="px-2.5 py-1.5 text-slate-300 hover:text-white hover:bg-slate-700/80 transition-colors flex items-center gap-1"
-              title="Download raw lines as .log"
-            >
-              <FileText className="w-3.5 h-3.5 text-cyan-400" /> RAW
-            </button>
+              <option value="master">🌐 Master Timeline</option>
+              <option value="daily">📅 Daily IST Logs</option>
+              <option value="category">🗂️ Category Logs</option>
+              <option value="model">🤖 Model Logs</option>
+              <option value="project">📁 Project Traces</option>
+              <option value="test">🧪 Test Logs</option>
+            </select>
           </div>
-        </div>
-      </header>
 
-      {/* ==================================================================== */}
-      {/* 2. 6-STREAM LOG SOURCE SWITCHER BAR */}
-      {/* ==================================================================== */}
-      <section className="shrink-0 px-5 py-2.5 bg-slate-900/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        {/* Stream Selector Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-indigo-400" /> Streams:
-          </span>
-
-          {/* 1. Master Stream */}
-          <button
-            onClick={() => setSourceType('master')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'master'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5 text-blue-300" />
-            Master Timeline
-            {sources?.master?.exists && (
-              <span className="ml-1 text-[10px] font-mono px-1 py-0.2 rounded bg-black/30 text-blue-200">
-                {formatBytes(sources.master.size_bytes)}
-              </span>
-            )}
-          </button>
-
-          {/* 2. Daily IST Stream */}
-          <button
-            onClick={() => setSourceType('daily')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'daily'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5 text-cyan-300" />
-            Daily IST Logs
-            <span className="ml-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/30 text-cyan-200">
-              {sources?.daily_logs?.length || 0}
-            </span>
-          </button>
-
-          {/* 3. Category Stream */}
-          <button
-            onClick={() => setSourceType('category')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'category'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <FolderGit2 className="w-3.5 h-3.5 text-purple-300" />
-            Categories
-            <span className="ml-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/30 text-purple-200">
-              {Object.keys(sources?.categories || {}).length}
-            </span>
-          </button>
-
-          {/* 4. Model Stream */}
-          <button
-            onClick={() => setSourceType('model')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'model'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5 text-amber-300" />
-            Models
-            <span className="ml-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/30 text-amber-200">
-              {sources?.models?.length || 0}
-            </span>
-          </button>
-
-          {/* 5. Project Stream */}
-          <button
-            onClick={() => setSourceType('project')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'project'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <FolderGit2 className="w-3.5 h-3.5 text-emerald-300" />
-            Projects
-            <span className="ml-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/30 text-emerald-200">
-              {sources?.projects?.length || 0}
-            </span>
-          </button>
-
-          {/* 6. Test Stream */}
-          <button
-            onClick={() => setSourceType('test')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              sourceType === 'test'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-glow-sm'
-                : 'bg-slate-800/70 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/60'
-            }`}
-          >
-            <TestTube className="w-3.5 h-3.5 text-rose-300" />
-            Test Mirrors
-            <span className="ml-1 text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/30 text-rose-200">
-              {sources?.test_logs?.length || 0}
-            </span>
-          </button>
-        </div>
-
-        {/* Secondary Sub-Source Dropdown Selectors */}
-        <div className="flex items-center gap-2">
+          {/* Secondary Sub-Target Dropdowns */}
           {sourceType === 'daily' && sources?.daily_logs && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400">Date:</span>
-              <select
-                value={sourceName}
-                onChange={(e) => setSourceName(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-cyan-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-cyan-500"
-              >
-                {sources.daily_logs.map((d) => (
-                  <option key={d.name} value={d.name}>
-                    {d.name.replace('.log', '')} ({formatBytes(d.size_bytes)})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
+              className="bg-slate-800 border border-slate-700 text-cyan-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-cyan-500"
+            >
+              {sources.daily_logs.map((d) => (
+                <option key={d.name} value={d.name}>
+                  {d.name.replace('.log', '')} ({formatBytes(d.size_bytes)})
+                </option>
+              ))}
+            </select>
           )}
 
           {sourceType === 'category' && sources?.categories && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400">Domain:</span>
+            <>
               <select
                 value={selectedCategoryDomain}
                 onChange={(e) => {
@@ -799,20 +647,19 @@ export const LogCenter: React.FC = () => {
                     setSourceName(`${e.target.value}/${actions[0].name}`);
                   }
                 }}
-                className="bg-slate-800 border border-slate-700 text-purple-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-purple-500"
+                className="bg-slate-800 border border-slate-700 text-purple-300 rounded-lg px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-purple-500"
               >
                 {Object.keys(sources.categories).map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat.toUpperCase()} ({sources.categories[cat]?.length || 0} actions)
+                    {cat.toUpperCase()} ({sources.categories[cat]?.length || 0})
                   </option>
                 ))}
               </select>
 
-              <span className="text-slate-400">Action:</span>
               <select
                 value={sourceName}
                 onChange={(e) => setSourceName(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-purple-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-purple-500 max-w-[200px]"
+                className="bg-slate-800 border border-slate-700 text-purple-300 rounded-lg px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-purple-500 max-w-[160px]"
               >
                 {(sources.categories[selectedCategoryDomain] || []).map((af) => (
                   <option key={af.name} value={`${selectedCategoryDomain}/${af.name}`}>
@@ -820,102 +667,186 @@ export const LogCenter: React.FC = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </>
           )}
 
           {sourceType === 'model' && sources?.models && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400">Model File:</span>
-              <select
-                value={sourceName}
-                onChange={(e) => setSourceName(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-amber-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-amber-500 max-w-[240px]"
-              >
-                {sources.models.map((m) => (
-                  <option key={m.name} value={m.name}>
-                    {m.model} ({formatBytes(m.size_bytes)})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
+              className="bg-slate-800 border border-slate-700 text-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-amber-500 max-w-[200px]"
+            >
+              {sources.models.map((m) => (
+                <option key={m.name} value={m.name}>
+                  {m.model} ({formatBytes(m.size_bytes)})
+                </option>
+              ))}
+            </select>
           )}
 
           {sourceType === 'project' && sources?.projects && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400">Workspace:</span>
-              <select
-                value={sourceName}
-                onChange={(e) => setSourceName(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-emerald-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-emerald-500"
-              >
-                {sources.projects.map((p) => (
-                  <option key={p.name} value={p.name}>
-                    {p.name} ({formatBytes(p.trace_size)})
-                  </option>
-                ))}
-              </select>
-
-              {/* View Blueprint Ledger Button */}
-              {selectedProjectObj?.has_ledger && (
-                <button
-                  onClick={() => handleOpenLedger(selectedProjectObj.name)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 hover:bg-emerald-900 transition-colors text-xs font-semibold"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-                  Blueprint Ledger
-                </button>
-              )}
-            </div>
+            <select
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
+              className="bg-slate-800 border border-slate-700 text-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-emerald-500 max-w-[180px]"
+            >
+              {sources.projects.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name} {p.has_ledger ? '📐' : ''} ({formatBytes(p.trace_size)})
+                </option>
+              ))}
+            </select>
           )}
 
           {sourceType === 'test' && sources?.test_logs && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400">Test Script:</span>
+            <select
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
+              className="bg-slate-800 border border-slate-700 text-rose-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-rose-500 max-w-[200px]"
+            >
+              {sources.test_logs.map((t) => (
+                <option key={t.name} value={t.name}>
+                  {t.test_name} ({formatBytes(t.size_bytes)})
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Live Tail Toggle Pill */}
+          <button
+            onClick={() => setIsLiveTail(!isLiveTail)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              isLiveTail && wsConnected
+                ? 'bg-emerald-950/70 text-emerald-300 border-emerald-700/80 hover:bg-emerald-900/80'
+                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700/80'
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isLiveTail && wsConnected ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
+              }`}
+            />
+            <span>{isLiveTail && wsConnected ? 'Live' : 'Paused'}</span>
+          </button>
+
+          {/* Auto-Scroll Checkbox */}
+          <label className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/70 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 transition-colors">
+            <input
+              type="checkbox"
+              checked={followBottom}
+              onChange={(e) => setFollowBottom(e.target.checked)}
+              className="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 cursor-pointer w-3.5 h-3.5"
+            />
+            <span className="hidden sm:inline text-[11px]">Auto-Scroll</span>
+          </label>
+
+          {/* Collapsible Filters & Export Toggle */}
+          <button
+            onClick={() => setIsExportTrayOpen(!isExportTrayOpen)}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              isExportTrayOpen
+                ? 'bg-indigo-950 text-indigo-300 border-indigo-700'
+                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+            }`}
+            title="Configure tail limits, ordering, and export logs"
+          >
+            <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden md:inline">Options</span>
+            {isExportTrayOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+
+          {/* Refresh Button */}
+          <button
+            onClick={() => fetchLogs()}
+            disabled={isLoading}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors disabled:opacity-50"
+            title="Manual query refresh"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </header>
+
+      {/* ==================================================================== */}
+      {/* 2. COLLAPSIBLE FILTERS & EXPORT TRAY */}
+      {/* ==================================================================== */}
+      {isExportTrayOpen && (
+        <section className="shrink-0 px-4 py-2 bg-slate-900/95 border-b border-indigo-900/50 flex flex-wrap items-center justify-between gap-3 text-xs animate-in slide-in-from-top duration-150">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Tail Limit Selector */}
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <span className="text-slate-400">Tail Limit:</span>
               <select
-                value={sourceName}
-                onChange={(e) => setSourceName(e.target.value)}
-                className="bg-slate-800 border border-slate-700 text-rose-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-rose-500 max-w-[240px]"
+                value={tailLimit}
+                onChange={(e) => setTailLimit(Number(e.target.value))}
+                className="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-0.5 text-xs font-mono focus:outline-none focus:border-cyan-500"
               >
-                {sources.test_logs.map((t) => (
-                  <option key={t.name} value={t.name}>
-                    {t.test_name} ({formatBytes(t.size_bytes)})
-                  </option>
-                ))}
+                <option value={100}>100 lines</option>
+                <option value={300}>300 lines</option>
+                <option value={500}>500 lines</option>
+                <option value={1000}>1,000 lines</option>
+                <option value={2000}>2,000 lines</option>
               </select>
             </div>
-          )}
-        </div>
-      </section>
+
+            {/* Ordering Selector */}
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <span className="text-slate-400">Ordering:</span>
+              <button
+                onClick={() => setIsTailMode(!isTailMode)}
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-cyan-300"
+              >
+                {isTailMode ? '⬇️ Newest First (Tail)' : '⬆️ Oldest First (Head)'}
+              </button>
+            </div>
+          </div>
+
+          {/* Export Actions */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400">Export:</span>
+            <button
+              onClick={handleExportJson}
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-indigo-300 transition-colors"
+              title="Download currently matched entries as formatted JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-indigo-400" />
+              <span>JSON ({entries.length})</span>
+            </button>
+            <button
+              onClick={handleExportRaw}
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-cyan-300 transition-colors"
+              title="Download raw log lines as .log"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              <span>RAW (.log)</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* ==================================================================== */}
-      {/* 3. MULTI-DIMENSIONAL FILTER BAR & FACET COUNTERS */}
+      {/* 3. COMPACT SEVERITY PILLS, MODEL/CAT DROPDOWNS & SEARCH ROW */}
       {/* ==================================================================== */}
-      <section className="shrink-0 px-5 py-2.5 bg-slate-900/40 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-        {/* Severity Filter Pills with Live Facet Counts */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5 text-slate-400" /> Severity:
-          </span>
-
-          {/* ALL */}
+      <section className="shrink-0 px-4 py-2 bg-slate-900/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5">
+        {/* Severity Pills with Live Facet Counts */}
+        <div className="flex items-center gap-1 flex-wrap">
           <button
             onClick={() => setSeverityFilter('ALL')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-2 py-0.5 rounded text-xs font-mono transition-all flex items-center gap-1 ${
               severityFilter === 'ALL'
-                ? 'bg-slate-700 text-white border border-slate-600 font-bold shadow-sm'
+                ? 'bg-slate-700 text-white font-bold border border-slate-600 shadow-sm'
                 : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-800'
             }`}
           >
             <span>ALL</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-900 text-slate-300">
+            <span className="px-1 py-0.1 rounded text-[10px] bg-slate-900 text-slate-300 font-bold">
               {totalMatched}
             </span>
           </button>
 
-          {/* INFO */}
           <button
             onClick={() => setSeverityFilter('INFO')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 border ${
+            className={`px-2 py-0.5 rounded text-xs font-mono transition-all flex items-center gap-1 border ${
               severityFilter === 'INFO'
                 ? 'bg-blue-950 text-blue-200 border-blue-600 font-bold shadow-sm'
                 : 'bg-blue-950/40 text-blue-400 hover:bg-blue-950/70 border-blue-900/60'
@@ -923,15 +854,14 @@ export const LogCenter: React.FC = () => {
           >
             <Info className="w-3 h-3 text-blue-400" />
             <span>INFO</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-900/80 text-blue-200">
+            <span className="px-1 py-0.1 rounded text-[10px] bg-blue-900/80 text-blue-200">
               {facets.counts.INFO || 0}
             </span>
           </button>
 
-          {/* SUCCESS */}
           <button
             onClick={() => setSeverityFilter('SUCCESS')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 border ${
+            className={`px-2 py-0.5 rounded text-xs font-mono transition-all flex items-center gap-1 border ${
               severityFilter === 'SUCCESS'
                 ? 'bg-emerald-950 text-emerald-200 border-emerald-600 font-bold shadow-sm'
                 : 'bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/70 border-emerald-900/60'
@@ -939,94 +869,86 @@ export const LogCenter: React.FC = () => {
           >
             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
             <span>SUCCESS</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-900/80 text-emerald-200">
+            <span className="px-1 py-0.1 rounded text-[10px] bg-emerald-900/80 text-emerald-200">
               {facets.counts.SUCCESS || 0}
             </span>
           </button>
 
-          {/* WARNING */}
           <button
             onClick={() => setSeverityFilter('WARNING')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 border ${
+            className={`px-2 py-0.5 rounded text-xs font-mono transition-all flex items-center gap-1 border ${
               severityFilter === 'WARNING'
                 ? 'bg-amber-950 text-amber-200 border-amber-600 font-bold shadow-sm'
                 : 'bg-amber-950/40 text-amber-400 hover:bg-amber-950/70 border-amber-900/60'
             }`}
           >
             <AlertTriangle className="w-3 h-3 text-amber-400" />
-            <span>WARNING</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-900/80 text-amber-200">
+            <span>WARN</span>
+            <span className="px-1 py-0.1 rounded text-[10px] bg-amber-900/80 text-amber-200">
               {facets.counts.WARNING || 0}
             </span>
           </button>
 
-          {/* ERROR */}
           <button
             onClick={() => setSeverityFilter('ERROR')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 border ${
+            className={`px-2 py-0.5 rounded text-xs font-mono transition-all flex items-center gap-1 border ${
               severityFilter === 'ERROR'
                 ? 'bg-rose-950 text-rose-200 border-rose-600 font-bold shadow-sm'
                 : 'bg-rose-950/40 text-rose-400 hover:bg-rose-950/70 border-rose-900/60'
             }`}
           >
             <ShieldAlert className="w-3 h-3 text-rose-400" />
-            <span>ERROR</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-900/80 text-rose-200">
+            <span>ERR</span>
+            <span className="px-1 py-0.1 rounded text-[10px] bg-rose-900/80 text-rose-200">
               {facets.counts.ERROR || 0}
             </span>
           </button>
         </div>
 
-        {/* Dynamic Dropdowns & Search */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Model Facet Filter */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-slate-400">Model:</span>
-            <select
-              value={modelFilter}
-              onChange={(e) => setModelFilter(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-indigo-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-indigo-500 max-w-[160px]"
-            >
-              <option value="ALL">All Models ({facets.models?.length || 0})</option>
-              {facets.models.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Dropdowns, Search Box & Ledger Button */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Model Filter Dropdown */}
+          <select
+            value={modelFilter}
+            onChange={(e) => setModelFilter(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-indigo-300 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-indigo-500 max-w-[140px]"
+          >
+            <option value="ALL">All Models ({facets.models?.length || 0})</option>
+            {facets.models.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
 
-          {/* Category Facet Filter */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-slate-400">Category:</span>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-purple-300 rounded-lg px-2.5 py-1 text-xs font-mono focus:outline-none focus:border-purple-500 max-w-[150px]"
-            >
-              <option value="ALL">All Categories ({facets.categories?.length || 0})</option>
-              {facets.categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Category Filter Dropdown */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-purple-300 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-purple-500 max-w-[140px]"
+          >
+            <option value="ALL">All Categories ({facets.categories?.length || 0})</option>
+            {facets.categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
 
-          {/* Search Box with Clear Button */}
+          {/* Search Box */}
           <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search action, model, details..."
+              placeholder="Search action, details..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-56 bg-slate-800/90 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs rounded-lg pl-8 pr-7 py-1 focus:outline-none focus:border-cyan-500 transition-all font-mono"
+              className="w-48 sm:w-56 bg-slate-800/90 border border-slate-700 text-slate-100 placeholder-slate-500 text-xs rounded pl-7 pr-6 py-1 focus:outline-none focus:border-cyan-500 transition-all font-mono"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 text-slate-400 hover:text-white"
+                className="absolute right-1.5 text-slate-400 hover:text-white"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -1034,255 +956,111 @@ export const LogCenter: React.FC = () => {
             )}
           </div>
 
-          {/* Tail Limit Selector */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-slate-400">Limit:</span>
-            <select
-              value={tailLimit}
-              onChange={(e) => setTailLimit(Number(e.target.value))}
-              className="bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-cyan-500"
+          {/* Optional Project Blueprint Ledger Button */}
+          {sourceType === 'project' && selectedProjectObj?.has_ledger && (
+            <button
+              onClick={() => handleOpenLedger(selectedProjectObj.name)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 text-xs font-semibold text-emerald-300 shadow-sm transition-colors"
             >
-              <option value={100}>100 lines</option>
-              <option value={300}>300 lines</option>
-              <option value={500}>500 lines</option>
-              <option value={1000}>1000 lines</option>
-              <option value={2000}>2000 lines</option>
-            </select>
-          </div>
-
-          {/* Chronological vs Tail Order Toggle */}
-          <button
-            onClick={() => setIsTailMode(!isTailMode)}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-mono text-slate-300 transition-colors"
-            title={isTailMode ? 'Viewing latest lines at bottom' : 'Viewing oldest lines first'}
-          >
-            {isTailMode ? 'Tail (Latest)' : 'Head (Oldest)'}
-          </button>
+              <span>📐 Blueprint Ledger</span>
+            </button>
+          )}
         </div>
       </section>
 
       {/* ==================================================================== */}
-      {/* 4. ERROR NOTICE IF LOG STREAM CANNOT BE LOADED */}
-      {/* ==================================================================== */}
-      {errorMsg && (
-        <div className="shrink-0 mx-5 mt-3 p-3 bg-rose-950/60 border border-rose-800 text-rose-200 text-xs rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-          <button
-            onClick={() => fetchLogs()}
-            className="px-2 py-1 bg-rose-900/80 hover:bg-rose-800 text-rose-100 rounded text-xs font-semibold"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* ==================================================================== */}
-      {/* 5. INTERACTIVE MONOSPACE LOG STREAM VIEWER */}
+      {/* 4. HIGH-CLARITY MONOSPACE LOG TABLE */}
       {/* ==================================================================== */}
       <main
         ref={logContainerRef}
-        className="flex-1 overflow-y-auto px-5 py-3 font-mono text-xs select-text space-y-1"
+        className="flex-1 overflow-y-auto px-4 py-2 font-mono text-xs select-text space-y-0.5 bg-slate-950"
       >
-        {isLoading && entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-3">
-            <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
-            <p className="text-sm font-sans font-medium">Querying structured log records...</p>
-          </div>
-        ) : entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-slate-500 space-y-3">
-            <Terminal className="w-10 h-10 text-slate-600" />
-            <p className="text-sm font-sans font-medium text-slate-400">No log entries matched your filter parameters.</p>
-            <p className="text-xs font-mono text-slate-600">Resolved Path: {resolvedPath || 'None'}</p>
-            {(severityFilter !== 'ALL' || modelFilter !== 'ALL' || categoryFilter !== 'ALL' || searchQuery) && (
-              <button
-                onClick={() => {
-                  setSeverityFilter('ALL');
-                  setModelFilter('ALL');
-                  setCategoryFilter('ALL');
-                  setSearchQuery('');
-                }}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-sans text-xs border border-slate-700"
-              >
-                Clear All Filters
-              </button>
-            )}
+        {entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500 space-y-3 font-sans">
+            <ScrollText className="w-12 h-12 text-slate-600 animate-pulse" />
+            <p className="text-sm font-medium">No log entries matched current criteria</p>
+            <p className="text-xs text-slate-600 max-w-sm text-center">
+              Try adjusting the severity filter, search term, or select a different stream from the top navigation bar.
+            </p>
           </div>
         ) : (
           entries.map((entry) => {
-            const isExpanded = expandedRowId === entry.id;
-            const detailsStr = JSON.stringify(entry.details || {});
-            const hasDetails = Object.keys(entry.details || {}).length > 0;
+            const isSelected = inspectedEntry?.id === entry.id;
+            const detailsStr = entry.details ? JSON.stringify(entry.details) : '';
 
             return (
               <div
                 key={entry.id}
-                className={`rounded-lg border transition-all ${
-                  isExpanded
-                    ? 'bg-slate-900 border-cyan-700/80 shadow-md ring-1 ring-cyan-500/20'
-                    : 'bg-slate-900/60 border-slate-800/80 hover:bg-slate-900/90 hover:border-slate-700'
+                onClick={() => {
+                  setInspectedEntry(isSelected ? null : entry);
+                  setIsInspectorMinimized(false);
+                }}
+                className={`group flex items-baseline gap-2 py-1 px-2 rounded cursor-pointer transition-colors ${
+                  isSelected
+                    ? 'bg-slate-800/90 border-l-2 border-cyan-400'
+                    : 'hover:bg-slate-900/90 border-l-2 border-transparent'
                 }`}
               >
-                {/* Primary Log Line Row */}
-                <div
-                  onClick={() => setExpandedRowId(isExpanded ? null : entry.id)}
-                  className="flex items-start gap-2.5 px-3 py-2 cursor-pointer select-none text-[11px] leading-relaxed"
+                {/* Line ID */}
+                <span className="text-slate-600 text-[10px] w-9 shrink-0 text-right font-mono">
+                  #{entry.id}
+                </span>
+
+                {/* Timestamp */}
+                <span className="text-slate-400 text-[11px] shrink-0 whitespace-nowrap">
+                  {entry.timestamp}
+                </span>
+
+                {/* Severity Badge */}
+                <span
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold border uppercase shrink-0 ${getSeverityBadgeClass(
+                    entry.severity
+                  )}`}
                 >
-                  {/* Expand Chevron */}
-                  <span className="text-slate-500 pt-0.5 shrink-0">
-                    {isExpanded ? (
-                      <ChevronDown className="w-3.5 h-3.5 text-cyan-400" />
-                    ) : (
-                      <ChevronRight className="w-3.5 h-3.5 hover:text-slate-300" />
-                    )}
+                  {getSeverityIcon(entry.severity)}
+                  {entry.severity}
+                </span>
+
+                {/* Model Chip */}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (entry.model && entry.model !== 'UNKNOWN') setModelFilter(entry.model);
+                  }}
+                  className="px-1.5 py-0.2 rounded bg-indigo-950/70 border border-indigo-800/60 text-indigo-300 hover:border-indigo-500 text-[10px] font-semibold shrink-0 cursor-pointer"
+                  title={`Click to filter by model: ${entry.model}`}
+                >
+                  {entry.model || 'SYSTEM'}
+                </span>
+
+                {/* Category Pill */}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (entry.category) setCategoryFilter(entry.category);
+                  }}
+                  className="px-1.5 py-0.2 rounded bg-purple-950/70 border border-purple-800/60 text-purple-300 hover:border-purple-500 text-[10px] font-medium shrink-0 cursor-pointer"
+                  title={`Click to filter by category: ${entry.category}`}
+                >
+                  {entry.category}
+                </span>
+
+                {/* Action Badge */}
+                <span className="text-cyan-300 font-bold tracking-tight shrink-0">
+                  [{entry.action}]
+                </span>
+
+                {/* Environment Tag */}
+                {entry.env && (
+                  <span className="px-1 py-0.1 rounded bg-slate-800 border border-slate-700 text-slate-400 text-[9px] shrink-0">
+                    {entry.env}
                   </span>
-
-                  {/* ID */}
-                  <span className="text-slate-600 w-10 shrink-0 text-right font-mono" title={`Line #${entry.id}`}>
-                    #{entry.id}
-                  </span>
-
-                  {/* Timestamp */}
-                  <span className="text-slate-400 shrink-0 w-36 truncate" title={entry.timestamp}>
-                    {entry.timestamp}
-                  </span>
-
-                  {/* Severity Badge */}
-                  <span
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase shrink-0 ${getSeverityBadgeClass(
-                      entry.severity
-                    )}`}
-                  >
-                    {getSeverityIcon(entry.severity)}
-                    {entry.severity}
-                  </span>
-
-                  {/* Model Chip */}
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (entry.model && entry.model !== 'UNKNOWN') setModelFilter(entry.model);
-                    }}
-                    className="px-1.5 py-0.5 rounded bg-indigo-950/70 border border-indigo-800/60 text-indigo-300 hover:border-indigo-500 text-[10px] font-semibold shrink-0 cursor-pointer"
-                    title={`Click to filter by model: ${entry.model}`}
-                  >
-                    {entry.model || 'SYSTEM'}
-                  </span>
-
-                  {/* Category Pill */}
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (entry.category) setCategoryFilter(entry.category);
-                    }}
-                    className="px-1.5 py-0.5 rounded bg-purple-950/70 border border-purple-800/60 text-purple-300 hover:border-purple-500 text-[10px] font-medium shrink-0 cursor-pointer"
-                    title={`Click to filter by category: ${entry.category}`}
-                  >
-                    {entry.category}
-                  </span>
-
-                  {/* Action Badge */}
-                  <span className="text-cyan-300 font-bold tracking-tight shrink-0">
-                    [{entry.action}]
-                  </span>
-
-                  {/* Environment Tag */}
-                  {entry.env && (
-                    <span className="px-1 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400 text-[9px] shrink-0">
-                      {entry.env}
-                    </span>
-                  )}
-
-                  {/* Compact Preview of Details */}
-                  <span className="text-slate-400 truncate flex-1 font-normal opacity-90 pl-1" title={detailsStr}>
-                    {detailsStr !== '{}' ? detailsStr : entry.raw}
-                  </span>
-                </div>
-
-                {/* Expanded Structured JSON Inspector Drawer */}
-                {isExpanded && (
-                  <div className="px-4 pb-3 pt-1 border-t border-slate-800/80 bg-slate-950/70 rounded-b-lg space-y-3">
-                    {/* Action Toolbar */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-b border-slate-800/60 pb-2">
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-slate-400">Inspect Entry:</span>
-                        <span className="text-cyan-400 font-bold">Line #{entry.id}</span>
-                        <span className="text-slate-600">•</span>
-                        <span className="text-slate-300">{entry.timestamp}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {/* Filter Shortcuts */}
-                        {entry.model && entry.model !== 'UNKNOWN' && (
-                          <button
-                            onClick={() => setModelFilter(entry.model)}
-                            className="px-2 py-1 rounded bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-[11px] text-indigo-300 transition-colors"
-                          >
-                            Filter Model: {entry.model}
-                          </button>
-                        )}
-                        {entry.category && (
-                          <button
-                            onClick={() => setCategoryFilter(entry.category)}
-                            className="px-2 py-1 rounded bg-purple-950 hover:bg-purple-900 border border-purple-700 text-[11px] text-purple-300 transition-colors"
-                          >
-                            Filter Category: {entry.category}
-                          </button>
-                        )}
-
-                        {/* Copy JSON */}
-                        <button
-                          onClick={() => handleCopy(`json_${entry.id}`, JSON.stringify(entry.details, null, 2))}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-slate-200 transition-colors"
-                        >
-                          {copiedKey === `json_${entry.id}` ? (
-                            <Check className="w-3 h-3 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-slate-400" />
-                          )}
-                          {copiedKey === `json_${entry.id}` ? 'Copied JSON!' : 'Copy JSON'}
-                        </button>
-
-                        {/* Copy Raw Line */}
-                        <button
-                          onClick={() => handleCopy(`raw_${entry.id}`, entry.raw)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-slate-200 transition-colors"
-                        >
-                          {copiedKey === `raw_${entry.id}` ? (
-                            <Check className="w-3 h-3 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-slate-400" />
-                          )}
-                          {copiedKey === `raw_${entry.id}` ? 'Copied Line!' : 'Copy Raw Line'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Formatted JSON Payload */}
-                    {hasDetails && (
-                      <div>
-                        <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider mb-1 flex items-center gap-1">
-                          <Terminal className="w-3 h-3 text-cyan-400" /> Structured Details Payload
-                        </div>
-                        <pre className="p-3 rounded-lg bg-slate-900 border border-slate-800 text-cyan-300 text-[11px] overflow-x-auto leading-relaxed shadow-inner">
-                          {JSON.stringify(entry.details, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-
-                    {/* Raw Unparsed Log Line */}
-                    <div>
-                      <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider mb-1 flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-slate-400" /> Raw Log String
-                      </div>
-                      <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-300 text-[11px] break-all leading-relaxed">
-                        {entry.raw}
-                      </div>
-                    </div>
-                  </div>
                 )}
+
+                {/* Compact Preview of Details */}
+                <span className="text-slate-400 truncate flex-1 font-normal opacity-90 pl-1" title={detailsStr}>
+                  {detailsStr !== '{}' ? detailsStr : entry.raw}
+                </span>
               </div>
             );
           })
@@ -1290,170 +1068,223 @@ export const LogCenter: React.FC = () => {
       </main>
 
       {/* ==================================================================== */}
-      {/* 6. BOTTOM STATUS BAR & TELEMETRY */}
+      {/* 5. MINIMIZABLE / CLOSABLE JSON PAYLOAD INSPECTOR PANEL */}
       {/* ==================================================================== */}
-      <footer className="shrink-0 px-5 py-2 bg-slate-900/90 border-t border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 font-mono">
+      {inspectedEntry && (
+        <div className="shrink-0 border-t border-cyan-800/50 bg-slate-900/95 shadow-2xl backdrop-blur transition-all">
+          {isInspectorMinimized ? (
+            /* Minimized Sticky Bar */
+            <div className="px-4 py-2 flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-slate-400">Inspecting:</span>
+                <span className="text-cyan-300 font-bold">Line #{inspectedEntry.id}</span>
+                <span className="text-slate-200 font-semibold">[{inspectedEntry.action}]</span>
+                <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold border uppercase ${getSeverityBadgeClass(inspectedEntry.severity)}`}>
+                  {inspectedEntry.severity}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsInspectorMinimized(false)}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200"
+                >
+                  <Maximize2 className="w-3 h-3 text-cyan-400" />
+                  <span>Maximize ▴</span>
+                </button>
+                <button
+                  onClick={() => setInspectedEntry(null)}
+                  className="p-1 text-slate-400 hover:text-white"
+                  title="Close Inspector"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Full Expanded Inspector Drawer */
+            <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <Terminal className="w-4 h-4 text-cyan-400" />
+                  <span className="text-slate-400">Inspect Entry:</span>
+                  <span className="text-cyan-400 font-bold">Line #{inspectedEntry.id}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-300">{inspectedEntry.timestamp}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-cyan-300 font-bold">[{inspectedEntry.action}]</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Filter Shortcuts */}
+                  {inspectedEntry.model && inspectedEntry.model !== 'UNKNOWN' && (
+                    <button
+                      onClick={() => setModelFilter(inspectedEntry.model)}
+                      className="px-2 py-1 rounded bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-[11px] text-indigo-300 transition-colors"
+                    >
+                      Filter Model: {inspectedEntry.model}
+                    </button>
+                  )}
+                  {inspectedEntry.category && (
+                    <button
+                      onClick={() => setCategoryFilter(inspectedEntry.category)}
+                      className="px-2 py-1 rounded bg-purple-950 hover:bg-purple-900 border border-purple-700 text-[11px] text-purple-300 transition-colors"
+                    >
+                      Filter Category: {inspectedEntry.category}
+                    </button>
+                  )}
+
+                  {/* Copy JSON */}
+                  <button
+                    onClick={() => handleCopy(`json_${inspectedEntry.id}`, JSON.stringify(inspectedEntry.details, null, 2))}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-slate-200 transition-colors"
+                  >
+                    {copiedKey === `json_${inspectedEntry.id}` ? (
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3 h-3 text-slate-400" />
+                    )}
+                    {copiedKey === `json_${inspectedEntry.id}` ? 'Copied JSON!' : 'Copy JSON'}
+                  </button>
+
+                  {/* Copy Raw Line */}
+                  <button
+                    onClick={() => handleCopy(`raw_${inspectedEntry.id}`, inspectedEntry.raw)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-slate-200 transition-colors"
+                  >
+                    {copiedKey === `raw_${inspectedEntry.id}` ? (
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3 h-3 text-slate-400" />
+                    )}
+                    {copiedKey === `raw_${inspectedEntry.id}` ? 'Copied Line!' : 'Copy Raw Line'}
+                  </button>
+
+                  {/* Minimize */}
+                  <button
+                    onClick={() => setIsInspectorMinimized(true)}
+                    className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800"
+                    title="Minimize Inspector Panel"
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Close */}
+                  <button
+                    onClick={() => setInspectedEntry(null)}
+                    className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800"
+                    title="Close Inspector"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Formatted JSON Payload */}
+              {inspectedEntry.details && Object.keys(inspectedEntry.details).length > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                    <Terminal className="w-3 h-3 text-cyan-400" /> Structured Details Payload
+                  </div>
+                  <pre className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-cyan-300 text-[11px] font-mono overflow-x-auto leading-relaxed shadow-inner max-h-48">
+                    {JSON.stringify(inspectedEntry.details, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Raw Unparsed Log Line */}
+              <div>
+                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider mb-1 flex items-center gap-1">
+                  <FileText className="w-3 h-3 text-slate-400" /> Raw Log String
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-[11px] font-mono break-all leading-relaxed">
+                  {inspectedEntry.raw}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 6. BOTTOM TELEMETRY STRIP */}
+      {/* ==================================================================== */}
+      <footer className="shrink-0 px-4 py-1.5 bg-slate-900/90 border-t border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 font-mono">
         <div className="flex items-center gap-3">
           <span>Stream: <strong className="text-cyan-400">{sourceType.toUpperCase()}</strong></span>
           <span className="text-slate-600">•</span>
           <span>Target: <strong className="text-slate-300">{sourceName || 'master_timeline.log'}</strong></span>
           <span className="text-slate-600">•</span>
-          <span>Showing: <strong className="text-emerald-400">{entries.length}</strong> / {totalMatched} matched lines</span>
+          <span>Loaded: <strong className="text-indigo-400">{entries.length}</strong> / {totalMatched}</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
+          {newLinesCount > 0 && (
             <span
-              className={`w-2 h-2 rounded-full ${
-                wsConnected ? 'bg-emerald-400' : 'bg-slate-600'
-              }`}
-            />
-            <span className="text-[11px] text-slate-400">
-              {wsConnected ? 'WebSocket Live Tail Streaming' : 'Polling / Query Mode'}
-            </span>
-          </div>
-          {lastPulse && (
-            <span className="text-[11px] text-slate-500">
-              Pulse: {lastPulse.toLocaleTimeString()}
+              onClick={() => setNewLinesCount(0)}
+              className="cursor-pointer text-emerald-400 font-bold hover:underline"
+              title="Click to reset counter"
+            >
+              +{newLinesCount} new entries
             </span>
           )}
+          <span>{lastPulse ? `Last pulse: ${lastPulse.toLocaleTimeString()}` : 'Idle'}</span>
         </div>
       </footer>
 
       {/* ==================================================================== */}
-      {/* 7. PROJECT BLUEPRINT LEDGER MODAL / DRAWER */}
+      {/* 7. BLUEPRINT LEDGER MODAL */}
       {/* ==================================================================== */}
       {isLedgerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-4xl max-h-[85vh] flex flex-col bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden font-sans">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-950 border border-emerald-700/80 flex items-center justify-center text-emerald-400">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    Project Blueprint Ledger
-                    <span className="px-2 py-0.5 rounded text-xs font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">
-                      {sourceName}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-400 font-mono">
-                    Created: {ledgerData?.created_at || 'N/A'} • Modified: {ledgerData?.last_modified || 'N/A'}
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FolderGit2 className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-white text-sm">
+                  Blueprint Ledger: {selectedProjectObj?.name}
+                </h3>
               </div>
-
               <button
                 onClick={() => setIsLedgerOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs font-sans">
+            <div className="p-5 overflow-y-auto space-y-4 font-mono text-xs">
               {ledgerLoading ? (
-                <div className="flex flex-col items-center justify-center h-48 space-y-2 text-slate-400">
-                  <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin" />
-                  <p>Loading project blueprint ledger...</p>
-                </div>
-              ) : !ledgerData ? (
-                <div className="text-center py-12 text-slate-500 space-y-2">
-                  <BookOpen className="w-10 h-10 mx-auto text-slate-600" />
-                  <p className="text-sm font-medium text-slate-400">No blueprint ledger recorded for this project.</p>
-                </div>
-              ) : (
+                <div className="py-10 text-center text-slate-400">Loading ledger...</div>
+              ) : ledgerData ? (
                 <>
-                  {/* Architecture Blueprint Mapping */}
-                  <div>
-                    <h4 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
-                      <FolderGit2 className="w-4 h-4 text-emerald-400" /> Current Architectural Blueprint & File Targets
-                    </h4>
+                  {ledgerData.architecture_blueprint && (
+                    <div>
+                      <h4 className="font-sans font-semibold text-slate-200 mb-2">Architecture Blueprint Map</h4>
+                      <pre className="p-3 rounded bg-slate-950 border border-slate-800 text-cyan-300 overflow-x-auto text-[11px]">
+                        {JSON.stringify(ledgerData.architecture_blueprint, null, 2)}
+                      </pre>
+                    </div>
+                  )}
 
-                    {Object.keys(ledgerData.architecture_blueprint || {}).length === 0 ? (
-                      <p className="text-slate-500 italic">No files registered in architectural blueprint.</p>
-                    ) : (
-                      <div className="rounded-xl border border-slate-800 overflow-hidden divide-y divide-slate-800/80 bg-slate-950/60 font-mono text-[11px]">
-                        {Object.entries(ledgerData.architecture_blueprint || {}).map(([filepath, meta]) => (
-                          <div key={filepath} className="p-3 flex flex-col md:flex-row md:items-center justify-between gap-2 hover:bg-slate-900/60">
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <div className="text-emerald-300 font-bold truncate">{filepath}</div>
-                              <div className="text-slate-400 font-sans text-xs">{meta.associated_task}</div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  meta.last_action.includes('SUCCESS')
-                                    ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                                    : meta.last_action.includes('FAILED')
-                                    ? 'bg-rose-950 text-rose-300 border-rose-800'
-                                    : 'bg-blue-950 text-blue-300 border-blue-800'
-                                }`}
-                              >
-                                {meta.last_action}
-                              </span>
-                              <span className="text-slate-500 text-[10px]">{meta.timestamp}</span>
-                            </div>
+                  {ledgerData.file_history && (
+                    <div>
+                      <h4 className="font-sans font-semibold text-slate-200 mb-2">File Modification History</h4>
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
+                        {ledgerData.file_history.map((fh, idx) => (
+                          <div key={idx} className="p-2 rounded bg-slate-950 border border-slate-800/80 flex items-center justify-between text-[11px]">
+                            <span className="text-emerald-400">{fh.file}</span>
+                            <span className="text-slate-400">{fh.action}</span>
+                            <span className="text-slate-500 text-[10px]">{fh.timestamp}</span>
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
-
-                  {/* File History Stream */}
-                  <div>
-                    <h4 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-cyan-400" /> Sequential File History Trace
-                    </h4>
-
-                    {(!ledgerData.file_history || ledgerData.file_history.length === 0) ? (
-                      <p className="text-slate-500 italic">No historical modifications recorded.</p>
-                    ) : (
-                      <div className="rounded-xl border border-slate-800 overflow-hidden bg-slate-950/60 font-mono text-[11px]">
-                        <table className="w-full text-left">
-                          <thead className="bg-slate-900 border-b border-slate-800 text-[10px] text-slate-400 uppercase">
-                            <tr>
-                              <th className="p-2.5">Time</th>
-                              <th className="p-2.5">File</th>
-                              <th className="p-2.5">Action</th>
-                              <th className="p-2.5">Associated Task</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-800/60">
-                            {ledgerData.file_history.map((hist, idx) => (
-                              <tr key={idx} className="hover:bg-slate-900/60">
-                                <td className="p-2.5 text-slate-500 whitespace-nowrap">{hist.timestamp}</td>
-                                <td className="p-2.5 text-cyan-300 font-semibold truncate max-w-[200px]">{hist.file}</td>
-                                <td className="p-2.5">
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                                    {hist.action}
-                                  </span>
-                                </td>
-                                <td className="p-2.5 text-slate-400 font-sans text-xs truncate max-w-[300px]">
-                                  {hist.task}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </>
+              ) : (
+                <div className="py-10 text-center text-slate-400">No blueprint ledger recorded for this workspace yet.</div>
               )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-3 border-t border-slate-800 bg-slate-900/60 flex items-center justify-end">
-              <button
-                onClick={() => setIsLedgerOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
