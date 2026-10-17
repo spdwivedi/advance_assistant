@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Key,
   Shield,
@@ -21,10 +22,15 @@ import {
   X,
   ExternalLink,
   ChevronDown,
-  Info
+  ChevronUp,
+  Info,
+  Eye,
+  EyeOff,
+  Terminal,
+  Filter
 } from 'lucide-react';
 
-interface KeyItem {
+export interface KeyItem {
   id: string;
   key: string;
   provider?: string;
@@ -35,9 +41,10 @@ interface KeyItem {
   last_used: string | null;
   error_count: number;
   cooldown_remaining_sec: number;
+  requests_today?: number;
 }
 
-interface PolicyStatus {
+export interface PolicyStatus {
   routing_policy: 'GLOBAL_HYBRID' | 'FREE_POOL' | 'PAID_POOL' | 'SINGLE_PINNED';
   pinned_key_id: string | null;
   total_keys: number;
@@ -55,7 +62,7 @@ interface PolicyStatus {
   paid_tier_locked?: boolean;
 }
 
-interface TestResult {
+export interface TestResult {
   valid: boolean;
   message?: string;
   response_snippet?: string;
@@ -63,6 +70,8 @@ interface TestResult {
 }
 
 export const ApiKeyManager: React.FC = () => {
+  const navigate = useNavigate();
+
   const [keys, setKeys] = useState<KeyItem[]>([]);
   const [policyData, setPolicyData] = useState<PolicyStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -73,8 +82,10 @@ export const ApiKeyManager: React.FC = () => {
   const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Filter state
+  // Top Controls Filter States
   const [providerFilter, setProviderFilter] = useState<'ALL' | 'GOOGLE' | 'GROQ'>('ALL');
+  const [tierFilter, setTierFilter] = useState<'ALL' | 'FREE' | 'PAID'>('ALL');
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
   // Add Key Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -131,7 +142,9 @@ export const ApiKeyManager: React.FC = () => {
         setPolicyData(pData);
       }
     } catch (err) {
-      showToast('Failed to connect to backend key bridge API.', 'error');
+      if (!isSilent) {
+        showToast('Failed to connect to backend key bridge API.', 'error');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -152,13 +165,12 @@ export const ApiKeyManager: React.FC = () => {
     pinnedId?: string | null
   ) => {
     try {
-      const payload: { policy: string; pinned_key_id?: string | null } = {
-        policy: newPolicy,
+      const payload: { routing_policy: string; pinned_key_id?: string | null } = {
+        routing_policy: newPolicy,
         pinned_key_id: pinnedId !== undefined ? pinnedId : policyData?.pinned_key_id
       };
 
       if (newPolicy === 'SINGLE_PINNED' && !payload.pinned_key_id) {
-        // Default to first active selected key if none chosen
         const firstKey = keys.find((k) => k.is_selected) || keys[0];
         if (firstKey) payload.pinned_key_id = firstKey.id;
       }
@@ -173,7 +185,7 @@ export const ApiKeyManager: React.FC = () => {
         showToast(`Routing policy updated to ${newPolicy}.`, 'success');
         fetchKeyData(true);
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         showToast(`Policy change failed: ${err.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
@@ -218,6 +230,7 @@ export const ApiKeyManager: React.FC = () => {
           })
         )
       );
+
       showToast(
         `${selectAll ? 'Selected' : 'Deselected'} all ${tier} tier keys.`,
         'success'
@@ -287,6 +300,17 @@ export const ApiKeyManager: React.FC = () => {
     }
   };
 
+  // Auto-detect provider on paste in modal
+  const handleKeyStringChange = (val: string) => {
+    setNewKeyString(val);
+    const trimmed = val.trim();
+    if (trimmed.startsWith('gsk_')) {
+      setNewKeyProvider('GROQ');
+    } else if (trimmed.startsWith('AIza')) {
+      setNewKeyProvider('GOOGLE');
+    }
+  };
+
   // Test In Modal
   const handleModalTestKey = async () => {
     if (!newKeyString.trim()) {
@@ -339,7 +363,7 @@ export const ApiKeyManager: React.FC = () => {
         setModalTestResult(null);
         fetchKeyData(true);
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         showToast(`Registration failed: ${err.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
@@ -349,578 +373,572 @@ export const ApiKeyManager: React.FC = () => {
     }
   };
 
-  // Key filter by provider
-  const googleKeysCount = keys.filter((k) => (k.provider || 'GOOGLE').toUpperCase() === 'GOOGLE').length;
-  const groqKeysCount = keys.filter((k) => (k.provider || '').toUpperCase() === 'GROQ').length;
+  // Toggle card expansion
+  const toggleKeyExpanded = (id: string) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-  const filteredKeys = keys.filter((k) => {
-    if (providerFilter === 'GOOGLE') return (k.provider || 'GOOGLE').toUpperCase() === 'GOOGLE';
-    if (providerFilter === 'GROQ') return (k.provider || '').toUpperCase() === 'GROQ';
-    return true;
-  });
-
-  const freeKeys = filteredKeys.filter((k) => k.tier === 'FREE');
-  const paidKeys = filteredKeys.filter((k) => k.tier === 'PAID');
-  const allFreeSelected = freeKeys.length > 0 && freeKeys.every((k) => k.is_selected);
-  const allPaidSelected = paidKeys.length > 0 && paidKeys.every((k) => k.is_selected);
-
-  const activePolicy = policyData?.routing_policy || 'GLOBAL_HYBRID';
+  // Filtered Keys
+  const filteredKeys = useMemo(() => {
+    return keys.filter((k) => {
+      const p = k.provider || (k.key.startsWith('gsk_') ? 'GROQ' : 'GOOGLE');
+      if (providerFilter !== 'ALL' && p !== providerFilter) return false;
+      if (tierFilter !== 'ALL' && k.tier !== tierFilter) return false;
+      return true;
+    });
+  }, [keys, providerFilter, tierFilter]);
 
   return (
-    <div id="api-key-manager-page" className="p-6 max-w-7xl mx-auto space-y-6">
+    <div id="api-key-manager-page" className="space-y-6 pb-12">
       {/* Toast Notification */}
       {feedbackMsg && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border animate-in fade-in slide-in-from-top-3 ${
+          id="key-toast"
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-2xl text-xs font-mono transition-all animate-bounce ${
             feedbackMsg.type === 'success'
-              ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+              ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/50 shadow-glow-emerald'
               : feedbackMsg.type === 'error'
-              ? 'bg-rose-950/90 text-rose-200 border-rose-500/40'
-              : 'bg-blue-950/90 text-blue-200 border-blue-500/40'
+              ? 'bg-rose-950/90 text-rose-300 border-rose-500/50'
+              : 'bg-indigo-950/90 text-indigo-300 border-indigo-500/50'
           }`}
         >
-          {feedbackMsg.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
-          {feedbackMsg.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />}
-          {feedbackMsg.type === 'info' && <Info className="w-5 h-5 text-blue-400 shrink-0" />}
-          <span className="text-sm font-medium">{feedbackMsg.text}</span>
-          <button
-            onClick={() => setFeedbackMsg(null)}
-            className="text-slate-400 hover:text-white p-1 ml-2 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {feedbackMsg.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          ) : feedbackMsg.type === 'error' ? (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+          )}
+          <span>{feedbackMsg.text}</span>
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-center gap-4 relative z-10">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 shadow-glow-sm">
-            <Key className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                API Key Matrix & Smart Dispatcher
-              </h1>
-              <span className="px-2.5 py-0.5 text-xs font-semibold tracking-wider text-cyan-400 bg-cyan-950/70 border border-cyan-800/60 rounded-full">
-                v6.0 Engine
-              </span>
-            </div>
-            <p className="text-sm text-slate-400 mt-1 max-w-2xl">
-              Granular multi-key pooling, tier allocation (Free vs Paid), dynamic round-robin rotation, and automated 429 quota lockout isolation.
-            </p>
-          </div>
-        </div>
+      {/* ------------------------------------------------------------- */}
+      {/* 1. COMPACT TOP CONTROL BAR                                     */}
+      {/* ------------------------------------------------------------- */}
+      <div className="rounded-2xl bg-gradient-to-r from-indigo-950/40 via-slate-900/90 to-purple-950/40 border border-indigo-500/20 p-4 sm:p-5 backdrop-blur shadow-2xl">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          {/* Left: Title & Active Pool Summary */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-xs font-semibold text-indigo-300">
+              <Key className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Multi-Provider Key Matrix</span>
+            </span>
 
-        <div className="flex items-center gap-3 relative z-10">
-          <button
-            id="btn-refresh-keys"
-            onClick={() => fetchKeyData(false)}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700/60 text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-blue-400' : ''}`} />
-            Refresh
-          </button>
-          <button
-            id="btn-open-add-key-modal"
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-glow-sm transition-all hover:scale-105 active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            Add API Key
-          </button>
+            {/* Active Pool Summary Pill */}
+            <span
+              id="active-pool-summary-pill"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300"
+            >
+              <span>
+                🔑 <strong className="text-white">{policyData?.selected_keys || 0}</strong>/
+                {policyData?.total_keys || keys.length} Selected
+              </span>
+              <span className="text-slate-500">&bull;</span>
+              <span className="text-emerald-400 font-bold">
+                Free: {policyData?.selected_free_keys || 0}
+              </span>
+              <span className="text-slate-500">&bull;</span>
+              <span className="text-amber-400 font-bold">
+                Paid: {policyData?.selected_paid_keys || 0}
+              </span>
+            </span>
+          </div>
+
+          {/* Right: Quick-Controls (Dropdowns & Actions) */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Provider Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Provider:</span>
+              <select
+                id="keys-provider-filter-select"
+                aria-label="Filter Provider"
+                value={providerFilter}
+                onChange={(e) => setProviderFilter(e.target.value as any)}
+                className="bg-transparent text-indigo-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="ALL" className="bg-slate-900 text-slate-200">ALL Providers</option>
+                <option value="GOOGLE" className="bg-slate-900 text-slate-200">☁️ Google Gemini</option>
+                <option value="GROQ" className="bg-slate-900 text-slate-200">⚡ Groq Cloud LPU</option>
+              </select>
+            </div>
+
+            {/* Tier Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
+              <Layers className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Tier:</span>
+              <select
+                id="keys-tier-filter-select"
+                aria-label="Filter Tier"
+                value={tierFilter}
+                onChange={(e) => setTierFilter(e.target.value as any)}
+                className="bg-transparent text-indigo-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="ALL" className="bg-slate-900 text-slate-200">ALL Tiers</option>
+                <option value="FREE" className="bg-slate-900 text-slate-200">Free Pool</option>
+                <option value="PAID" className="bg-slate-900 text-slate-200">Paid Pool</option>
+              </select>
+            </div>
+
+            {/* Routing Policy Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
+              <Sliders className="w-3.5 h-3.5 text-purple-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Policy:</span>
+              <select
+                id="keys-routing-policy-select"
+                aria-label="Routing Policy"
+                value={policyData?.routing_policy || 'GLOBAL_HYBRID'}
+                onChange={(e) => handlePolicyChange(e.target.value as any)}
+                className="bg-transparent text-purple-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="GLOBAL_HYBRID" className="bg-slate-900 text-slate-200">GLOBAL_HYBRID</option>
+                <option value="FREE_POOL" className="bg-slate-900 text-slate-200">FREE_POOL Only</option>
+                <option value="PAID_POOL" className="bg-slate-900 text-slate-200">PAID_POOL Only</option>
+                <option value="SINGLE_PINNED" className="bg-slate-900 text-slate-200">SINGLE_PINNED</option>
+              </select>
+            </div>
+
+            {/* + Add API Key Button */}
+            <button
+              id="add-api-key-btn"
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-mono font-semibold transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Key</span>
+            </button>
+
+            {/* Global Execution Logs Shortcut */}
+            <button
+              id="keys-nav-logs-btn"
+              onClick={() => navigate('/logs')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono transition-colors shadow-sm"
+              title="Jump to full-screen execution logs"
+            >
+              <Terminal className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Global Logs</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Top Policy Selector Banner */}
-      <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-          <div className="flex items-center gap-2 text-slate-200 font-semibold text-sm">
-            <Sliders className="w-4 h-4 text-indigo-400" />
-            <span>Active Swarm Routing Policy</span>
-          </div>
-          <span className="text-xs text-slate-400 font-mono">
-            Directly governs all cloud token allocations in agent pipeline
-          </span>
-        </div>
-
-        {/* Radio Pill Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Policy: GLOBAL_HYBRID */}
-          <button
-            id="policy-pill-global-hybrid"
-            onClick={() => handlePolicyChange('GLOBAL_HYBRID')}
-            className={`flex flex-col text-left p-4 rounded-xl border transition-all relative ${
-              activePolicy === 'GLOBAL_HYBRID'
-                ? 'bg-gradient-to-br from-indigo-950/70 to-blue-950/50 border-indigo-500 shadow-glow-sm text-white'
-                : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full mb-2">
-              <span className="flex items-center gap-2 font-bold text-sm text-indigo-300">
-                <Globe className="w-4 h-4 text-indigo-400" />
-                GLOBAL_HYBRID
-              </span>
-              {activePolicy === 'GLOBAL_HYBRID' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-glow-sm animate-pulse" />
-              )}
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Model-Aware: Pro models prioritize Paid keys for architectural depth; Flash/Lite prioritize Free keys to conserve tokens.
-            </p>
-          </button>
-
-          {/* Policy: FREE_POOL */}
-          <button
-            id="policy-pill-free-pool"
-            onClick={() => handlePolicyChange('FREE_POOL')}
-            className={`flex flex-col text-left p-4 rounded-xl border transition-all relative ${
-              activePolicy === 'FREE_POOL'
-                ? 'bg-gradient-to-br from-emerald-950/70 to-slate-900 border-emerald-500 shadow-glow-sm text-white'
-                : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full mb-2">
-              <span className="flex items-center gap-2 font-bold text-sm text-emerald-300">
-                <Zap className="w-4 h-4 text-emerald-400" />
-                FREE_POOL
-              </span>
-              {activePolicy === 'FREE_POOL' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-glow-sm animate-pulse" />
-              )}
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Strict Cost Containment: Round-robins exclusively across selected Free keys. Zero paid token consumption.
-            </p>
-          </button>
-
-          {/* Policy: PAID_POOL */}
-          <button
-            id="policy-pill-paid-pool"
-            onClick={() => handlePolicyChange('PAID_POOL')}
-            className={`flex flex-col text-left p-4 rounded-xl border transition-all relative ${
-              activePolicy === 'PAID_POOL'
-                ? 'bg-gradient-to-br from-amber-950/70 to-slate-900 border-amber-500 shadow-glow-sm text-white'
-                : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full mb-2">
-              <span className="flex items-center gap-2 font-bold text-sm text-amber-300">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                PAID_POOL
-              </span>
-              {activePolicy === 'PAID_POOL' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-glow-sm animate-pulse" />
-              )}
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Maximum Throughput: Cycles only through selected Paid keys. Eliminates free-tier rate limitations.
-            </p>
-          </button>
-
-          {/* Policy: SINGLE_PINNED */}
-          <button
-            id="policy-pill-single-pinned"
-            onClick={() => handlePolicyChange('SINGLE_PINNED')}
-            className={`flex flex-col text-left p-4 rounded-xl border transition-all relative ${
-              activePolicy === 'SINGLE_PINNED'
-                ? 'bg-gradient-to-br from-purple-950/70 to-slate-900 border-purple-500 shadow-glow-sm text-white'
-                : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/80 text-slate-300'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full mb-2">
-              <span className="flex items-center gap-2 font-bold text-sm text-purple-300">
-                <Pin className="w-4 h-4 text-purple-400" />
-                SINGLE_PINNED
-              </span>
-              {activePolicy === 'SINGLE_PINNED' && (
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-glow-sm animate-pulse" />
-              )}
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Dedicated Key: Pins 100% of swarm cloud token requests to one chosen key. Direct attribution.
-            </p>
-          </button>
-        </div>
-
-        {/* Dedicated Pinned Selector (Visible when SINGLE_PINNED is active) */}
-        {activePolicy === 'SINGLE_PINNED' && (
-          <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+      {/* ------------------------------------------------------------- */}
+      {/* 2. COLLAPSIBLE POLICY & BATCH ACTIONS STRIP                   */}
+      {/* ------------------------------------------------------------- */}
+      <div className="space-y-2">
+        {/* Pinned Key Selector if SINGLE_PINNED */}
+        {policyData?.routing_policy === 'SINGLE_PINNED' && (
+          <div className="flex items-center justify-between p-3 rounded-xl bg-purple-950/40 border border-purple-500/30 font-mono text-xs">
             <div className="flex items-center gap-2">
-              <Pin className="w-4 h-4 text-purple-400 shrink-0" />
-              <span className="text-sm font-semibold text-purple-200">
-                Select Dedicated Pinned Key:
-              </span>
+              <Pin className="w-4 h-4 text-purple-400" />
+              <span className="text-purple-300 font-bold">Single Pinned Key Routing:</span>
+              <span className="text-slate-400">All agent dispatches will be pinned exclusively to:</span>
             </div>
+            <select
+              value={policyData.pinned_key_id || ''}
+              onChange={(e) => handlePolicyChange('SINGLE_PINNED', e.target.value)}
+              className="bg-slate-900 border border-purple-500/40 rounded-lg px-3 py-1 text-purple-200 font-bold text-xs focus:outline-none"
+            >
+              {keys.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label} ({k.provider || 'GOOGLE'} &bull; {k.tier}) - {k.key}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <select
-                id="pinned-key-dropdown"
-                value={policyData?.pinned_key_id || ''}
-                onChange={(e) => handlePolicyChange('SINGLE_PINNED', e.target.value)}
-                className="w-full sm:w-72 bg-slate-900 border border-purple-700/60 rounded-lg px-3 py-1.5 text-xs font-mono text-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                {keys.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    [{k.tier}] {k.label || 'Unnamed'} ({k.key}) {k.is_selected ? '✓' : '(unselected)'}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Paid Tier Spend Lock Banner */}
+        {policyData?.paid_tier_locked && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 font-mono text-xs shadow-glow-emerald">
+            <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>
+              <strong>Paid Tier Spend Lock is Active</strong> &mdash; Paid keys are shielded against API consumption; routing strictly to Free & Local pools.
+            </span>
+          </div>
+        )}
+
+        {/* Batch Actions Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-xs">
+          <div className="flex items-center gap-2 text-slate-400">
+            <span>Batch Pool Inclusions:</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleBatchToggle('FREE', true)}
+              className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-800 hover:border-emerald-500/40 transition-colors text-[11px]"
+            >
+              Select All Free
+            </button>
+            <button
+              onClick={() => handleBatchToggle('FREE', false)}
+              className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 hover:text-white transition-colors text-[11px]"
+            >
+              Deselect All Free
+            </button>
+            <button
+              onClick={() => handleBatchToggle('PAID', true)}
+              className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-800 hover:border-amber-500/40 transition-colors text-[11px]"
+            >
+              Select All Paid
+            </button>
+            <button
+              onClick={() => handleBatchToggle('PAID', false)}
+              className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 hover:text-white transition-colors text-[11px]"
+            >
+              Deselect All Paid
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 3. MINIMALIST KEY CARDS WITH CLICK-TO-EXPAND DETAILS          */}
+      {/* ------------------------------------------------------------- */}
+      <div className="space-y-3 font-mono text-xs">
+        <div className="flex items-center justify-between text-slate-400 px-1">
+          <span>
+            Registered Keys: <strong className="text-white">{filteredKeys.length}</strong>
+          </span>
+          <span className="text-[11px]">Click "Actions & Stats" to test, pin, or delete</span>
+        </div>
+
+        {filteredKeys.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 rounded-xl border border-slate-800 bg-slate-950/60 font-mono text-xs">
+            No API keys match current provider/tier filters. Click "+ Add Key" to register credentials.
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {filteredKeys.map((key) => {
+              const isExpanded = expandedKeys.has(key.id);
+              const prov = key.provider || (key.key.startsWith('gsk_') ? 'GROQ' : 'GOOGLE');
+              const isPinned = policyData?.pinned_key_id === key.id;
+
+              return (
+                <div
+                  key={key.id}
+                  id={`key-card-${key.id}`}
+                  className={`glass-panel rounded-xl border transition-all p-3.5 space-y-3 ${
+                    isPinned
+                      ? 'border-purple-500/60 bg-purple-950/20 shadow-glow-sm'
+                      : key.is_selected
+                      ? 'border-slate-800 hover:border-slate-700 bg-slate-950/80'
+                      : 'border-slate-800/60 opacity-60 bg-slate-950/40'
+                  }`}
+                >
+                  {/* Default Collapsed Row (Compact Elements 1-5) */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {/* Element 1 & 2: Checkbox, Label & Masked Key */}
+                    <div className="flex items-center gap-3 truncate">
+                      <button
+                        onClick={() => handleToggleSelection(key.id, key.is_selected)}
+                        className="text-slate-400 hover:text-white transition-colors shrink-0"
+                        title={key.is_selected ? 'Exclude from active pool' : 'Include in active pool'}
+                      >
+                        {key.is_selected ? (
+                          <CheckSquare className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
+                      </button>
+
+                      <div className="truncate">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white text-xs truncate">
+                            {key.label || 'Unnamed Key'}
+                          </span>
+                          {isPinned && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-950 text-purple-300 border border-purple-800 flex items-center gap-1">
+                              <Pin className="w-2.5 h-2.5" /> PINNED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-[11px] pt-0.5">
+                          <span>{key.key}</span>
+                          <button
+                            onClick={() => handleCopy(key.id, key.key)}
+                            className="text-slate-500 hover:text-slate-300 transition-colors"
+                            title="Copy masked key"
+                          >
+                            {copiedKeyId === key.id ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Element 3, 4 & 5: Badges, Status & Expand Button */}
+                    <div className="flex items-center gap-2.5 justify-between sm:justify-end shrink-0">
+                      {/* Provider Badge */}
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                          prov === 'GROQ'
+                            ? 'bg-orange-950/80 text-orange-300 border-orange-800'
+                            : 'bg-blue-950/80 text-blue-300 border-blue-800'
+                        }`}
+                      >
+                        {prov === 'GROQ' ? '⚡ GROQ' : '☁️ GOOGLE'}
+                      </span>
+
+                      {/* Tier Badge */}
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                          key.tier === 'PAID'
+                            ? 'bg-amber-950/80 text-amber-300 border-amber-800'
+                            : 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
+                        }`}
+                      >
+                        {key.tier}
+                      </span>
+
+                      {/* Status Pill */}
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                          key.status === 'ACTIVE'
+                            ? 'bg-emerald-950/80 text-emerald-400 border-emerald-700'
+                            : key.status === 'EXHAUSTED'
+                            ? 'bg-rose-950/80 text-rose-400 border-rose-700'
+                            : 'bg-amber-950/80 text-amber-400 border-amber-700'
+                        }`}
+                      >
+                        {key.cooldown_remaining_sec > 0
+                          ? `⏳ COOLDOWN ${key.cooldown_remaining_sec}s`
+                          : `🟢 ${key.status}`}
+                      </span>
+
+                      {/* Expand Button */}
+                      <button
+                        onClick={() => toggleKeyExpanded(key.id)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors"
+                      >
+                        <span>{isExpanded ? 'Less' : 'Actions & Stats'}</span>
+                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Click-to-Expand Key Drawer */}
+                  {isExpanded && (
+                    <div className="pt-3 border-t border-slate-800/80 space-y-3 font-mono text-xs">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+                        <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                          <span className="text-slate-500 block">Key ID</span>
+                          <span className="text-slate-300 font-bold truncate block">{key.id}</span>
+                        </div>
+                        <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                          <span className="text-slate-500 block">Requests Today</span>
+                          <span className="text-slate-200 font-bold block">{key.requests_today || 0}</span>
+                        </div>
+                        <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                          <span className="text-slate-500 block">Error Count</span>
+                          <span className="text-slate-200 font-bold block">{key.error_count || 0}</span>
+                        </div>
+                        <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                          <span className="text-slate-500 block">Last Active</span>
+                          <span className="text-slate-400 truncate block">
+                            {key.last_used ? new Date(key.last_used).toLocaleTimeString() : 'Never'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Test Result Feedback if triggered */}
+                      {testResults[key.id] && (
+                        <div
+                          className={`p-2.5 rounded-lg border text-[11px] ${
+                            testResults[key.id].valid
+                              ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40'
+                              : 'bg-rose-950/40 text-rose-300 border-rose-500/40'
+                          }`}
+                        >
+                          <div className="font-bold flex items-center gap-1.5">
+                            {testResults[key.id].valid ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : (
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                            )}
+                            <span>{testResults[key.id].valid ? 'Key Validated' : 'Validation Failed'}</span>
+                          </div>
+                          <p className="pt-0.5 text-[10px] text-slate-300">
+                            {testResults[key.id].message || testResults[key.id].error}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Actions Buttons */}
+                      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                        <button
+                          onClick={() => handleTestKey(key.id, prov)}
+                          disabled={testingKeyId === key.id}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 text-xs transition-colors disabled:opacity-50"
+                        >
+                          <Zap className="w-3 h-3 text-indigo-400" />
+                          <span>{testingKeyId === key.id ? 'Testing...' : 'Test Key'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handlePinKey(key.id)}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-xs transition-colors"
+                        >
+                          <Pin className="w-3 h-3 text-purple-400" />
+                          <span>Pin Key</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteKey(key.id)}
+                          disabled={deletingKeyId === key.id}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 border border-rose-800/60 text-xs transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3 h-3 text-rose-400" />
+                          <span>Delete Key</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Metrics Bar & Batch Operations */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow flex flex-col justify-between">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Registered</div>
-          <div className="text-2xl font-mono font-bold text-white mt-1">
-            {policyData?.total_keys ?? keys.length}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1 font-mono">In secure memory store</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow flex flex-col justify-between">
-          <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Selected in Swarm</div>
-          <div className="text-2xl font-mono font-bold text-blue-400 mt-1">
-            {policyData?.selected_keys ?? keys.filter((k) => k.is_selected).length}
-          </div>
-          <div className="text-[11px] text-blue-400/70 mt-1 font-mono">Eligible for dispatch</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow flex flex-col justify-between">
-          <div className="text-emerald-400/90 text-xs font-semibold uppercase tracking-wider">Active Free Keys</div>
-          <div className="text-2xl font-mono font-bold text-emerald-400 mt-1">
-            {policyData?.selected_free_keys ?? keys.filter((k) => k.tier === 'FREE' && k.is_selected).length}
-          </div>
-          <div className="text-[11px] text-emerald-500/70 mt-1 font-mono">Cost: $0.00 / token</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow flex flex-col justify-between">
-          <div className="text-amber-400/90 text-xs font-semibold uppercase tracking-wider">Active Paid Keys</div>
-          <div className="text-2xl font-mono font-bold text-amber-400 mt-1">
-            {policyData?.selected_paid_keys ?? keys.filter((k) => k.tier === 'PAID' && k.is_selected).length}
-          </div>
-          <div className="text-[11px] text-amber-500/70 mt-1 font-mono">Priority High-TPM</div>
-        </div>
-      </div>
-
-      {/* Provider Filter Bar & Batch Toolbar */}
-      <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <Sliders className="w-4 h-4 text-cyan-400" />
-            <span>Filter by Provider:</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setProviderFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                providerFilter === 'ALL'
-                  ? 'bg-blue-600 text-white shadow-glow-sm'
-                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
-              }`}
-            >
-              <span>All Providers</span>
-              <span className="px-1.5 py-0.2 rounded bg-black/40 font-mono text-[10px] text-slate-300">
-                {keys.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setProviderFilter('GOOGLE')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                providerFilter === 'GOOGLE'
-                  ? 'bg-cyan-700 text-white shadow-glow-sm border border-cyan-500/50'
-                  : 'bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Google Gemini</span>
-              <span className="px-1.5 py-0.2 rounded bg-cyan-950/80 font-mono text-[10px] text-cyan-300">
-                {googleKeysCount}
-              </span>
-            </button>
-            <button
-              onClick={() => setProviderFilter('GROQ')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                providerFilter === 'GROQ'
-                  ? 'bg-purple-700 text-white shadow-glow-sm border border-purple-500/50'
-                  : 'bg-slate-950 text-slate-400 hover:text-purple-300 border border-slate-800'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 text-purple-400" />
-              <span>Groq Cloud LPU</span>
-              <span className="px-1.5 py-0.2 rounded bg-purple-950/80 font-mono text-[10px] text-purple-300">
-                {groqKeysCount}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          <Layers className="w-4 h-4 text-slate-400" />
-          <span>Batch Selection Controls:</span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <button
-            onClick={() => handleBatchToggle('FREE', !allFreeSelected)}
-            disabled={freeKeys.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 transition-colors disabled:opacity-40"
-          >
-            {allFreeSelected ? <Square className="w-3.5 h-3.5" /> : <CheckSquare className="w-3.5 h-3.5" />}
-            {allFreeSelected ? 'Deselect All Free' : 'Select All Free'} ({freeKeys.length})
-          </button>
-
-          <button
-            onClick={() => handleBatchToggle('PAID', !allPaidSelected)}
-            disabled={paidKeys.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/50 transition-colors disabled:opacity-40"
-          >
-            {allPaidSelected ? <Square className="w-3.5 h-3.5" /> : <CheckSquare className="w-3.5 h-3.5" />}
-            {allPaidSelected ? 'Deselect All Paid' : 'Select All Paid'} ({paidKeys.length})
-          </button>
-        </div>
-      </div>
-      </div>
-
-      {/* Dual-Column Key Management Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Column 1: FREE TIER KEYS */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-950/20 border border-emerald-900/40">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-sm font-bold tracking-tight text-emerald-300 uppercase">
-                Free Tier Keys Pool
-              </h2>
+      {/* ------------------------------------------------------------- */}
+      {/* 4. MODAL: ADD API KEY CREDENTIALS                             */}
+      {/* ------------------------------------------------------------- */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 font-mono text-xs">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-indigo-400" />
+                <span>Register API Key</span>
+              </h3>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
-              {freeKeys.filter((k) => k.is_selected).length} / {freeKeys.length} Selected
-            </span>
-          </div>
 
-          {freeKeys.length === 0 ? (
-            <div className="p-8 text-center rounded-xl bg-slate-900/40 border border-dashed border-slate-800 text-slate-500 text-sm">
-              <Zap className="w-8 h-8 mx-auto mb-2 text-slate-600" />
-              No Free tier keys registered yet. Click &quot;Add API Key&quot; to seed your free quota.
-            </div>
-          ) : (
             <div className="space-y-3">
-              {freeKeys.map((item) => renderKeyCard(item))}
-            </div>
-          )}
-        </div>
-
-        {/* Column 2: PAID TIER KEYS */}
-        <div className="space-y-4">
-          {policyData?.paid_tier_locked && (
-            <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/60 border border-emerald-500/50 text-emerald-200 flex items-center justify-between text-xs shadow-glow-sm animate-pulse">
-              <div className="flex items-center gap-2.5">
-                <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
-                <div>
-                  <span className="font-bold text-white">Paid Tier Financial Shield Active:</span> Paid keys are currently isolated to prevent billing spend. All swarm operations route through Free and Local pools.
+              <div>
+                <label className="block text-slate-400 text-[11px] mb-1">API Key Secret String</label>
+                <div className="relative">
+                  <input
+                    type={showKeySecret ? 'text' : 'password'}
+                    value={newKeyString}
+                    onChange={(e) => handleKeyStringChange(e.target.value)}
+                    placeholder="AIzaSy... or gsk_..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 pr-9 text-slate-200 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowKeySecret(!showKeySecret)}
+                    className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300"
+                  >
+                    {showKeySecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-md bg-emerald-900/90 border border-emerald-500 font-mono text-[10px] font-bold text-emerald-100 whitespace-nowrap shadow-sm">
-                ZERO PAID SPEND
-              </span>
-            </div>
-          )}
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-amber-950/20 border border-amber-900/40">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <h2 className="text-sm font-bold tracking-tight text-amber-300 uppercase">
-                Paid / Pro Tier Keys Pool
-              </h2>
-            </div>
-            <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold bg-amber-950/80 text-amber-400 border border-amber-800/60">
-              {paidKeys.filter((k) => k.is_selected).length} / {paidKeys.length} Selected
-            </span>
-          </div>
-
-          {paidKeys.length === 0 ? (
-            <div className="p-8 text-center rounded-xl bg-slate-900/40 border border-dashed border-slate-800 text-slate-500 text-sm">
-              <Sparkles className="w-8 h-8 mx-auto mb-2 text-slate-600" />
-              No Paid tier keys registered yet. Add paid keys for high-throughput Pro reasoning.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {paidKeys.map((item) => renderKeyCard(item))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Add API Key Modal Dialog */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-6 space-y-5 relative">
-            <button
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
-                <Key className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Register New Gemini API Key</h3>
-                <p className="text-xs text-slate-400">
-                  Securely stored locally in <code className="text-cyan-400 font-mono">.agent_memory/api_keys.json</code>
-                </p>
-              </div>
-            </div>
-
-            {/* Secret Key Input */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Gemini API Key Secret <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showKeySecret ? 'text' : 'password'}
-                  value={newKeyString}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setNewKeyString(val);
-                    if (val.trim().startsWith('gsk_')) {
-                      setNewKeyProvider('GROQ');
-                    }
-                  }}
-                  placeholder="AIzaSy..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKeySecret(!showKeySecret)}
-                  className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
-                >
-                  {showKeySecret ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            {/* Tier Selector */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Quota Allocation Tier
-              </label>
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setNewKeyTier('FREE')}
-                  className={`p-3 rounded-xl border text-left flex flex-col transition-all ${
-                    newKeyTier === 'FREE'
-                      ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                    FREE TIER
-                  </div>
-                  <span className="text-[11px] text-slate-400 mt-0.5">
-                    15 RPM / Free quota
-                  </span>
-                </button>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Provider</label>
+                  <select
+                    value={newKeyProvider}
+                    onChange={(e) => setNewKeyProvider(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="GOOGLE">☁️ Google Gemini</option>
+                    <option value="GROQ">⚡ Groq Cloud LPU</option>
+                  </select>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setNewKeyTier('PAID')}
-                  className={`p-3 rounded-xl border text-left flex flex-col transition-all ${
-                    newKeyTier === 'PAID'
-                      ? 'bg-amber-950/60 border-amber-500 text-amber-200'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    PAID / PAY-AS-YOU-GO
-                  </div>
-                  <span className="text-[11px] text-slate-400 mt-0.5">
-                    High RPM / Pro tokens
-                  </span>
-                </button>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Quota Tier</label>
+                  <select
+                    value={newKeyTier}
+                    onChange={(e) => setNewKeyTier(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="FREE">Free Tier Pool</option>
+                    <option value="PAID">Paid Tier Pool</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {/* Label Input */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Key Label / Description
+              <div>
+                <label className="block text-slate-400 text-[11px] mb-1">Key Label (Optional)</label>
+                <input
+                  type="text"
+                  value={newKeyLabel}
+                  onChange={(e) => setNewKeyLabel(e.target.value)}
+                  placeholder="e.g. Primary Developer Key"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={newKeyIsSelected}
+                  onChange={(e) => setNewKeyIsSelected(e.target.checked)}
+                  className="rounded bg-slate-950 border-slate-800 text-indigo-500 focus:ring-0"
+                />
+                <span className="text-slate-300 text-[11px]">Include immediately in active rotation pool</span>
               </label>
-              <input
-                type="text"
-                value={newKeyLabel}
-                onChange={(e) => setNewKeyLabel(e.target.value)}
-                placeholder={newKeyTier === 'FREE' ? 'Primary Free Key #1' : 'Production Paid Tier-1'}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+
+              {/* Modal Test Result */}
+              {modalTestResult && (
+                <div
+                  className={`p-2.5 rounded-lg border text-[11px] ${
+                    modalTestResult.valid
+                      ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40'
+                      : 'bg-rose-950/40 text-rose-300 border-rose-500/40'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    {modalTestResult.valid ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                    )}
+                    <span>{modalTestResult.valid ? 'Authentication Succeeded' : 'Authentication Failed'}</span>
+                  </div>
+                  <p className="pt-0.5 text-[10px] text-slate-300">
+                    {modalTestResult.message || modalTestResult.error}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Pre-check Toggle */}
-            <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/40 border border-slate-800 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={newKeyIsSelected}
-                onChange={(e) => setNewKeyIsSelected(e.target.checked)}
-                className="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500"
-              />
-              <span className="text-xs text-slate-300">
-                Include in active routing pool immediately upon registration
-              </span>
-            </label>
-
-            {/* Modal Test Result Output */}
-            {modalTestResult && (
-              <div
-                className={`p-3 rounded-xl border text-xs font-mono ${
-                  modalTestResult.valid
-                    ? 'bg-emerald-950/50 border-emerald-700 text-emerald-300'
-                    : 'bg-rose-950/50 border-rose-700 text-rose-300'
-                }`}
-              >
-                {modalTestResult.valid ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>{modalTestResult.message || 'Key verified successfully!'}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-400" />
-                    <span>{modalTestResult.error || 'Key authentication failed.'}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={handleModalTestKey}
                 disabled={modalTesting || !newKeyString.trim()}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-colors disabled:opacity-40 flex items-center gap-2"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 transition-colors disabled:opacity-40"
               >
-                {modalTesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
-                Test Before Saving
+                {modalTesting ? 'Testing...' : 'Test Connection'}
               </button>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-medium transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -928,10 +946,9 @@ export const ApiKeyManager: React.FC = () => {
                   type="button"
                   onClick={handleSaveNewKey}
                   disabled={modalSaving || !newKeyString.trim()}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-glow-sm transition-all disabled:opacity-40 flex items-center gap-2"
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all disabled:opacity-50"
                 >
-                  {modalSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                  Save & Register
+                  {modalSaving ? 'Saving...' : 'Register Key'}
                 </button>
               </div>
             </div>
@@ -940,194 +957,6 @@ export const ApiKeyManager: React.FC = () => {
       )}
     </div>
   );
-
-  // Helper Card Renderer
-  function renderKeyCard(item: KeyItem) {
-    const isPinned = policyData?.routing_policy === 'SINGLE_PINNED' && policyData?.pinned_key_id === item.id;
-    const testResult = testResults[item.id];
-    const isTesting = testingKeyId === item.id;
-    const isDeleting = deletingKeyId === item.id;
-
-    return (
-      <div
-        key={item.id}
-        id={`key-card-${item.id}`}
-        className={`p-4 rounded-xl border transition-all ${
-          item.is_selected
-            ? 'bg-slate-900/90 border-slate-700/80 shadow-md'
-            : 'bg-slate-900/40 border-slate-800/60 opacity-75'
-        } ${isPinned ? 'ring-2 ring-purple-500' : ''}`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          {/* Checkbox & Details */}
-          <div className="flex items-start gap-3 min-w-0">
-            <input
-              type="checkbox"
-              checked={item.is_selected}
-              onChange={() => handleToggleSelection(item.id, item.is_selected)}
-              className="w-4 h-4 mt-1 rounded text-blue-600 bg-slate-950 border-slate-700 focus:ring-blue-500 shrink-0 cursor-pointer"
-              title="Toggle inclusion in swarm routing pool"
-            />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-sm text-white truncate max-w-[200px]" title={item.label}>
-                  {item.label || 'Unnamed Key'}
-                </span>
-
-                {/* Provider Badge */}
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider flex items-center gap-1 ${
-                    (item.provider || 'GOOGLE').toUpperCase() === 'GROQ'
-                      ? 'bg-purple-950 text-purple-300 border border-purple-800/80'
-                      : 'bg-cyan-950 text-cyan-300 border border-cyan-800/80'
-                  }`}
-                >
-                  {(item.provider || 'GOOGLE').toUpperCase() === 'GROQ' ? (
-                    <>
-                      <Zap className="w-2.5 h-2.5 text-purple-400" /> GROQ
-                    </>
-                  ) : (
-                    <>
-                      <Globe className="w-2.5 h-2.5 text-cyan-400" /> GOOGLE
-                    </>
-                  )}
-                </span>
-
-                {/* Tier Badge */}
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider ${
-                    item.tier === 'FREE'
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
-                      : 'bg-amber-950 text-amber-400 border border-amber-800/80'
-                  }`}
-                >
-                  {item.tier}
-                </span>
-
-                {/* Pinned Badge */}
-                {isPinned && (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700 shadow-glow-sm">
-                    <Pin className="w-2.5 h-2.5" /> PINNED
-                  </span>
-                )}
-              </div>
-
-              {/* Masked Secret & Copy */}
-              <div className="flex items-center gap-2 mt-1.5 font-mono text-xs text-slate-400">
-                <span className="bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800 text-slate-300">
-                  {item.key}
-                </span>
-                <button
-                  onClick={() => handleCopy(item.id, item.key)}
-                  className="p-1 text-slate-400 hover:text-white transition-colors"
-                  title="Copy masked key reference"
-                >
-                  {copiedKeyId === item.id ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Status Badge */}
-          <div className="shrink-0 text-right">
-            {item.cooldown_remaining_sec > 0 || item.status === 'EXHAUSTED' ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-950/80 text-rose-300 border border-rose-800">
-                <Clock className="w-3 h-3 text-rose-400 animate-pulse" />
-                Cooldown ({item.cooldown_remaining_sec}s)
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                Active
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Telemetry snippet & errors */}
-        <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono mt-3 pt-2.5 border-t border-slate-800/80">
-          <div>
-            Last used:{' '}
-            <span className="text-slate-300">
-              {item.last_used ? item.last_used.split(' ')[1] : 'Never'}
-            </span>
-          </div>
-          <div>
-            Error count:{' '}
-            <span className={item.error_count > 0 ? 'text-amber-400' : 'text-slate-400'}>
-              {item.error_count}
-            </span>
-          </div>
-        </div>
-
-        {/* Inline Test Result */}
-        {testResult && (
-          <div
-            className={`mt-2 p-2 rounded-lg text-xs font-mono flex items-center justify-between ${
-              testResult.valid
-                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-800/40'
-                : 'bg-rose-950/40 text-rose-300 border border-rose-800/40'
-            }`}
-          >
-            <span>{testResult.valid ? '✓ Authenticated with Google GenAI' : `✗ ${testResult.error || 'Failed'}`}</span>
-            <button
-              onClick={() => {
-                setTestResults((prev) => {
-                  const updated = { ...prev };
-                  delete updated[item.id];
-                  return updated;
-                });
-              }}
-              className="text-slate-400 hover:text-white p-0.5"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-        )}
-
-        {/* Action Controls */}
-        <div className="flex items-center justify-between gap-2 mt-3 pt-2">
-          <button
-            onClick={() => handlePinKey(item.id)}
-            disabled={isPinned}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-colors ${
-              isPinned
-                ? 'bg-purple-950/80 text-purple-300 border-purple-700 cursor-default'
-                : 'bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 border-slate-700/60'
-            }`}
-            title="Pin all requests to this key"
-          >
-            <Pin className="w-3 h-3" />
-            {isPinned ? 'Pinned' : 'Pin Key'}
-          </button>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleTestKey(item.id)}
-              disabled={isTesting}
-              className="px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/60 flex items-center gap-1.5 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3 h-3 ${isTesting ? 'animate-spin text-blue-400' : ''}`} />
-              Test Key
-            </button>
-
-            <button
-              onClick={() => handleDeleteKey(item.id)}
-              disabled={isDeleting}
-              className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
-              title="Delete key from pool"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 };
 
 export default ApiKeyManager;

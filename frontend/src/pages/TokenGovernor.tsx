@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Shield,
   ShieldAlert,
@@ -21,10 +22,25 @@ import {
   Check,
   X,
   Layers,
-  ArrowRight
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  DollarSign,
+  TrendingUp,
+  Coins,
+  FileText,
+  Terminal,
+  ExternalLink,
+  Filter,
+  Search,
+  Building2
 } from 'lucide-react';
 
-interface WorkingLimits {
+// ==========================================
+// INTERFACES
+// ==========================================
+
+export interface WorkingLimits {
   rpm: number;
   tpm: number;
   rpd: number;
@@ -33,7 +49,7 @@ interface WorkingLimits {
   thinking_budget: number;
 }
 
-interface StrictLimits {
+export interface StrictLimits {
   rpm: number;
   tpm: number;
   rpd: number;
@@ -41,7 +57,7 @@ interface StrictLimits {
   max_output_tokens?: number;
 }
 
-interface ModelHierarchyNode {
+export interface ModelHierarchyNode {
   working_limits: WorkingLimits;
   strict_limits: StrictLimits;
   rolling_rpm?: number;
@@ -57,7 +73,7 @@ interface ModelHierarchyNode {
   total_tokens_today?: number;
 }
 
-interface FinancialShieldData {
+export interface FinancialShieldData {
   paid_tier_locked: boolean;
   daily_paid_token_cap: number;
   per_build_paid_token_cap: number;
@@ -65,15 +81,18 @@ interface FinancialShieldData {
   safety_margin_percent: number;
 }
 
-interface HierarchyData {
+export interface HierarchyData {
   financial_shield: FinancialShieldData;
   paid_tokens_today: number;
+  paid_tokens_current_build?: number;
+  per_build_paid_token_cap?: number;
+  active_build_project?: string;
   last_reset_date: string;
   active_in_flight_leases: number;
   providers: Record<string, Record<string, Record<string, ModelHierarchyNode>>>;
 }
 
-interface SubAgentProfile {
+export interface SubAgentProfile {
   model: string;
   provider: string;
   complexity_level: string;
@@ -88,7 +107,7 @@ interface SubAgentProfile {
   thinking_budget: number;
 }
 
-interface KeyPoolStatus {
+export interface KeyPoolStatus {
   routing_policy: string;
   pinned_key_id: string | null;
   total_keys: number;
@@ -104,25 +123,54 @@ interface KeyPoolStatus {
   paid_tier_locked: boolean;
 }
 
-export const TokenGovernor: React.FC = () => {
-  // Navigation tabs
-  const [activeTab, setActiveTab] = useState<'HIERARCHY' | 'SUB_AGENTS'>('HIERARCHY');
+export interface CostEstimateData {
+  actual_paid_spend_usd: number;
+  actual_paid_spend_inr: number;
+  estimated_savings_usd: number;
+  estimated_savings_inr: number;
+  paid_tokens_today: number;
+  paid_tokens_current_build: number;
+  free_and_local_tokens_today: number;
+  breakdown_by_provider: Record<string, number>;
+}
 
-  // Hierarchy Data & Realtime Telemetry
+export const TokenGovernor: React.FC = () => {
+  const navigate = useNavigate();
+
+  // 3-Tab Navigation
+  const [activeTab, setActiveTab] = useState<'QUOTAS' | 'SUB_AGENTS' | 'COST_SAVINGS'>('QUOTAS');
+
+  // Hierarchy Data & Telemetry
   const [hierarchy, setHierarchy] = useState<HierarchyData | null>(null);
   const [subAgents, setSubAgents] = useState<Record<string, SubAgentProfile>>({});
   const [keyPool, setKeyPool] = useState<KeyPoolStatus | null>(null);
+  const [costEstimate, setCostEstimate] = useState<CostEstimateData>({
+    actual_paid_spend_usd: 0,
+    actual_paid_spend_inr: 0,
+    estimated_savings_usd: 0,
+    estimated_savings_inr: 0,
+    paid_tokens_today: 0,
+    paid_tokens_current_build: 0,
+    free_and_local_tokens_today: 0,
+    breakdown_by_provider: {}
+  });
+
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Level 1: Selected Provider
-  const [selectedProvider, setSelectedProvider] = useState<string>('GOOGLE');
-  // Level 2: Selected Tier
-  const [selectedTier, setSelectedTier] = useState<string>('FREE');
+  // Top Dropdown Filters
+  const [providerFilter, setProviderFilter] = useState<string>('ALL');
+  const [tierFilter, setTierFilter] = useState<'ALL' | 'FREE' | 'PAID' | 'LOCAL'>('ALL');
+  const [modelSearchQuery, setModelSearchQuery] = useState<string>('');
+  const [agentSearchQuery, setAgentSearchQuery] = useState<string>('');
 
-  // Financial Shield Edit State
-  const [isEditingShield, setIsEditingShield] = useState<boolean>(false);
+  // Expanded Cards Sets
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set());
+  const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set());
+
+  // Financial Shield Edit Drawer
+  const [isShieldDrawerOpen, setIsShieldDrawerOpen] = useState<boolean>(false);
   const [shieldDailyCap, setShieldDailyCap] = useState<number>(500000);
   const [shieldPerBuildCap, setShieldPerBuildCap] = useState<number>(150000);
   const [shieldSafetyMargin, setShieldSafetyMargin] = useState<number>(85);
@@ -170,13 +218,17 @@ export const TokenGovernor: React.FC = () => {
     }, 4000);
   };
 
-  // Fetch Hierarchy Telemetry from REST API
+  // Fetch Hierarchy & Cost Telemetry
   const fetchHierarchyData = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
     try {
-      const res = await fetch('/api/governor/hierarchy');
-      if (res.ok) {
-        const data = await res.json();
+      const [hierRes, costRes] = await Promise.all([
+        fetch('/api/governor/hierarchy'),
+        fetch('/api/governor/cost-estimate').catch(() => null)
+      ]);
+
+      if (hierRes.ok) {
+        const data = await hierRes.json();
         if (data.hierarchy) {
           setHierarchy(data.hierarchy);
           if (data.hierarchy.financial_shield) {
@@ -190,6 +242,13 @@ export const TokenGovernor: React.FC = () => {
         }
         if (data.key_pool) {
           setKeyPool(data.key_pool);
+        }
+      }
+
+      if (costRes && costRes.ok) {
+        const costData = await costRes.json();
+        if (costData.cost_estimate) {
+          setCostEstimate(costData.cost_estimate);
         }
       }
     } catch (err) {
@@ -206,7 +265,6 @@ export const TokenGovernor: React.FC = () => {
   useEffect(() => {
     fetchHierarchyData(true);
 
-    // Setup live WebSocket telemetry feed
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/telemetry`;
     let ws: WebSocket | null = null;
@@ -221,6 +279,9 @@ export const TokenGovernor: React.FC = () => {
           }
           if (payload.key_pool) {
             setKeyPool(payload.key_pool);
+          }
+          if (payload.cost_estimate) {
+            setCostEstimate(payload.cost_estimate);
           }
         } catch (e) {
           // ignore parse errors
@@ -242,24 +303,11 @@ export const TokenGovernor: React.FC = () => {
     };
   }, [fetchHierarchyData]);
 
-  // Keep selected Provider/Tier in sync if available providers change
-  useEffect(() => {
-    if (hierarchy?.providers) {
-      const providersList = Object.keys(hierarchy.providers);
-      if (providersList.length > 0 && !providersList.includes(selectedProvider)) {
-        setSelectedProvider(providersList[0]);
-      }
-    }
-  }, [hierarchy, selectedProvider]);
-
-  useEffect(() => {
-    if (hierarchy?.providers && hierarchy.providers[selectedProvider]) {
-      const tiersList = Object.keys(hierarchy.providers[selectedProvider]);
-      if (tiersList.length > 0 && !tiersList.includes(selectedTier)) {
-        setSelectedTier(tiersList[0]);
-      }
-    }
-  }, [hierarchy, selectedProvider, selectedTier]);
+  // Available Providers in Hierarchy
+  const availableProviders = useMemo(() => {
+    if (!hierarchy?.providers) return ['GOOGLE', 'GROQ', 'OLLAMA'];
+    return Object.keys(hierarchy.providers);
+  }, [hierarchy]);
 
   // Financial Shield Toggle Lock
   const handleTogglePaidTierLock = async () => {
@@ -324,7 +372,7 @@ export const TokenGovernor: React.FC = () => {
       });
       if (res.ok) {
         showToast('Financial Shield configuration updated successfully.', 'success');
-        setIsEditingShield(false);
+        setIsShieldDrawerOpen(false);
         fetchHierarchyData(true);
       } else {
         showToast('Failed to update shield configuration.', 'error');
@@ -409,8 +457,6 @@ export const TokenGovernor: React.FC = () => {
       if (res.ok) {
         showToast(`Registered '${addModelName.trim()}' under ${finalProvider}/${addTier}.`, 'success');
         setIsAddModalOpen(false);
-        setSelectedProvider(finalProvider);
-        setSelectedTier(addTier);
         setAddModelName('');
         fetchHierarchyData(true);
       } else {
@@ -452,7 +498,7 @@ export const TokenGovernor: React.FC = () => {
         fetchHierarchyData(true);
       } else {
         const err = await res.json();
-        showToast(`Sub-agent update failed: ${err.detail || 'Unknown error'}`, 'error');
+        showToast(`Update failed: ${err.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
       showToast('Error saving sub-agent bounds.', 'error');
@@ -461,670 +507,687 @@ export const TokenGovernor: React.FC = () => {
     }
   };
 
-  // Helper for Percentages
-  const calcPercent = (val?: number | null, maxVal?: number) => {
-    if (!val || !maxVal || maxVal <= 0) return 0;
-    return Math.min(100, Math.round((val / maxVal) * 100));
+  // Flat List of Models from Hierarchy for Tab 1
+  interface FlatModelItem {
+    id: string;
+    model_name: string;
+    provider: string;
+    tier: string;
+    node: ModelHierarchyNode;
+  }
+
+  const flatModels = useMemo(() => {
+    const list: FlatModelItem[] = [];
+    if (!hierarchy?.providers) return list;
+
+    Object.entries(hierarchy.providers).forEach(([prov, tiers]) => {
+      Object.entries(tiers).forEach(([tier, models]) => {
+        Object.entries(models).forEach(([mName, node]) => {
+          list.push({
+            id: `${prov}-${tier}-${mName}`,
+            model_name: mName,
+            provider: prov,
+            tier: tier.toUpperCase(),
+            node
+          });
+        });
+      });
+    });
+
+    return list.filter((m) => {
+      if (providerFilter !== 'ALL' && m.provider !== providerFilter) return false;
+      if (tierFilter !== 'ALL' && m.tier !== tierFilter) return false;
+      if (modelSearchQuery.trim()) {
+        const q = modelSearchQuery.toLowerCase();
+        if (!m.model_name.toLowerCase().includes(q) && !m.provider.toLowerCase().includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [hierarchy, providerFilter, tierFilter, modelSearchQuery]);
+
+  // Filtered Sub-Agents for Tab 2
+  const filteredSubAgents = useMemo(() => {
+    return Object.entries(subAgents).filter(([agentName, agentData]) => {
+      if (providerFilter !== 'ALL' && agentData.provider !== providerFilter) return false;
+      if (agentSearchQuery.trim()) {
+        const q = agentSearchQuery.toLowerCase();
+        if (
+          !agentName.toLowerCase().includes(q) &&
+          !agentData.model.toLowerCase().includes(q) &&
+          !agentData.complexity_level.toLowerCase().includes(q)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [subAgents, providerFilter, agentSearchQuery]);
+
+  // Model expansion toggle
+  const toggleModelExpanded = (id: string) => {
+    setExpandedModels((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const getGaugeColor = (pct: number) => {
-    if (pct >= 90) return 'bg-rose-500';
-    if (pct >= 70) return 'bg-amber-500';
-    return 'bg-emerald-500';
+  // Agent expansion toggle
+  const toggleAgentExpanded = (agentName: string) => {
+    setExpandedAgents((prev) => {
+      const next = new Set(prev);
+      if (next.has(agentName)) next.delete(agentName);
+      else next.add(agentName);
+      return next;
+    });
   };
 
-  // Provider Visual Metadata
-  const getProviderMeta = (prov: string) => {
-    const p = prov.toUpperCase();
-    if (p === 'GOOGLE') {
-      return { name: 'Google Gemini', icon: Globe, color: 'text-cyan-400', border: 'border-cyan-500/50', bg: 'bg-cyan-950/40' };
-    }
-    if (p === 'GROQ') {
-      return { name: 'Groq Cloud LPU', icon: Zap, color: 'text-purple-400', border: 'border-purple-500/50', bg: 'bg-purple-950/40' };
-    }
-    if (p === 'OLLAMA') {
-      return { name: 'Ollama Hardware', icon: Cpu, color: 'text-emerald-400', border: 'border-emerald-500/50', bg: 'bg-emerald-950/40' };
-    }
-    if (p === 'ANTHROPIC') {
-      return { name: 'Anthropic Claude', icon: Sparkles, color: 'text-amber-400', border: 'border-amber-500/50', bg: 'bg-amber-950/40' };
-    }
-    if (p === 'OPENAI') {
-      return { name: 'OpenAI GPT', icon: Server, color: 'text-green-400', border: 'border-green-500/50', bg: 'bg-green-950/40' };
-    }
-    return { name: prov, icon: Bot, color: 'text-blue-400', border: 'border-blue-500/50', bg: 'bg-slate-900/60' };
+  // Calculate RPM & TPM Progress Percentages
+  const getProgressStats = (node: ModelHierarchyNode) => {
+    const rpm = node.rolling_rpm || 0;
+    const maxRpm = node.working_limits?.rpm || node.strict_limits?.rpm || 1;
+    const rpmPct = Math.min(Math.round((rpm / Math.max(maxRpm, 1)) * 100), 100);
+
+    const tpm = node.rolling_tpm || 0;
+    const maxTpm = node.working_limits?.tpm || node.strict_limits?.tpm || 1;
+    const tpmPct = Math.min(Math.round((tpm / Math.max(maxTpm, 1)) * 100), 100);
+
+    const isNearCap = tpmPct >= (hierarchy?.financial_shield?.safety_margin_percent || 85);
+
+    return { rpm, maxRpm, rpmPct, tpm, maxTpm, tpmPct, isNearCap };
   };
 
-  // Tier Visual Metadata
-  const getTierMeta = (tier: string) => {
-    const t = tier.toUpperCase();
-    if (t === 'FREE') {
-      return { label: 'FREE TIER', desc: 'Zero-Cost Safe Pool', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' };
-    }
-    if (t === 'PAID') {
-      return { label: 'PAID TIER', desc: 'Pay-As-You-Go High-TPM', badge: 'bg-amber-950 text-amber-300 border-amber-800' };
-    }
-    if (t === 'LOCAL') {
-      return { label: 'LOCAL VRAM', desc: 'RTX 4060 Private Weights', badge: 'bg-blue-950 text-blue-300 border-blue-800' };
-    }
-    return { label: tier, desc: 'Custom Tier', badge: 'bg-slate-900 text-slate-300 border-slate-700' };
-  };
+  // Provider Breakdown Matrix for Tab 3
+  const providerStatsList = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        provider: string;
+        paidTokens: number;
+        freeLocalTokens: number;
+        actualCostUsd: number;
+        estimatedSavingsUsd: number;
+      }
+    > = {};
 
-  const shield = hierarchy?.financial_shield;
-  const isPaidLocked = shield?.paid_tier_locked ?? false;
-  const isEnforcingWorking = shield?.enforce_working_limits ?? true;
-  const paidTokensToday = hierarchy?.paid_tokens_today ?? 0;
-  const dailyPaidCap = shield?.daily_paid_token_cap ?? 500000;
-  const paidTokenPct = calcPercent(paidTokensToday, dailyPaidCap);
+    // Initialize map with known providers
+    availableProviders.forEach((p) => {
+      map[p] = {
+        provider: p,
+        paidTokens: 0,
+        freeLocalTokens: 0,
+        actualCostUsd: costEstimate.breakdown_by_provider[p] || 0,
+        estimatedSavingsUsd: 0
+      };
+    });
 
-  const activeProviderModels = hierarchy?.providers?.[selectedProvider]?.[selectedTier] || {};
-  const providerList = Object.keys(hierarchy?.providers || {});
-  const tierList = Object.keys(hierarchy?.providers?.[selectedProvider] || {});
+    if (hierarchy?.providers) {
+      Object.entries(hierarchy.providers).forEach(([prov, tiers]) => {
+        if (!map[prov]) {
+          map[prov] = {
+            provider: prov,
+            paidTokens: 0,
+            freeLocalTokens: 0,
+            actualCostUsd: costEstimate.breakdown_by_provider[prov] || 0,
+            estimatedSavingsUsd: 0
+          };
+        }
+        Object.entries(tiers).forEach(([tier, models]) => {
+          Object.values(models).forEach((node) => {
+            const tot = node.total_tokens_today || 0;
+            if (tier.toUpperCase() === 'PAID') {
+              map[prov].paidTokens += tot;
+            } else {
+              map[prov].freeLocalTokens += tot;
+              // Approximate benchmark savings
+              const inTok = node.input_tokens_today || 0;
+              const outTok = (node.output_tokens_today || 0) + (node.thinking_tokens_today || 0);
+              map[prov].estimatedSavingsUsd += (inTok * 0.15 + outTok * 0.60) / 1_000_000;
+            }
+          });
+        });
+      });
+    }
+
+    return Object.values(map);
+  }, [hierarchy, availableProviders, costEstimate]);
 
   return (
-    <div id="token-governor-console" className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Toast Notification */}
+    <div id="token-governor-page" className="space-y-6 pb-12">
+      {/* Toast Feedback */}
       {feedbackMsg && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md border animate-in fade-in slide-in-from-top-3 ${
+          id="governor-toast"
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-2xl text-xs font-mono transition-all animate-bounce ${
             feedbackMsg.type === 'success'
-              ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+              ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/50 shadow-glow-emerald'
               : feedbackMsg.type === 'error'
-              ? 'bg-rose-950/90 text-rose-200 border-rose-500/40'
-              : 'bg-blue-950/90 text-blue-200 border-blue-500/40'
+              ? 'bg-rose-950/90 text-rose-300 border-rose-500/50'
+              : 'bg-indigo-950/90 text-indigo-300 border-indigo-500/50'
           }`}
         >
-          {feedbackMsg.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
-          {feedbackMsg.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />}
-          {feedbackMsg.type === 'info' && <Clock className="w-5 h-5 text-blue-400 shrink-0" />}
-          <span className="text-sm font-medium">{feedbackMsg.text}</span>
-          <button
-            onClick={() => setFeedbackMsg(null)}
-            className="text-slate-400 hover:text-white p-1 ml-2 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {feedbackMsg.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          ) : feedbackMsg.type === 'error' ? (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+          )}
+          <span>{feedbackMsg.text}</span>
         </div>
       )}
 
-      {/* TOP SECTION: Financial Shield & In-Flight Lease Control Bar */}
-      <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-950/90 p-5 shadow-xl space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-xl border ${isPaidLocked ? 'bg-emerald-950/80 border-emerald-500/50' : 'bg-amber-950/80 border-amber-500/50'}`}>
-              <Shield className={`w-6 h-6 ${isPaidLocked ? 'text-emerald-400' : 'text-amber-400'}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">Hierarchical Quota & Financial Shield</h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-950/80 text-blue-300 border border-blue-800">
-                  v6.0 PRE-LEASE ATOMIC
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Multi-Provider quota tree, atomic pre-request reservations, strict vs. working pacing & 11 sub-agent token boundaries.
-              </p>
-            </div>
+      {/* ------------------------------------------------------------- */}
+      {/* 1. COMPACT TOP BAR & FINANCIAL SHIELD SUMMARY STRIP           */}
+      {/* ------------------------------------------------------------- */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900/90 to-indigo-950/40 border border-purple-500/20 p-4 sm:p-5 backdrop-blur shadow-2xl space-y-4">
+        {/* Top Row: Title, Reset Anchor, Leases & Top Controls */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          {/* Left: Title & Live Indicators */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-xs font-semibold text-purple-300">
+              <Shield className="w-3.5 h-3.5 text-purple-400" />
+              <span>Token Governor & Quota Engine</span>
+            </span>
+
+            {/* Reset Anchor Pill */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300">
+              <Clock className="w-3.5 h-3.5 text-indigo-400" />
+              <span>1:30 PM IST Reset</span>
+            </span>
+
+            {/* In-Flight Leases Pill */}
+            <span
+              id="active-leases-pill"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                Leases: <strong className="text-amber-300">{hierarchy?.active_in_flight_leases || 0}</strong> active
+              </span>
+            </span>
           </div>
 
-          {/* Action Toggles */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Paid Tier Lock Toggle */}
+          {/* Right: Quick Controls Dropdowns & Navigation */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Provider Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Provider:</span>
+              <select
+                id="governor-provider-select"
+                aria-label="Filter Provider"
+                value={providerFilter}
+                onChange={(e) => setProviderFilter(e.target.value)}
+                className="bg-transparent text-purple-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="ALL" className="bg-slate-900 text-slate-200">ALL Providers</option>
+                {availableProviders.map((p) => (
+                  <option key={p} value={p} className="bg-slate-900 text-slate-200">
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tier Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
+              <Layers className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Tier:</span>
+              <select
+                id="governor-tier-select"
+                aria-label="Filter Tier"
+                value={tierFilter}
+                onChange={(e) => setTierFilter(e.target.value as any)}
+                className="bg-transparent text-purple-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="ALL" className="bg-slate-900 text-slate-200">ALL Tiers</option>
+                <option value="FREE" className="bg-slate-900 text-slate-200">FREE</option>
+                <option value="PAID" className="bg-slate-900 text-slate-200">PAID</option>
+                <option value="LOCAL" className="bg-slate-900 text-slate-200">LOCAL</option>
+              </select>
+            </div>
+
+            {/* + Add Model Button */}
             <button
-              onClick={handleTogglePaidTierLock}
-              className={`px-4 py-2.5 rounded-xl font-semibold text-xs border flex items-center gap-2 transition-all shadow-md ${
-                isPaidLocked
-                  ? 'bg-emerald-950/90 border-emerald-500 text-emerald-200 hover:bg-emerald-900/80 ring-2 ring-emerald-500/20'
-                  : 'bg-amber-950/90 border-amber-500 text-amber-200 hover:bg-amber-900/80 ring-2 ring-amber-500/20'
-              }`}
-              title="Click to toggle Paid Tier spend lock"
+              id="add-model-btn"
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-semibold transition-all"
             >
-              {isPaidLocked ? (
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Model</span>
+            </button>
+
+            {/* Global Execution Logs Shortcut */}
+            <button
+              id="nav-logs-btn"
+              onClick={() => navigate('/logs')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono transition-colors shadow-sm"
+              title="Jump to full-screen execution logs"
+            >
+              <Terminal className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Global Logs</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Compact Financial Shield Strip */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Paid Tier Lock Toggle Button */}
+            <button
+              id="toggle-paid-tier-lock-btn"
+              onClick={handleTogglePaidTierLock}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold border transition-all ${
+                hierarchy?.financial_shield?.paid_tier_locked
+                  ? 'bg-rose-950/80 text-rose-300 border-rose-600 shadow-glow-sm'
+                  : 'bg-emerald-950/80 text-emerald-300 border-emerald-600 shadow-glow-emerald'
+              }`}
+            >
+              {hierarchy?.financial_shield?.paid_tier_locked ? (
                 <>
-                  <Lock className="w-4 h-4 text-emerald-400" />
-                  <span>🔒 PAID TIER LOCKED (Zero Spend — Free & Local)</span>
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>PAID TIER LOCKED</span>
                 </>
               ) : (
                 <>
-                  <Unlock className="w-4 h-4 text-amber-400" />
-                  <span>🔓 PAID TIER UNLOCKED (Pay-As-You-Go Active)</span>
+                  <Unlock className="w-3.5 h-3.5" />
+                  <span>PAID TIER UNLOCKED</span>
                 </>
               )}
             </button>
 
-            {/* Limit Enforcement Mode Toggle */}
+            {/* Enforcement Mode Toggle Button */}
             <button
+              id="toggle-enforcement-mode-btn"
               onClick={handleToggleEnforcementMode}
-              className={`px-3.5 py-2.5 rounded-xl font-semibold text-xs border flex items-center gap-2 transition-all ${
-                isEnforcingWorking
-                  ? 'bg-slate-900 border-cyan-500/60 text-cyan-300 hover:bg-slate-800'
-                  : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-medium border transition-all ${
+                hierarchy?.financial_shield?.enforce_working_limits
+                  ? 'bg-indigo-950/80 text-indigo-300 border-indigo-600 shadow-glow-sm'
+                  : 'bg-amber-950/80 text-amber-300 border-amber-600 shadow-glow-amber'
               }`}
-              title="Click to toggle Working vs. Strict Limits"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{isEnforcingWorking ? '🛡️ Enforcing Safe Working Limits' : '⚡ Using Raw Strict API Limits'}</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>
+                {hierarchy?.financial_shield?.enforce_working_limits
+                  ? '🛡️ Working Limits Active'
+                  : '⚡ Strict API Limits'}
+              </span>
             </button>
 
+            {/* Per-Build Paid Meter */}
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+              <span className="text-slate-400">Build Meter:</span>
+              <span className="text-amber-300 font-bold">
+                {(hierarchy?.paid_tokens_current_build || 0).toLocaleString()} /{' '}
+                {(hierarchy?.financial_shield?.per_build_paid_token_cap || 150000).toLocaleString()} tok
+              </span>
+            </div>
+
+            {/* Daily Paid Meter */}
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+              <span className="text-slate-400">Daily Meter:</span>
+              <span className="text-purple-300 font-bold">
+                {(hierarchy?.paid_tokens_today || 0).toLocaleString()} /{' '}
+                {(hierarchy?.financial_shield?.daily_paid_token_cap || 500000).toLocaleString()} tok
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 justify-between lg:justify-end">
+            {/* Cost & Savings Pill */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
+              <Coins className="w-3.5 h-3.5 text-emerald-400" />
+              <span>
+                Spend: <strong>${costEstimate.actual_paid_spend_usd.toFixed(2)}</strong> (₹{costEstimate.actual_paid_spend_inr}) &bull; Saved:{' '}
+                <strong>${costEstimate.estimated_savings_usd.toFixed(2)}</strong> (₹{costEstimate.estimated_savings_inr})
+              </span>
+            </div>
+
+            {/* Shield Caps Drawer Toggle */}
             <button
-              onClick={() => fetchHierarchyData(false)}
-              disabled={refreshing}
-              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors"
-              title="Refresh Quota Telemetry"
+              id="toggle-shield-caps-btn"
+              onClick={() => setIsShieldDrawerOpen(!isShieldDrawerOpen)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors shrink-0"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-blue-400' : ''}`} />
+              <Sliders className="w-3.5 h-3.5 text-purple-400" />
+              <span>Shield Caps</span>
+              {isShieldDrawerOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
           </div>
         </div>
 
-        {/* Live Metrics Grid & Budget Caps */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 border-t border-slate-800/80">
-          {/* Paid Tokens Today Gauge */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">Paid Tokens Today</span>
-              <span className="font-mono text-slate-300 text-xs">
-                {paidTokensToday.toLocaleString()} / {dailyPaidCap.toLocaleString()}
+        {/* Collapsible Shield Caps Settings Drawer */}
+        {isShieldDrawerOpen && (
+          <div
+            id="shield-caps-drawer"
+            className="p-4 rounded-xl bg-slate-950/95 border border-purple-500/30 font-mono text-xs space-y-3"
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="font-bold text-white flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-purple-400" />
+                <span>Configure Financial Shield & Token Ceilings</span>
               </span>
-            </div>
-            <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-              <div
-                className={`h-full transition-all duration-500 ${getGaugeColor(paidTokenPct)}`}
-                style={{ width: `${paidTokenPct}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-              <span>{paidTokenPct}% of Daily Cap</span>
-              <span>Per-Build Cap: {(shield?.per_build_paid_token_cap ?? 150000).toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Active In-Flight Leases */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col justify-between">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">In-Flight Token Leases</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold font-mono text-cyan-400">
-                {hierarchy?.active_in_flight_leases ?? 0}
-              </span>
-              <span className="text-xs text-slate-400 font-mono">active reservations</span>
-            </div>
-            <div className="text-[10px] text-cyan-400/80 font-mono mt-1">
-              Safety Margin: {shield?.safety_margin_percent ?? 85}% RPM/TPM
-            </div>
-          </div>
-
-          {/* Multi-Provider Key Pool Status */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col justify-between">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">Key Pool Matrix</span>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-xs font-mono text-cyan-300 flex items-center gap-1">
-                <Globe className="w-3 h-3 text-cyan-400" /> {keyPool?.google_keys ?? 0} Google
-              </span>
-              <span className="text-xs font-mono text-purple-300 flex items-center gap-1">
-                <Zap className="w-3 h-3 text-purple-400" /> {keyPool?.groq_keys ?? 0} Groq
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-500 font-mono mt-1">
-              Active Routing: {keyPool?.routing_policy ?? 'GLOBAL_HYBRID'}
-            </div>
-          </div>
-
-          {/* Daily Reset Countdown Indicator */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col justify-between">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">Daily Quota Reset</span>
-            <div className="flex items-center gap-2 mt-1">
-              <Clock className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-mono font-bold text-white">01:30 PM IST</span>
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-1">
-              <span>Google PT Midnight</span>
-              <button
-                onClick={() => setIsEditingShield(!isEditingShield)}
-                className="text-blue-400 hover:text-blue-300 underline"
-              >
-                {isEditingShield ? 'Close Caps' : 'Edit Caps'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Collapsible Shield Cap Editor Drawer */}
-        {isEditingShield && (
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-blue-900/50 space-y-4 animate-in fade-in">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-blue-300 uppercase tracking-wider">
-                <Sliders className="w-4 h-4 text-blue-400" />
-                <span>Configure Paid Tier Budget Caps & Safety Margin</span>
-              </div>
-              <button onClick={() => setIsEditingShield(false)} className="text-slate-400 hover:text-white">
-                <X className="w-4 h-4" />
-              </button>
+              <span className="text-slate-400 text-[11px]">Enforced globally across all active swarms</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                  Daily Paid Token Cap (All Models)
-                </label>
-                <input
-                  type="number"
-                  value={shieldDailyCap}
-                  onChange={(e) => setShieldDailyCap(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                  Per-Build Paid Token Cap (Single Run)
-                </label>
+                <label className="block text-slate-400 text-[11px] mb-1">Per-Build Paid Token Cap</label>
                 <input
                   type="number"
                   value={shieldPerBuildCap}
                   onChange={(e) => setShieldPerBuildCap(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-amber-300 font-bold focus:outline-none focus:border-purple-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-slate-400 mb-1">
-                  Safety Margin (% of Working Limit)
-                </label>
+                <label className="block text-slate-400 text-[11px] mb-1">Daily Paid Token Cap</label>
+                <input
+                  type="number"
+                  value={shieldDailyCap}
+                  onChange={(e) => setShieldDailyCap(Number(e.target.value))}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-purple-300 font-bold focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-[11px] mb-1">Working Limit Safety Margin (%)</label>
                 <input
                   type="number"
                   value={shieldSafetyMargin}
                   onChange={(e) => setShieldSafetyMargin(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 font-mono text-xs text-white focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-indigo-300 font-bold focus:outline-none focus:border-purple-500"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-1">
               <button
-                type="button"
-                onClick={() => setIsEditingShield(false)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white"
+                onClick={() => setIsShieldDrawerOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleSaveShieldConfig}
                 disabled={shieldSaving}
-                className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all disabled:opacity-50"
               >
-                {shieldSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Save Shield Config
+                {shieldSaving ? 'Saving...' : 'Save Shield Caps'}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* MAIN VIEW MODE SWITCHER TABS & ADD MODEL BUTTON */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab('HIERARCHY')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'HIERARCHY'
-                ? 'bg-blue-600 text-white shadow-glow-sm'
-                : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Provider → Tier → Model Hierarchy</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('SUB_AGENTS')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'SUB_AGENTS'
-                ? 'bg-purple-600 text-white shadow-glow-sm'
-                : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Bot className="w-4 h-4" />
-            <span>Sub-Agent Bounds ({Object.keys(subAgents).length} Roles)</span>
-          </button>
-        </div>
+      {/* ------------------------------------------------------------- */}
+      {/* 2. 3-TAB VIEW SWITCHER BAR                                    */}
+      {/* ------------------------------------------------------------- */}
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+        <button
+          id="tab-quotas-btn"
+          onClick={() => setActiveTab('QUOTAS')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+            activeTab === 'QUOTAS'
+              ? 'bg-purple-500/10 text-purple-300 border border-purple-500/30 shadow-glow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <Building2 className="w-4 h-4 text-purple-400" />
+          <span>Model Quotas</span>
+          <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-purple-300 border border-purple-500/30">
+            {flatModels.length} Models
+          </span>
+        </button>
 
         <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow-md transition-all shrink-0"
+          id="tab-subagents-btn"
+          onClick={() => setActiveTab('SUB_AGENTS')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+            activeTab === 'SUB_AGENTS'
+              ? 'bg-purple-500/10 text-purple-300 border border-purple-500/30 shadow-glow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          <span>Add Provider / Model</span>
+          <Bot className="w-4 h-4 text-blue-400" />
+          <span>Sub-Agent Role Bounds</span>
+          <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-blue-300 border border-blue-500/30">
+            {filteredSubAgents.length} Agents
+          </span>
+        </button>
+
+        <button
+          id="tab-costsavings-btn"
+          onClick={() => setActiveTab('COST_SAVINGS')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+            activeTab === 'COST_SAVINGS'
+              ? 'bg-purple-500/10 text-purple-300 border border-purple-500/30 shadow-glow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <DollarSign className="w-4 h-4 text-emerald-400" />
+          <span>Cost & Cloud Savings</span>
+          <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-emerald-300 border border-emerald-500/30">
+            ${costEstimate.actual_paid_spend_usd.toFixed(2)}
+          </span>
         </button>
       </div>
 
-      {/* TAB A: 3-LEVEL HIERARCHY EXPLORER */}
-      {activeTab === 'HIERARCHY' && (
-        <div className="space-y-6">
-          {/* LEVEL 1: PROVIDER SELECTOR PILLS */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Level 1: Select Active LLM Provider
-            </span>
-            <div className="flex flex-wrap items-center gap-2.5">
-              {providerList.map((prov) => {
-                const meta = getProviderMeta(prov);
-                const IconComponent = meta.icon;
-                const tiersUnder = hierarchy?.providers?.[prov] || {};
-                let modelCount = 0;
-                Object.values(tiersUnder).forEach((t) => {
-                  modelCount += Object.keys(t).length;
-                });
-                const isSelected = selectedProvider === prov;
-
-                return (
-                  <button
-                    key={prov}
-                    onClick={() => {
-                      setSelectedProvider(prov);
-                      const availableTiers = Object.keys(hierarchy?.providers?.[prov] || {});
-                      if (availableTiers.length > 0) {
-                        setSelectedTier(availableTiers[0]);
-                      }
-                    }}
-                    className={`px-4 py-2.5 rounded-xl border flex items-center gap-2.5 text-xs font-bold transition-all ${
-                      isSelected
-                        ? 'bg-blue-600/90 border-blue-400 text-white shadow-glow-sm ring-2 ring-blue-500/30'
-                        : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white'
-                    }`}
-                  >
-                    <IconComponent className={`w-4 h-4 ${isSelected ? 'text-white' : meta.color}`} />
-                    <span>{meta.name}</span>
-                    <span className="px-1.5 py-0.2 rounded bg-black/40 font-mono text-[10px] text-slate-300">
-                      {modelCount} models
-                    </span>
-                  </button>
-                );
-              })}
+      {/* ------------------------------------------------------------- */}
+      {/* 3. TAB 1: MODEL QUOTAS (MINIMALIST CARDS + EXPANDABLE DETAILS) */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === 'QUOTAS' && (
+        <div id="tab-quotas-content" className="space-y-4">
+          {/* Search & Counter Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={modelSearchQuery}
+                onChange={(e) => setModelSearchQuery(e.target.value)}
+                placeholder="Search models by name or provider..."
+                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+              />
             </div>
-          </div>
 
-          {/* LEVEL 2: TIER SUB-TABS */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Level 2: Quota Tier ({selectedProvider})
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              {tierList.map((tier) => {
-                const meta = getTierMeta(tier);
-                const modelsCount = Object.keys(hierarchy?.providers?.[selectedProvider]?.[tier] || {}).length;
-                const isSelected = selectedTier === tier;
-
-                return (
-                  <button
-                    key={tier}
-                    onClick={() => setSelectedTier(tier)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 ${
-                      isSelected
-                        ? 'bg-slate-800 border-cyan-500 text-cyan-200 ring-2 ring-cyan-500/20 shadow-md'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <span>{meta.label}</span>
-                    <span className="text-[10px] font-mono text-slate-500">({meta.desc})</span>
-                    <span className="px-1.5 py-0.2 rounded bg-slate-950 font-mono text-[10px] text-slate-400">
-                      {modelsCount}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* LEVEL 3: MODEL QUOTA & BREAKDOWN CARDS */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              <span>Models Monitored under {selectedProvider} / {selectedTier}</span>
-              <span className="font-mono text-[11px] text-slate-500">
-                {Object.keys(activeProviderModels).length} configured
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <span>
+                Showing <strong className="text-white">{flatModels.length}</strong> registered models
               </span>
             </div>
-
-            {Object.keys(activeProviderModels).length === 0 ? (
-              <div className="p-8 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 text-slate-500 text-sm">
-                No models registered under {selectedProvider} ({selectedTier}). Click &quot;Add Provider / Model&quot; to configure one.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {Object.entries(activeProviderModels).map(([modelName, node]) => {
-                  const working = node.working_limits;
-                  const strict = node.strict_limits;
-                  const rpmPct = calcPercent(node.current_rpm ?? node.rolling_rpm, working.rpm);
-                  const tpmPct = calcPercent(node.current_tpm ?? node.rolling_tpm, working.tpm);
-                  const rpdPct = calcPercent(node.requests_today, working.rpd);
-
-                  return (
-                    <div
-                      key={modelName}
-                      id={`model-card-${modelName.replace(/[:.]/g, '-')}`}
-                      className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/90 shadow-lg space-y-4 hover:border-slate-700/80 transition-colors"
-                    >
-                      {/* Card Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 flex-wrap">
-                          <h3 className="text-base font-bold text-white font-mono">{modelName}</h3>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider ${getTierMeta(selectedTier).badge}`}>
-                            {selectedTier}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
-                            {selectedProvider}
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            setEditingModel({
-                              provider: selectedProvider,
-                              tier: selectedTier,
-                              model_name: modelName,
-                              working_limits: { ...working },
-                              strict_limits: { ...strict }
-                            })
-                          }
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors self-start sm:self-auto"
-                        >
-                          <Edit3 className="w-3.5 h-3.5 text-blue-400" />
-                          <span>Edit Limits</span>
-                        </button>
-                      </div>
-
-                      {/* Live Rolling Gauges */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* RPM Gauge */}
-                        <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 font-semibold text-[11px]">RPM (60s Rolling)</span>
-                            <span className="font-mono text-slate-300">
-                              {node.current_rpm ?? node.rolling_rpm ?? 0} / <span className="font-bold text-white">{working.rpm}</span>
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                            <div className={`h-full ${getGaugeColor(rpmPct)}`} style={{ width: `${rpmPct}%` }} />
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                            <span>{rpmPct}% used</span>
-                            <span>Strict API Cap: {strict.rpm}</span>
-                          </div>
-                        </div>
-
-                        {/* TPM Gauge */}
-                        <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 font-semibold text-[11px]">TPM (60s Rolling)</span>
-                            <span className="font-mono text-slate-300">
-                              {(node.current_tpm ?? node.rolling_tpm ?? 0).toLocaleString()} / <span className="font-bold text-white">{working.tpm.toLocaleString()}</span>
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                            <div className={`h-full ${getGaugeColor(tpmPct)}`} style={{ width: `${tpmPct}%` }} />
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                            <span>{tpmPct}% used</span>
-                            <span>Strict API Cap: {strict.tpm.toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        {/* RPD Gauge */}
-                        <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 font-semibold text-[11px]">RPD (Daily Requests)</span>
-                            <span className="font-mono text-slate-300">
-                              {(node.requests_today ?? 0).toLocaleString()} / <span className="font-bold text-white">{working.rpd.toLocaleString()}</span>
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                            <div className={`h-full ${getGaugeColor(rpdPct)}`} style={{ width: `${rpdPct}%` }} />
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                            <span>{rpdPct}% used</span>
-                            <span>Strict API Cap: {strict.rpd.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Discrete Token Breakdown Boxes */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 pt-2 border-t border-slate-800/60 text-xs font-mono">
-                        <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60">
-                          <span className="text-slate-500 text-[10px] block uppercase">Input Tokens</span>
-                          <span className="text-sm font-bold text-cyan-300">
-                            {(node.input_tokens_today ?? 0).toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500 block">
-                            Cap: {(working.max_input_tokens ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60">
-                          <span className="text-slate-500 text-[10px] block uppercase">Output Tokens</span>
-                          <span className="text-sm font-bold text-emerald-300">
-                            {(node.output_tokens_today ?? 0).toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500 block">
-                            Cap: {(working.max_output_tokens ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60">
-                          <span className="text-slate-500 text-[10px] block uppercase">Thinking Budget</span>
-                          <span className="text-sm font-bold text-purple-300">
-                            {(node.thinking_tokens_today ?? 0).toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500 block">
-                            Budget: {(working.thinking_budget ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60">
-                          <span className="text-slate-500 text-[10px] block uppercase">In-Flight Leases</span>
-                          <span className="text-sm font-bold text-amber-300">
-                            {node.in_flight_requests ?? 0} reqs
-                          </span>
-                          <span className="text-[10px] text-slate-500 block">
-                            {(node.in_flight_reserved_tokens ?? 0).toLocaleString()} tok locked
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB B: SUB-AGENT BOUNDS EDITOR */}
-      {activeTab === 'SUB_AGENTS' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
-            <span>Configured Sub-Agent Roles & Token Caps</span>
-            <span className="font-mono text-slate-500">{Object.keys(subAgents).length} agent roles</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(subAgents).map(([agentName, profile]) => {
-              const compLevel = profile.complexity_level || 'MEDIUM';
-              const compColor =
-                compLevel === 'CRITICAL'
-                  ? 'bg-rose-950 text-rose-300 border-rose-800'
-                  : compLevel === 'HIGH'
-                  ? 'bg-amber-950 text-amber-300 border-amber-800'
-                  : compLevel === 'LOW'
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                  : 'bg-blue-950 text-blue-300 border-blue-800';
+          {/* Model Quotas Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {flatModels.map((item) => {
+              const { rpm, maxRpm, rpmPct, tpm, maxTpm, tpmPct, isNearCap } = getProgressStats(item.node);
+              const isExpanded = expandedModels.has(item.id);
 
               return (
                 <div
-                  key={agentName}
-                  className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-md space-y-4 flex flex-col justify-between"
+                  key={item.id}
+                  id={`model-card-${item.model_name}`}
+                  className={`glass-panel p-4 rounded-xl border transition-all space-y-3 ${
+                    isNearCap
+                      ? 'border-amber-500/60 bg-amber-950/20 shadow-glow-amber'
+                      : 'border-slate-800 hover:border-slate-700'
+                  }`}
                 >
-                  <div className="space-y-3">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-white text-sm font-mono">{agentName}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-cyan-300 font-mono font-semibold flex items-center gap-1">
-                            <Bot className="w-3 h-3 text-cyan-400" /> {profile.model}
+                  {/* Element 1 & 2: Model Name, Provider & Tier Badges */}
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <h4 className="font-mono text-xs font-bold text-white truncate" title={item.model_name}>
+                        {item.model_name}
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {item.node.in_flight_requests && item.node.in_flight_requests > 0 ? (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5" /> {item.node.in_flight_requests} In-Flight
+                        </span>
+                      ) : null}
+
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                          item.provider === 'OLLAMA'
+                            ? 'bg-purple-950/80 text-purple-300 border-purple-800'
+                            : item.provider === 'GROQ'
+                            ? 'bg-orange-950/80 text-orange-300 border-orange-800'
+                            : item.tier === 'PAID'
+                            ? 'bg-amber-950/80 text-amber-300 border-amber-800'
+                            : 'bg-blue-950/80 text-blue-300 border-blue-800'
+                        }`}
+                      >
+                        {item.provider} &bull; {item.tier}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Element 3: Compact 60s RPM & TPM Progress Bars */}
+                  <div className="space-y-2 text-[11px] font-mono">
+                    {/* RPM Bar */}
+                    <div>
+                      <div className="flex justify-between text-slate-400 text-[10px] mb-0.5">
+                        <span>RPM: {rpm} / {maxRpm}</span>
+                        <span>{rpmPct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 transition-all duration-500"
+                          style={{ width: `${rpmPct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* TPM Bar */}
+                    <div>
+                      <div className="flex justify-between text-slate-400 text-[10px] mb-0.5">
+                        <span className={isNearCap ? 'text-amber-400 font-semibold' : ''}>
+                          TPM: {(tpm / 1000).toFixed(1)}K / {(maxTpm / 1000).toFixed(0)}K
+                        </span>
+                        <span className={isNearCap ? 'text-amber-400 font-bold' : ''}>
+                          {tpmPct}%
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            isNearCap ? 'bg-amber-400' : 'bg-purple-500'
+                          }`}
+                          style={{ width: `${tpmPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Element 4: Details / Edit Expand Button */}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] font-mono">
+                    <span className="text-slate-400 text-[10px]">
+                      RPD: <strong className="text-slate-200">{item.node.requests_today || 0}</strong> /{' '}
+                      {item.node.strict_limits?.rpd || '—'}
+                    </span>
+
+                    <button
+                      onClick={() => toggleModelExpanded(item.id)}
+                      className="flex items-center gap-1 text-purple-300 hover:text-white transition-colors"
+                    >
+                      <span className="text-[10px]">{isExpanded ? 'Collapse' : 'Details / Edit'}</span>
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+
+                  {/* Click-to-Expand Details Drawer */}
+                  {isExpanded && (
+                    <div className="pt-2 border-t border-slate-800 space-y-2.5 font-mono text-[11px]">
+                      {/* 4 Discrete Token Boxes */}
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <div className="p-2 rounded bg-slate-950/80 border border-slate-800">
+                          <span className="text-slate-500 block">Input Tokens (Max Cap)</span>
+                          <span className="font-bold text-slate-200">
+                            {(item.node.input_tokens_today || 0).toLocaleString()} /{' '}
+                            {((item.node.working_limits?.max_input_tokens || 0) / 1000).toFixed(0)}K
                           </span>
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
-                            {profile.provider || 'GOOGLE'}
+                        </div>
+
+                        <div className="p-2 rounded bg-slate-950/80 border border-slate-800">
+                          <span className="text-slate-500 block">Output Tokens (Max Cap)</span>
+                          <span className="font-bold text-slate-200">
+                            {(item.node.output_tokens_today || 0).toLocaleString()} /{' '}
+                            {((item.node.working_limits?.max_output_tokens || 0) / 1000).toFixed(0)}K
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded bg-slate-950/80 border border-slate-800">
+                          <span className="text-slate-500 block">Thinking Tokens (Budget)</span>
+                          <span className="font-bold text-purple-300">
+                            {(item.node.thinking_tokens_today || 0).toLocaleString()} /{' '}
+                            {item.node.working_limits?.thinking_budget || 0}
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded bg-slate-950/80 border border-slate-800">
+                          <span className="text-slate-500 block">Daily Requests (RPD)</span>
+                          <span className="font-bold text-slate-200">
+                            {item.node.requests_today || 0} / {item.node.strict_limits?.rpd || '—'}
                           </span>
                         </div>
                       </div>
 
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider border ${compColor}`}>
-                        {compLevel}
-                      </span>
+                      {/* Working vs Strict Comparison Table */}
+                      <div className="rounded bg-slate-950/90 border border-slate-800 p-2 text-[10px] space-y-1">
+                        <div className="flex justify-between text-slate-400 border-b border-slate-800 pb-1 font-bold">
+                          <span>Metric</span>
+                          <span>Working Limit</span>
+                          <span>Strict Limit</span>
+                        </div>
+                        <div className="flex justify-between text-slate-300">
+                          <span>RPM</span>
+                          <span>{item.node.working_limits?.rpm ?? '—'}</span>
+                          <span className="text-slate-500">{item.node.strict_limits?.rpm ?? '—'}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-300">
+                          <span>TPM</span>
+                          <span>{((item.node.working_limits?.tpm || 0) / 1000).toFixed(0)}K</span>
+                          <span className="text-slate-500">{((item.node.strict_limits?.tpm || 0) / 1000).toFixed(0)}K</span>
+                        </div>
+                        <div className="flex justify-between text-slate-300">
+                          <span>Max Input</span>
+                          <span>{(item.node.working_limits?.max_input_tokens || 0).toLocaleString()}</span>
+                          <span className="text-slate-500">{(item.node.strict_limits?.max_input_tokens || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-300">
+                          <span>Max Output</span>
+                          <span>{(item.node.working_limits?.max_output_tokens || 0).toLocaleString()}</span>
+                          <span className="text-slate-500">{(item.node.strict_limits?.max_output_tokens || 0).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Edit Working & Strict Limits Button */}
+                      <button
+                        onClick={() =>
+                          setEditingModel({
+                            provider: item.provider,
+                            tier: item.tier,
+                            model_name: item.model_name,
+                            working_limits: { ...item.node.working_limits },
+                            strict_limits: { ...item.node.strict_limits }
+                          })
+                        }
+                        className="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Edit Working & Strict Limits</span>
+                      </button>
                     </div>
-
-                    {/* Token Bounds Badges */}
-                    <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                      <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/60">
-                        <span className="text-slate-500 text-[10px] block">Max Input</span>
-                        <span className="text-white font-bold">{profile.max_input_tokens?.toLocaleString() ?? '—'}</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/60">
-                        <span className="text-slate-500 text-[10px] block">Max Output</span>
-                        <span className="text-emerald-300 font-bold">{profile.max_output_tokens?.toLocaleString() ?? '—'}</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/60">
-                        <span className="text-slate-500 text-[10px] block">Thinking Cap</span>
-                        <span className="text-purple-300 font-bold">{profile.thinking_budget?.toLocaleString() ?? '0'}</span>
-                      </div>
-                    </div>
-
-                    {/* Ideal For tags */}
-                    {profile.ideal_for && profile.ideal_for.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {profile.ideal_for.map((tag, i) => (
-                          <span
-                            key={i}
-                            className="px-2 py-0.5 rounded-md bg-slate-800/60 text-slate-300 text-[11px] border border-slate-700/50"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
-                    <span className="text-slate-500 text-[11px]">
-                      {profile.rpm} RPM · {(profile.tpm || 0).toLocaleString()} TPM · {profile.rpd} RPD
-                    </span>
-                    <button
-                      onClick={() => setEditingAgent({ agent_name: agentName, data: { ...profile } })}
-                      className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-800/80 font-semibold text-xs flex items-center gap-1.5 transition-colors"
-                    >
-                      <Sliders className="w-3 h-3 text-purple-300" />
-                      Configure Bounds
-                    </button>
-                  </div>
+                  )}
                 </div>
               );
             })}
@@ -1132,29 +1195,439 @@ export const TokenGovernor: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: EDIT MODEL LIMITS */}
-      {editingModel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div>
-                <h3 className="text-lg font-bold text-white font-mono">{editingModel.model_name}</h3>
-                <span className="text-xs text-slate-400">
-                  {editingModel.provider} / {editingModel.tier} Quota Bounds
+      {/* ------------------------------------------------------------- */}
+      {/* 4. TAB 2: SUB-AGENT ROLE BOUNDS                               */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === 'SUB_AGENTS' && (
+        <div id="tab-subagents-content" className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={agentSearchQuery}
+                onChange={(e) => setAgentSearchQuery(e.target.value)}
+                placeholder="Search sub-agents by role or assigned model..."
+                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <span>
+                Showing <strong className="text-white">{filteredSubAgents.length}</strong> configured agent roles
+              </span>
+            </div>
+          </div>
+
+          {/* Sub-Agents Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredSubAgents.map(([agentName, agentData]) => {
+              const isExpanded = expandedAgents.has(agentName);
+
+              return (
+                <div
+                  key={agentName}
+                  id={`agent-card-${agentName}`}
+                  className="glass-panel p-4 rounded-xl border border-slate-800 hover:border-slate-700 transition-all space-y-3"
+                >
+                  {/* Element 1 & 2: Agent Role Name & Complexity Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <h4 className="font-mono text-xs font-bold text-white truncate" title={agentName}>
+                        {agentName}
+                      </h4>
+                    </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                        agentData.complexity_level === 'CRITICAL'
+                          ? 'bg-rose-950/80 text-rose-300 border-rose-800'
+                          : agentData.complexity_level === 'HIGH'
+                          ? 'bg-amber-950/80 text-amber-300 border-amber-800'
+                          : agentData.complexity_level === 'LOCAL'
+                          ? 'bg-purple-950/80 text-purple-300 border-purple-800'
+                          : 'bg-blue-950/80 text-blue-300 border-blue-800'
+                      }`}
+                    >
+                      {agentData.complexity_level}
+                    </span>
+                  </div>
+
+                  {/* Element 3: Assigned Model & Provider Pill */}
+                  <div className="flex items-center justify-between text-[11px] font-mono px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800">
+                    <span className="text-slate-300 font-semibold truncate" title={agentData.model}>
+                      {agentData.model}
+                    </span>
+                    <span className="text-[10px] text-purple-300 uppercase font-bold">
+                      {agentData.provider}
+                    </span>
+                  </div>
+
+                  {/* Element 4: Compact Token Caps Summary */}
+                  <div className="flex items-center justify-between text-[11px] font-mono px-2.5 py-1 rounded bg-slate-900 border border-slate-800/80 text-slate-400">
+                    <span>In: <strong className="text-slate-200">{(agentData.max_input_tokens / 1000).toFixed(0)}K</strong></span>
+                    <span>&bull;</span>
+                    <span>Out: <strong className="text-slate-200">{(agentData.max_output_tokens / 1000).toFixed(0)}K</strong></span>
+                    <span>&bull;</span>
+                    <span>Think: <strong className="text-purple-300">{(agentData.thinking_budget / 1000).toFixed(0)}K</strong></span>
+                  </div>
+
+                  {/* Element 5: Expand / Configure Button */}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] font-mono">
+                    <span className="text-slate-400 text-[10px]">
+                      RPM: {agentData.rpm} &bull; TPM: {(agentData.tpm / 1000).toFixed(0)}K
+                    </span>
+
+                    <button
+                      onClick={() => toggleAgentExpanded(agentName)}
+                      className="flex items-center gap-1 text-purple-300 hover:text-white transition-colors"
+                    >
+                      <span className="text-[10px]">{isExpanded ? 'Collapse' : 'Expand / Configure'}</span>
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+
+                  {/* Expanded Agent Drawer */}
+                  {isExpanded && (
+                    <div className="pt-2 border-t border-slate-800 space-y-2.5 font-mono text-[11px]">
+                      {/* Ideal For Tags */}
+                      {agentData.ideal_for && agentData.ideal_for.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-slate-400 text-[10px] block">Ideal For:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {agentData.ideal_for.map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Strengths & Weaknesses */}
+                      {agentData.strengths && agentData.strengths.length > 0 && (
+                        <div className="text-[10px] text-emerald-400/90 leading-tight">
+                          <strong>Strengths:</strong> {agentData.strengths.join(', ')}
+                        </div>
+                      )}
+
+                      {/* Edit Agent Bounds Button */}
+                      <button
+                        onClick={() =>
+                          setEditingAgent({
+                            agent_name: agentName,
+                            data: { ...agentData }
+                          })
+                        }
+                        className="w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-700"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Edit Agent Bounds</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 5. TAB 3: COST & CLOUD SAVINGS CONSOLE                        */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === 'COST_SAVINGS' && (
+        <div id="tab-costsavings-content" className="space-y-5">
+          {/* 4 High-Clarity Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+            {/* Card 1: Actual Paid Spend Today */}
+            <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-1">
+              <span className="text-slate-400 text-xs flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                <span>Actual Paid Spend Today</span>
+              </span>
+              <div className="text-xl font-bold text-white">
+                ${costEstimate.actual_paid_spend_usd.toFixed(4)}{' '}
+                <span className="text-xs text-slate-400 font-normal">/ ₹{costEstimate.actual_paid_spend_inr}</span>
+              </div>
+              <p className="text-[10px] text-slate-500">
+                {(costEstimate.paid_tokens_today || 0).toLocaleString()} paid cloud tokens billed
+              </p>
+            </div>
+
+            {/* Card 2: Current Build Paid Spend */}
+            <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-1">
+              <span className="text-slate-400 text-xs flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Current Build Paid Spend</span>
+              </span>
+              <div className="text-xl font-bold text-amber-300">
+                {(costEstimate.paid_tokens_current_build || 0).toLocaleString()}
+                <span className="text-xs text-slate-400 font-normal">
+                  {' '}
+                  / {(hierarchy?.financial_shield?.per_build_paid_token_cap || 150000).toLocaleString()} tok
                 </span>
               </div>
-              <button onClick={() => setEditingModel(null)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full bg-amber-400 transition-all duration-500"
+                  style={{
+                    width: `${Math.min(
+                      Math.round(
+                        ((costEstimate.paid_tokens_current_build || 0) /
+                          Math.max(hierarchy?.financial_shield?.per_build_paid_token_cap || 150000, 1)) *
+                          100
+                      ),
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Card 3: Estimated Cloud Value Saved */}
+            <div className="glass-panel p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 shadow-glow-emerald space-y-1">
+              <span className="text-emerald-300 text-xs flex items-center gap-1.5 font-bold">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Estimated Value Saved</span>
+              </span>
+              <div className="text-xl font-bold text-emerald-300">
+                ${costEstimate.estimated_savings_usd.toFixed(4)}{' '}
+                <span className="text-xs text-emerald-400/80 font-normal">/ ₹{costEstimate.estimated_savings_inr}</span>
+              </div>
+              <p className="text-[10px] text-emerald-400/70">
+                Via Free Tier Pool & Local RTX 4060 Ollama
+              </p>
+            </div>
+
+            {/* Card 4: Free & Local Tokens Processed */}
+            <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-1">
+              <span className="text-slate-400 text-xs flex items-center gap-1.5">
+                <Cpu className="w-3.5 h-3.5 text-purple-400" />
+                <span>Free & Local Tokens</span>
+              </span>
+              <div className="text-xl font-bold text-white">
+                {(costEstimate.free_and_local_tokens_today || 0).toLocaleString()}
+                <span className="text-xs text-emerald-400 font-bold ml-1.5">@ $0.00</span>
+              </div>
+              <p className="text-[10px] text-slate-500">
+                Zero billing impact & 100% cloud cost avoidance
+              </p>
+            </div>
+          </div>
+
+          {/* Provider Cost & Token Breakdown Table */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950/80 overflow-hidden shadow-inner font-mono text-xs">
+            <div className="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <span className="font-bold text-white flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-purple-400" />
+                <span>Provider Cost & Cloud Savings Breakdown</span>
+              </span>
+              <span className="text-slate-400 text-[11px]">Calculated from active token ledger</span>
+            </div>
+
+            <div className="grid grid-cols-12 px-4 py-2.5 bg-slate-900/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="col-span-3 sm:col-span-3">Provider</div>
+              <div className="col-span-3 sm:col-span-2">Paid Tokens</div>
+              <div className="col-span-3 sm:col-span-3">Free/Local Tokens</div>
+              <div className="col-span-3 sm:col-span-2 text-right">Actual Cost</div>
+              <div className="col-span-3 sm:col-span-2 text-right hidden sm:block">Saved Value</div>
+            </div>
+
+            <div className="divide-y divide-slate-800/80">
+              {providerStatsList.map((stat) => (
+                <div
+                  key={stat.provider}
+                  className="grid grid-cols-12 items-center px-4 py-3 hover:bg-slate-900/50 transition-colors"
+                >
+                  <div className="col-span-3 sm:col-span-3 flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        stat.provider === 'OLLAMA'
+                          ? 'bg-purple-400'
+                          : stat.provider === 'GROQ'
+                          ? 'bg-orange-400'
+                          : 'bg-blue-400'
+                      }`}
+                    />
+                    <span className="font-bold text-white">{stat.provider}</span>
+                  </div>
+
+                  <div className="col-span-3 sm:col-span-2 text-slate-300">
+                    {stat.paidTokens.toLocaleString()}
+                  </div>
+
+                  <div className="col-span-3 sm:col-span-3 text-slate-300">
+                    {stat.freeLocalTokens.toLocaleString()}
+                  </div>
+
+                  <div className="col-span-3 sm:col-span-2 text-right font-bold text-amber-300">
+                    ${stat.actualCostUsd.toFixed(4)}
+                  </div>
+
+                  <div className="col-span-3 sm:col-span-2 text-right font-bold text-emerald-400 hidden sm:block">
+                    +${stat.estimatedSavingsUsd.toFixed(4)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 6. MODALS: ADD MODEL, EDIT LIMITS, EDIT AGENT BOUNDS          */}
+      {/* ------------------------------------------------------------- */}
+
+      {/* Modal 1: Add Model / Provider */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 font-mono text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-purple-400" />
+                <span>Register Provider Engine</span>
+              </h3>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-mono">
-              <span className="font-bold text-slate-300 uppercase tracking-wider block">
-                Working Limits (Enforced Pacing & Token Bounds)
-              </span>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-slate-400 text-[11px] mb-1">Provider Family</label>
+                <select
+                  value={addProvider}
+                  onChange={(e) => setAddProvider(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500"
+                >
+                  <option value="GOOGLE">GOOGLE</option>
+                  <option value="GROQ">GROQ</option>
+                  <option value="OLLAMA">OLLAMA</option>
+                  <option value="CUSTOM">Custom Provider...</option>
+                </select>
+              </div>
+
+              {addProvider === 'CUSTOM' && (
                 <div>
-                  <label className="block text-slate-400 mb-1">Working RPM</label>
+                  <label className="block text-slate-400 text-[11px] mb-1">Custom Provider Name</label>
+                  <input
+                    type="text"
+                    value={customProvider}
+                    onChange={(e) => setCustomProvider(e.target.value)}
+                    placeholder="e.g. ANTHROPIC"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Tier</label>
+                  <select
+                    value={addTier}
+                    onChange={(e) => setAddTier(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="FREE">FREE</option>
+                    <option value="PAID">PAID</option>
+                    <option value="LOCAL">LOCAL</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Model Identifier</label>
+                  <input
+                    type="text"
+                    value={addModelName}
+                    onChange={(e) => setAddModelName(e.target.value)}
+                    placeholder="e.g. gemini-3.6-flash"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working RPM</label>
+                  <input
+                    type="number"
+                    value={addWorkingRpm}
+                    onChange={(e) => setAddWorkingRpm(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working TPM</label>
+                  <input
+                    type="number"
+                    value={addWorkingTpm}
+                    onChange={(e) => setAddWorkingTpm(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Thinking Budget</label>
+                  <input
+                    type="number"
+                    value={addThinkingBudget}
+                    onChange={(e) => setAddThinkingBudget(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-purple-300"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddProviderModel}
+                disabled={addSaving}
+                className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all disabled:opacity-50"
+              >
+                {addSaving ? 'Saving...' : 'Register Model'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Edit Model Limits */}
+      {editingModel && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 font-mono text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white">{editingModel.model_name}</h3>
+                <p className="text-[11px] text-slate-400">
+                  {editingModel.provider} &bull; {editingModel.tier}
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingModel(null)}
+                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <span className="font-bold text-purple-300 block">Safe Working Limits (Pacing Ceilings)</span>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working RPM</label>
                   <input
                     type="number"
                     value={editingModel.working_limits.rpm}
@@ -1164,11 +1637,11 @@ export const TokenGovernor: React.FC = () => {
                         working_limits: { ...editingModel.working_limits, rpm: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Working TPM</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working TPM</label>
                   <input
                     type="number"
                     value={editingModel.working_limits.tpm}
@@ -1178,56 +1651,11 @@ export const TokenGovernor: React.FC = () => {
                         working_limits: { ...editingModel.working_limits, tpm: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Working RPD</label>
-                  <input
-                    type="number"
-                    value={editingModel.working_limits.rpd}
-                    onChange={(e) =>
-                      setEditingModel({
-                        ...editingModel,
-                        working_limits: { ...editingModel.working_limits, rpd: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Max Input Tokens</label>
-                  <input
-                    type="number"
-                    value={editingModel.working_limits.max_input_tokens}
-                    onChange={(e) =>
-                      setEditingModel({
-                        ...editingModel,
-                        working_limits: { ...editingModel.working_limits, max_input_tokens: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Max Output Tokens</label>
-                  <input
-                    type="number"
-                    value={editingModel.working_limits.max_output_tokens}
-                    onChange={(e) =>
-                      setEditingModel({
-                        ...editingModel,
-                        working_limits: { ...editingModel.working_limits, max_output_tokens: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Thinking Budget</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Thinking Budget</label>
                   <input
                     type="number"
                     value={editingModel.working_limits.thinking_budget}
@@ -1237,304 +1665,83 @@ export const TokenGovernor: React.FC = () => {
                         working_limits: { ...editingModel.working_limits, thinking_budget: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-purple-300"
                   />
                 </div>
               </div>
 
-              <span className="font-bold text-slate-300 uppercase tracking-wider block pt-2 border-t border-slate-800">
-                Strict API Limits (Hard Quota Thresholds)
-              </span>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-400 mb-1">Strict RPM</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Input Tokens</label>
                   <input
                     type="number"
-                    value={editingModel.strict_limits.rpm}
+                    value={editingModel.working_limits.max_input_tokens}
                     onChange={(e) =>
                       setEditingModel({
                         ...editingModel,
-                        strict_limits: { ...editingModel.strict_limits, rpm: Number(e.target.value) }
+                        working_limits: { ...editingModel.working_limits, max_input_tokens: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Strict TPM</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Output Tokens</label>
                   <input
                     type="number"
-                    value={editingModel.strict_limits.tpm}
+                    value={editingModel.working_limits.max_output_tokens}
                     onChange={(e) =>
                       setEditingModel({
                         ...editingModel,
-                        strict_limits: { ...editingModel.strict_limits, tpm: Number(e.target.value) }
+                        working_limits: { ...editingModel.working_limits, max_output_tokens: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Strict RPD</label>
-                  <input
-                    type="number"
-                    value={editingModel.strict_limits.rpd}
-                    onChange={(e) =>
-                      setEditingModel({
-                        ...editingModel,
-                        strict_limits: { ...editingModel.strict_limits, rpd: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
               <button
-                type="button"
                 onClick={() => setEditingModel(null)}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleSaveModelLimits}
                 disabled={modelSaving}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all disabled:opacity-50"
               >
-                {modelSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Persist Model Limits
+                {modelSaving ? 'Saving...' : 'Persist Limits'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL: ADD PROVIDER / MODEL */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-400" />
-                <h3 className="text-lg font-bold text-white">Add Provider / Model</h3>
-              </div>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-mono">
-              {/* Provider Selection */}
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1.5">Select Provider Platform</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {['GOOGLE', 'GROQ', 'OLLAMA', 'OPENAI', 'ANTHROPIC', 'DEEPSEEK'].map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setAddProvider(p)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors ${
-                        addProvider === p
-                          ? 'bg-blue-600 border-blue-400 text-white'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setAddProvider('CUSTOM')}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors ${
-                      addProvider === 'CUSTOM'
-                        ? 'bg-blue-600 border-blue-400 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    Custom...
-                  </button>
-                </div>
-                {addProvider === 'CUSTOM' && (
-                  <input
-                    type="text"
-                    placeholder="Enter custom provider name (e.g. MISTRAL)"
-                    value={customProvider}
-                    onChange={(e) => setCustomProvider(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                )}
-              </div>
-
-              {/* Tier & Model Name */}
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Tier</label>
-                  <select
-                    value={addTier}
-                    onChange={(e) => setAddTier(e.target.value as 'FREE' | 'PAID' | 'LOCAL')}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  >
-                    <option value="FREE">FREE</option>
-                    <option value="PAID">PAID</option>
-                    <option value="LOCAL">LOCAL</option>
-                  </select>
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-slate-300 font-semibold mb-1">Model Identifier</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. llama-3.3-70b-versatile or claude-3-7-sonnet"
-                    value={addModelName}
-                    onChange={(e) => setAddModelName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Working Limits */}
-              <span className="font-bold text-slate-300 uppercase tracking-wider block pt-2 border-t border-slate-800">
-                Working Limits
-              </span>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Working RPM</label>
-                  <input
-                    type="number"
-                    value={addWorkingRpm}
-                    onChange={(e) => setAddWorkingRpm(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Working TPM</label>
-                  <input
-                    type="number"
-                    value={addWorkingTpm}
-                    onChange={(e) => setAddWorkingTpm(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Working RPD</label>
-                  <input
-                    type="number"
-                    value={addWorkingRpd}
-                    onChange={(e) => setAddWorkingRpd(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Max Input</label>
-                  <input
-                    type="number"
-                    value={addMaxInput}
-                    onChange={(e) => setAddMaxInput(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Max Output</label>
-                  <input
-                    type="number"
-                    value={addMaxOutput}
-                    onChange={(e) => setAddMaxOutput(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Thinking Budget</label>
-                  <input
-                    type="number"
-                    value={addThinkingBudget}
-                    onChange={(e) => setAddThinkingBudget(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Strict Limits */}
-              <span className="font-bold text-slate-300 uppercase tracking-wider block pt-2 border-t border-slate-800">
-                Strict API Limits
-              </span>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Strict RPM</label>
-                  <input
-                    type="number"
-                    value={addStrictRpm}
-                    onChange={(e) => setAddStrictRpm(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Strict TPM</label>
-                  <input
-                    type="number"
-                    value={addStrictTpm}
-                    onChange={(e) => setAddStrictTpm(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Strict RPD</label>
-                  <input
-                    type="number"
-                    value={addStrictRpd}
-                    onChange={(e) => setAddStrictRpd(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAddProviderModel}
-                disabled={addSaving || !addModelName.trim()}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50"
-              >
-                {addSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Add Model to Hierarchy
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: EDIT SUB-AGENT BOUNDS */}
+      {/* Modal 3: Edit Sub-Agent Bounds */}
       {editingAgent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 font-mono text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-white font-mono">{editingAgent.agent_name}</h3>
-                <span className="text-xs text-slate-400">Configure Sub-Agent Role Token Bounds</span>
+                <h3 className="text-sm font-bold text-white">{editingAgent.agent_name}</h3>
+                <p className="text-[11px] text-slate-400">Sub-Agent Behavioral Envelope & Quota Bound</p>
               </div>
-              <button onClick={() => setEditingAgent(null)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <button
+                onClick={() => setEditingAgent(null)}
+                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-mono">
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Assigned Model Identifier</label>
+                  <label className="block text-slate-400 text-[11px] mb-1">Assigned Model</label>
                   <input
                     type="text"
                     value={editingAgent.data.model}
@@ -1544,29 +1751,33 @@ export const TokenGovernor: React.FC = () => {
                         data: { ...editingAgent.data, model: e.target.value }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-slate-400 mb-1">Provider Tag</label>
-                  <input
-                    type="text"
-                    value={editingAgent.data.provider || 'GOOGLE'}
+                  <label className="block text-slate-400 text-[11px] mb-1">Complexity Level</label>
+                  <select
+                    value={editingAgent.data.complexity_level}
                     onChange={(e) =>
                       setEditingAgent({
                         ...editingAgent,
-                        data: { ...editingAgent.data, provider: e.target.value.toUpperCase() }
+                        data: { ...editingAgent.data, complexity_level: e.target.value }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200"
+                  >
+                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                    <option value="LOCAL">LOCAL</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-slate-400 mb-1">Max Input Tokens</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Input</label>
                   <input
                     type="number"
                     value={editingAgent.data.max_input_tokens}
@@ -1576,11 +1787,11 @@ export const TokenGovernor: React.FC = () => {
                         data: { ...editingAgent.data, max_input_tokens: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Max Output Tokens</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Output</label>
                   <input
                     type="number"
                     value={editingAgent.data.max_output_tokens}
@@ -1590,11 +1801,11 @@ export const TokenGovernor: React.FC = () => {
                         data: { ...editingAgent.data, max_output_tokens: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Thinking Budget</label>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Thinking Budget</label>
                   <input
                     type="number"
                     value={editingAgent.data.thinking_budget}
@@ -1604,73 +1815,25 @@ export const TokenGovernor: React.FC = () => {
                         data: { ...editingAgent.data, thinking_budget: Number(e.target.value) }
                       })
                     }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Agent RPM</label>
-                  <input
-                    type="number"
-                    value={editingAgent.data.rpm}
-                    onChange={(e) =>
-                      setEditingAgent({
-                        ...editingAgent,
-                        data: { ...editingAgent.data, rpm: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Agent TPM</label>
-                  <input
-                    type="number"
-                    value={editingAgent.data.tpm}
-                    onChange={(e) =>
-                      setEditingAgent({
-                        ...editingAgent,
-                        data: { ...editingAgent.data, tpm: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-1">Agent RPD</label>
-                  <input
-                    type="number"
-                    value={editingAgent.data.rpd}
-                    onChange={(e) =>
-                      setEditingAgent({
-                        ...editingAgent,
-                        data: { ...editingAgent.data, rpd: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-purple-300"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
               <button
-                type="button"
                 onClick={() => setEditingAgent(null)}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleSaveSubAgentBounds}
                 disabled={agentSaving}
-                className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all disabled:opacity-50"
               >
-                {agentSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Persist Agent Bounds
+                {agentSaving ? 'Saving...' : 'Save Agent Bounds'}
               </button>
             </div>
           </div>

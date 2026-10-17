@@ -985,3 +985,45 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.6: Token Governor (/governor) & Key Manager (/keys) Minimalist Redesign, Provider/Tier Dropdowns & Cost/Savings Console
+- **Date**: 2026-10-17
+- **Goal**: Eliminate text and visual congestion across the Token Governor and Key Manager consoles by introducing compact top control bars with Provider and Tier quick-dropdowns, collapsing complex telemetry cards into sleek 4-item cards with click-to-expand drawers, and surfacing the Stage 15.2 Per-Build Paid Token Cap and Cost & Cloud Savings Console (`/api/governor/cost-estimate`).
+- **Key Deliverables Implemented**:
+  - `frontend/src/pages/TokenGovernor.tsx`:
+    * **Compact Top Bar & Financial Shield Summary Strip**:
+      - Top row with Title, `1:30 PM IST Reset` anchor pill, `Active In-Flight Leases` pill, Provider dropdown (`ALL` + dynamic providers), Tier dropdown (`ALL`, `FREE`, `PAID`, `LOCAL`), `+ Add Model` button, and `📜 Global Logs` shortcut (`navigate('/logs')`).
+      - Financial Shield Strip: 1-click `PAID TIER LOCKED` vs `PAID TIER UNLOCKED` toggle (`POST /api/governor/shield`), `🛡️ Working Limits Active` vs `⚡ Strict API Limits` toggle, Per-Build Paid Meter (`paid_tokens_current_build / per_build_paid_token_cap`), Daily Paid Meter (`paid_tokens_today / daily_paid_token_cap`), Cost & Savings pill (`Spend: $X.XX (₹Y) • Saved: $A.AA (₹B)`), and collapsible `⚙️ Shield Caps ▾` drawer for editing daily/per-build caps and safety margins.
+    * **3-Tab View Switcher**:
+      - Tab 1: `🏛️ Model Quotas` (Provider & Tier filtered model cards with search)
+      - Tab 2: `🤖 Sub-Agent Role Bounds` (11 Sub-Agents with click-to-expand details & editor)
+      - Tab 3: `💰 Cost & Cloud Savings` (Real-time USD & INR spend vs. Free/Local savings breakdown)
+    * **Tab 1 — Model Quotas**:
+      - Minimalist collapsed cards displaying ONLY Model Name, Provider & Tier badges, 60s RPM/TPM progress bars, in-flight lease badge, and `Details / Edit ▾` expand button.
+      - Click-to-expand drawer revealing 4 discrete token boxes (Input Tokens Today, Output Tokens Today, Thinking Tokens Today, Daily Requests RPD), Working Limits vs Strict API Limits table, and `✏️ Edit Working & Strict Limits` button opening the limit editor modal.
+    * **Tab 2 — Sub-Agent Role Bounds**:
+      - Minimalist collapsed agent cards showing Role Name, Complexity badge, Model/Provider pill, Token caps summary (`In: 16K • Out: 4K • Think: 2K`), and `Expand / Configure ▾` button.
+      - Click-to-expand drawer revealing Ideal For tags, Strengths, Weaknesses, and `✏️ Edit Agent Bounds` modal button (`POST /api/governor/sub-agents`).
+    * **Tab 3 — Cost & Cloud Savings**:
+      - 4 High-Clarity Metric Cards: Actual Paid Spend Today ($ / ₹), Current Build Paid Spend (with progress meter against per-build cap), Estimated Cloud Value Saved ($ / ₹ via Free/Local execution), and Free & Local Tokens Processed at $0.00 cost.
+      - Provider Cost & Cloud Savings Breakdown Table showing per-provider (`GOOGLE`, `GROQ`, `OLLAMA`) tokens, spend, and saved value.
+  - `frontend/src/pages/ApiKeyManager.tsx`:
+    * **Compact Top Control Bar**:
+      - Title + Active Pool Summary Pill (`🔑 X/Y Selected • Free: A • Paid: B`).
+      - Provider Filter dropdown (`ALL`, `GOOGLE`, `GROQ`), Tier Filter dropdown (`ALL`, `FREE`, `PAID`), Routing Policy dropdown (`GLOBAL_HYBRID`, `FREE_POOL`, `PAID_POOL`, `SINGLE_PINNED`), `+ Add API Key` button, and `📜 Global Logs` button.
+    * **Collapsible Policy & Batch Actions Strip**:
+      - Inline Pinned Key selector when `SINGLE_PINNED` is active.
+      - Emerald banner when `paid_tier_locked` is active.
+      - Batch pool toggle buttons (`Select All Free`, `Deselect All Free`, `Select All Paid`, `Deselect All Paid`).
+    * **Minimalist Key Cards with Click-to-Expand Details**:
+      - Default sleek row showing ONLY Pool Inclusion Checkbox, Key Label & Masked Key with 1-click Copy, Provider & Tier badges, Status pill (`🟢 ACTIVE` / `⏳ COOLDOWN Xs`), and `Actions & Stats ▾` expand button.
+      - Click-to-expand drawer showing Key ID, Requests Today, Error Count, Last Active timestamp, `⚡ Test Key` button, `📌 Pin Key` button, and `🗑️ Delete Key` button.
+- **Verification Results**:
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `vite build`: **100% SUCCESS (0 errors, 2.38s build time)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed)**
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.
