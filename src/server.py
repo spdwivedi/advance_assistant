@@ -134,6 +134,17 @@ class FinancialShieldUpdateRequest(BaseModel):
     safety_margin_percent: Optional[int] = None
 
 
+class RecalculateWorkingLimitsRequest(BaseModel):
+    margin_pct: Optional[int] = 85
+
+
+class KeyLimitsUpdateRequest(BaseModel):
+    model_name: Optional[str] = None
+    working_limits: Optional[Dict[str, int]] = None
+    strict_limits: Optional[Dict[str, int]] = None
+    safety_margin_percent: Optional[int] = None
+
+
 class PausePayload(BaseModel):
     paused: Optional[bool] = None
 
@@ -550,9 +561,11 @@ def get_governor_hierarchy() -> Dict[str, Any]:
     Returns full Provider -> Tier -> Model hierarchy telemetry, sub-agent bounds,
     and multi-provider key pool metrics.
     """
+    hier = governor.get_hierarchy_telemetry()
     return {
         "status": "success",
-        "hierarchy": governor.get_hierarchy_telemetry(),
+        "hierarchy": hier,
+        "key_quotas": hier.get("key_quotas") or governor.get_key_quota_telemetry(),
         "sub_agents": _load_sub_agents(),
         "key_pool": get_detailed_key_telemetry(),
         "cost_estimate": governor.get_cost_and_savings_estimate()
@@ -617,6 +630,36 @@ def update_governor_financial_shield(req: FinancialShieldUpdateRequest) -> Dict[
         return {
             "status": "success",
             **res
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/governor/sync-models")
+def sync_governor_models() -> Dict[str, Any]:
+    """
+    Triggers live model discovery from Google AI Studio, Groq, Ollama daemon,
+    and offline benchmark matrices, applying exact 85% working limits.
+    """
+    try:
+        res = governor.sync_live_and_offline_models()
+        return res
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/governor/recalculate-85")
+def recalculate_governor_limits(req: Optional[RecalculateWorkingLimitsRequest] = None) -> Dict[str, Any]:
+    """
+    Recalculates working limits for all models in provider hierarchy at specified margin_pct (default 85%).
+    """
+    try:
+        margin = req.margin_pct if req and req.margin_pct is not None else 85
+        updated_hierarchy = governor.recalculate_all_working_limits(margin)
+        return {
+            "status": "success",
+            "margin_pct": margin,
+            "hierarchy": updated_hierarchy
         }
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -956,6 +999,57 @@ def set_tier_mode(payload: TierModePayload) -> Dict[str, Any]:
         "status": "success",
         "active_tier_mode": mode
     }
+
+
+@app.get("/api/keys/quotas")
+def get_all_key_quotas() -> Dict[str, Any]:
+    """
+    Returns complete per-key quota telemetry and live usage across all registered keys.
+    """
+    return governor.get_key_quota_telemetry()
+
+
+@app.get("/api/keys/{key_id}/quotas")
+def get_single_key_quotas(key_id: str) -> Dict[str, Any]:
+    """
+    Returns dedicated per-key quota telemetry and usage for a specific key.
+    """
+    res = governor.get_key_quota_telemetry(key_id)
+    if res.get("status") == "error":
+        raise HTTPException(status_code=404, detail=res.get("message", f"Key ID '{key_id}' not found"))
+    return res
+
+
+@app.post("/api/keys/{key_id}/limits")
+def update_key_limits(key_id: str, req: KeyLimitsUpdateRequest) -> Dict[str, Any]:
+    """
+    Saves dedicated per-key model limits and/or updates the key's safety margin percentage.
+    """
+    try:
+        updated_data = {}
+        if req.safety_margin_percent is not None:
+            margin_res = key_manager.set_key_safety_margin(key_id, req.safety_margin_percent)
+            updated_data["safety_margin"] = margin_res
+
+        if req.model_name and req.working_limits:
+            model_res = key_manager.set_key_model_limits(
+                key_id=key_id,
+                model_name=req.model_name,
+                working_limits=req.working_limits,
+                strict_limits=req.strict_limits
+            )
+            updated_data["model_limits"] = model_res
+
+        return {
+            "status": "success",
+            "key_id": key_id,
+            "updated": updated_data,
+            "telemetry": governor.get_key_quota_telemetry(key_id)
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 def _run_background_blueprint(

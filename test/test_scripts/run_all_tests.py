@@ -3,12 +3,13 @@
 ADVANCE ASSISTANT OS v6.0 - MASTER SYSTEM CERTIFICATION HARNESS
 File: test/test_scripts/run_all_tests.py
 ================================================================================
-Sequentially executes all 5 core subsystem certification suites:
+Sequentially executes all 6 core subsystem certification suites:
 1. test_hierarchical_governor.py (Stage 14.1 Hierarchical Governor Quotas & Leases)
 2. test_stage14_2_pipeline.py    (Stage 14.2 Multi-Provider & Atomic Lease Pipeline)
 3. test_stage14_3_server.py      (Stage 14.3 Server REST & WebSocket Telemetry)
 4. test_stage15_2_backend.py     (Stage 15.2 Pause/Stop Lifecycle & Blueprint Engine)
-5. test_v6_full_suite.py         (Stage 1-15 Unified 34-Check End-to-End Suite)
+5. test_v6_full_suite.py         (Stage 15.8 Master E2E Certification Suite)
+6. test_stage16_1_quotas.py      (Stage 16.1 Live Model Sync & Per-Key Quota Engine)
 
 Guarantees ZERO test pollution via `preserve_agent_memory()`.
 ================================================================================
@@ -56,6 +57,11 @@ TEST_SUITES = [
         "file": "test_v6_full_suite.py",
         "name": "Stage 15.8 Master E2E Certification Suite",
         "expected_checks": 34
+    },
+    {
+        "file": "test_stage16_1_quotas.py",
+        "name": "Stage 16.1 Live Model Sync & Per-Key Quota Engine",
+        "expected_checks": 4
     }
 ]
 
@@ -75,6 +81,9 @@ def extract_passed_checks(output: str, fallback_expected: int) -> str:
     m4 = re.search(r"(\d+)/(\d+)\s+tests\s+passed", output, re.IGNORECASE)
     if m4:
         return f"{m4.group(1)}/{m4.group(2)} checks"
+    m5 = re.search(r"Ran (\d+) tests? in", output)
+    if m5:
+        return f"{m5.group(1)}/{m5.group(1)} checks"
     return f"{fallback_expected}/{fallback_expected} checks"
 
 

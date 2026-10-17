@@ -1137,3 +1137,70 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED (ADVANCE ASSISTANT OS v6.0 STAGE 15 SERIES FULLY FINALIZED).
+
+### Stage 16.1: Deep Project Audit, Live AI Studio / MCP / Benchmark Model Sync, Automatic 85% Working Limit Engine & Per-Key Quota Persistence
+- **Date**: 2026-10-17
+- **Goal**: Implement deterministic 85% working limit calculations across all Free and Paid tiers, establish live & offline model synchronization from Google AI Studio, Groq, local Ollama daemon, and benchmark databases, and enforce dedicated per-key sliding window tracking and per-key quota persistence.
+- **Key Deliverables Implemented**:
+  - `src/config.py`:
+    * Implemented deterministic `compute_working_limits(strict_limits: Dict[str, int], margin_pct: int = 85, thinking_budget: int = 0) -> Dict[str, int]`:
+      Scales strict RPM, TPM, RPD, max_input_tokens, and max_output_tokens to exactly `margin_pct`% (default 85%) so execution never hits provider ceilings.
+    * Refactored `DEFAULT_PROVIDER_QUOTAS` with real Google AI Studio Free Tier vs. Paid Tier-1 limits, Groq Cloud, and Local Ollama matrices:
+      - `GOOGLE -> FREE`:
+        - `gemini-2.5-pro`: Strict `5 RPM | 250K TPM | 100 RPD` -> 85% Working: `4 RPM | 212.5K TPM | 85 RPD | 27,852 In | 6,963 Out | 2,048 Think`
+        - `gemini-3.1-pro-preview`: Strict `5 RPM | 250K TPM | 50 RPD` -> 85% Working: `4 RPM | 212.5K TPM | 42 RPD | 27,852 In | 6,963 Out | 2,048 Think`
+        - `gemini-2.5-flash`: Strict `10 RPM | 250K TPM | 250 RPD` -> 85% Working: `8 RPM | 212.5K TPM | 212 RPD | 27,852 In | 6,963 Out | 512 Think`
+        - `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3-flash-preview`: Strict `15 RPM | 250K TPM | 500 RPD` -> 85% Working: `12 RPM | 212.5K TPM | 425 RPD | 27,852 In | 6,963 Out | 512 Think`
+        - `gemini-2.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite`: Strict `15 RPM | 250K TPM | 1,000 RPD` -> 85% Working: `12 RPM | 212.5K TPM | 850 RPD | 27,852 In | 6,963 Out | 0 Think`
+        - `gemini-2.0-flash`: Strict `15 RPM | 1M TPM | 1,500 RPD` -> 85% Working: `12 RPM | 850K TPM | 1,275 RPD | 27,852 In | 6,963 Out | 0 Think`
+        - `gemini-2.0-flash-lite`: Strict `30 RPM | 1M TPM | 1,500 RPD` -> 85% Working: `25 RPM | 850K TPM | 1,275 RPD | 27,852 In | 6,963 Out | 0 Think`
+        - `gemma-3-27b-it`: Strict `30 RPM | 15K TPM | 14,400 RPD` -> 85% Working: `25 RPM | 12.75K TPM | 12,240 RPD | 6,963 In | 3,481 Out | 0 Think`
+      - `GOOGLE -> PAID`:
+        - `gemini-2.5-pro`: Strict `150 RPM | 2M TPM | 10,000 RPD` -> 85% Working: `127 RPM | 1.7M TPM | 8,500 RPD | 108,800 In | 6,963 Out | 2,048 Think`
+        - `gemini-3.1-pro-preview`: Strict `150 RPM | 2M TPM | 1,000 RPD` -> 85% Working: `127 RPM | 1.7M TPM | 850 RPD | 108,800 In | 6,963 Out | 2,048 Think`
+        - `gemini-2.5-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3-flash-preview`: Strict `1,000 RPM | 1M TPM | 10,000 RPD` -> 85% Working: `850 RPM | 850K TPM | 8,500 RPD | 108,800 In | 6,963 Out | 512 Think`
+        - `gemini-2.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite`: Strict `4,000 RPM | 4M TPM | 150,000 RPD` -> 85% Working: `3,400 RPM | 3.4M TPM | 127,500 RPD | 54,400 In | 6,963 Out | 0 Think`
+        - `gemini-2.0-flash`: Strict `2,000 RPM | 4M TPM | 100,000 RPD` -> 85% Working: `1,700 RPM | 3.4M TPM | 85,000 RPD | 108,800 In | 6,963 Out | 0 Think`
+        - `gemini-2.0-flash-lite`: Strict `4,000 RPM | 4M TPM | 150,000 RPD` -> 85% Working: `3,400 RPM | 3.4M TPM | 127,500 RPD | 54,400 In | 6,963 Out | 0 Think`
+      - `GROQ -> FREE & PAID`:
+        - `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `qwen-2.5-coder-32b`, `deepseek-r1-distill-llama-70b`
+      - `OLLAMA -> LOCAL`:
+        - `qwen2.5-coder:32b`, `qwen2.5-coder:14b`, `qwen2.5-coder:7b`, `qwen2.5-coder:1.5b`, `codestral:22b`, `deepseek-r1:8b`, `sqlcoder:7b`, `llama3-groq-tool-use:8b`
+  - `src/key_manager.py`:
+    * Expanded key schema with `"safety_margin_percent": 85` and `"custom_model_limits": {}`.
+    * Implemented `set_key_model_limits(self, key_id, model_name, working_limits, strict_limits)` for dedicated per-key overrides.
+    * Implemented `set_key_safety_margin(self, key_id, safety_margin_percent)` for key-specific safety margin customization.
+    * Implemented `get_key_effective_limits(self, key_id, provider, tier, model_name)` retrieving key custom overrides or base limits dynamically scaled by the key's safety margin.
+    * Preserved all backward-compatible methods (`get_masked_keys`, `add_key`, `resolve_key_context`).
+  - `src/token_governor.py`:
+    * Updated `bucket_rolling_window` and `bucket_rolling_tokens` sliding 60-second in-memory structures keyed by `"{provider}:{tier}:{key_id}:{model_name}"`.
+    * In `acquire_lease(...)`: Enforced limits via `key_manager.get_key_effective_limits(key_id, ...)` so each key isolates its rolling RPM, rolling TPM, in-flight leases, and daily RPD.
+    * Implemented `get_key_quota_telemetry(self, key_id=None)` returning complete per-key telemetry breakdown (RPM/TPM live rolling usage, daily requests, token counts, in-flight count, and custom override status).
+    * Implemented `recalculate_all_working_limits(self, margin_pct=85)` looping through all models and updating working limits to exact `margin_pct`%.
+    * Implemented `sync_live_and_offline_models(self)` querying offline benchmark matrices (`gemini_tier1_matrix.json`, `cloud_quotas.json`), live Google AI Studio API (`v1beta/models`), live Groq API (`openai/v1/models`), and live Local Ollama daemon (`11434/api/tags`), populating 19 Google Free models, 49 Google Paid models, 4 Groq models, and 76 local Ollama models.
+  - `src/server.py`:
+    * Added `POST /api/governor/sync-models`: Triggers multi-source live and offline catalog sync.
+    * Added `POST /api/governor/recalculate-85`: Recalculates working limits at target safety margin percentage.
+    * Added `GET /api/keys/quotas`: Returns telemetry across all registered keys and default system key.
+    * Added `GET /api/keys/{key_id}/quotas`: Returns dedicated quota telemetry for target key.
+    * Added `POST /api/keys/{key_id}/limits`: Saves dedicated per-key model limits and safety margin percentage.
+    * Enriched `GET /api/governor/hierarchy` with `"key_quotas"`.
+  - `test/test_scripts/test_stage16_1_quotas.py`:
+    * Created comprehensive 4-test suite wrapped in `with preserve_agent_memory():`.
+    * Verified exact 85% limit math across Google Free/Paid, Groq, and Ollama.
+    * Verified sync and recalculation REST endpoints.
+    * Verified strict Per-Key Quota Isolation: Exhausting Key_1's 85% RPM (4) on `gemini-2.5-pro` while Key_2 retains 100% of its working RPM.
+    * Verified custom per-key limit overrides and quota telemetry.
+  - `test/test_scripts/run_all_tests.py`:
+    * Added `test_stage16_1_quotas.py` to the Unified Master Certification Harness.
+    * Executed all 6 suites with 100% PASS (6/6 suites, 66/66 checks in under 9 seconds).
+- **Verification Results**:
+  - `test_stage16_1_quotas.py`: **4/4 tests passed (100% OK)**
+  - `run_all_tests.py`: **6/6 suites passed (100% OK, 66/66 checks in 8.98s)**
+  - `frontend/tsc --noEmit`: **0 errors**
+  - `frontend/vite build`: **100% SUCCESS (1.97s)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Zero Test Pollution Audit**:
+  - All tests executed within `preserve_agent_memory()` with clean snapshot restoration.
+- **Stage Status**: COMPLETED.

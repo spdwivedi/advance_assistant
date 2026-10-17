@@ -55,6 +55,8 @@ class HierarchicalTokenGovernor:
         # Sliding 60-second in-memory windows keyed by bucket_key: "{provider}:{tier}:{key_id}:{model_name}"
         self.rolling_requests: Dict[str, List[float]] = {}
         self.rolling_tokens: Dict[str, List[tuple]] = {}  # List of (timestamp, tokens)
+        self.bucket_rolling_window = self.rolling_requests
+        self.bucket_rolling_tokens = self.rolling_tokens
         
         # Pacing tracker
         self._last_bucket_request_time: Dict[str, float] = {}
@@ -263,7 +265,14 @@ class HierarchicalTokenGovernor:
                 }
 
             # 2. Retrieve Limits
-            limits_bundle = self.get_model_limits(resolved_provider, tier_upper, model_name)
+            if key_id and key_id != "default":
+                try:
+                    from src.key_manager import key_manager
+                    limits_bundle = key_manager.get_key_effective_limits(key_id, resolved_provider, tier_upper, model_name)
+                except Exception:
+                    limits_bundle = self.get_model_limits(resolved_provider, tier_upper, model_name)
+            else:
+                limits_bundle = self.get_model_limits(resolved_provider, tier_upper, model_name)
             enforce_working = shield.get("enforce_working_limits", True)
             active_limits = limits_bundle["working_limits"] if enforce_working else limits_bundle["strict_limits"]
 
@@ -648,7 +657,360 @@ class HierarchicalTokenGovernor:
                 "active_build_project": self.ledger.get("active_build_project", "default_project"),
                 "last_reset_date": self.ledger.get("last_reset_date", ""),
                 "active_in_flight_leases": len(self.in_flight_leases),
-                "providers": providers_out
+                "providers": providers_out,
+                "key_quotas": self.get_key_quota_telemetry()
+            }
+
+
+    def get_key_quota_telemetry(self, key_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Returns a complete per-key breakdown for registered keys (and default),
+        showing key_id, label, provider, tier, safety_margin_percent (85%), and
+        per-model strict_limits, working_limits, rolling_rpm, rolling_tpm, requests_today,
+        input_tokens_today, output_tokens_today, thinking_tokens_today, in_flight_requests,
+        and has_custom_override.
+        """
+        with self.lock:
+            now_ts = time.time()
+            self._cleanup_expired_leases_and_windows(now_ts)
+
+            from src.key_manager import key_manager
+            registered_keys = key_manager.get_masked_keys()
+
+            def _build_key_telemetry(k_info: Dict[str, Any]) -> Dict[str, Any]:
+                kid = k_info.get("id")
+                k_prov = k_info.get("provider", "GOOGLE")
+                k_tier = k_info.get("tier", "FREE")
+                k_margin = k_info.get("safety_margin_percent", 85)
+                k_custom = k_info.get("custom_model_limits", {})
+
+                # Models applicable to this provider & tier
+                tier_models = self.quotas.get("providers", {}).get(k_prov, {}).get(k_tier, {})
+                all_model_names = set(tier_models.keys()).union(k_custom.keys())
+
+                models_telemetry = {}
+                for m_name in sorted(all_model_names):
+                    bucket_key = f"{k_prov}:{k_tier}:{kid}:{m_name}"
+
+                    eff_limits = key_manager.get_key_effective_limits(kid, k_prov, k_tier, m_name)
+                    has_override = (m_name in k_custom)
+
+                    rolling_req = len(self.rolling_requests.get(bucket_key, []))
+                    rolling_tok = sum(p[1] for p in self.rolling_tokens.get(bucket_key, []))
+
+                    in_flight = [l for l in self.in_flight_leases.values() if l.get("bucket_key") == bucket_key]
+                    in_flight_count = len(in_flight)
+
+                    b_usage = self.ledger.get("bucket_usage", {}).get(bucket_key, {})
+
+                    models_telemetry[m_name] = {
+                        "strict_limits": eff_limits.get("strict_limits", {}),
+                        "working_limits": eff_limits.get("working_limits", {}),
+                        "rolling_rpm": rolling_req,
+                        "rolling_tpm": rolling_tok,
+                        "requests_today": b_usage.get("requests_today", 0),
+                        "input_tokens_today": b_usage.get("input_tokens_today", 0),
+                        "output_tokens_today": b_usage.get("output_tokens_today", 0),
+                        "thinking_tokens_today": b_usage.get("thinking_tokens_today", 0),
+                        "total_tokens_today": b_usage.get("total_tokens_today", 0),
+                        "in_flight_requests": in_flight_count,
+                        "has_custom_override": has_override
+                    }
+
+                return {
+                    "key_id": kid,
+                    "label": k_info.get("label", kid),
+                    "provider": k_prov,
+                    "tier": k_tier,
+                    "safety_margin_percent": k_margin,
+                    "status": k_info.get("status", "ACTIVE"),
+                    "models": models_telemetry
+                }
+
+            if key_id:
+                target_key = next((k for k in registered_keys if k.get("id") == key_id), None)
+                if not target_key and key_id == "default":
+                    target_key = {
+                        "id": "default",
+                        "label": "Default System / Env Key",
+                        "provider": "GOOGLE",
+                        "tier": "FREE",
+                        "safety_margin_percent": self.quotas.get("financial_shield", {}).get("safety_margin_percent", 85),
+                        "custom_model_limits": {},
+                        "status": "ACTIVE"
+                    }
+                if target_key:
+                    return {
+                        "status": "success",
+                        "key_id": key_id,
+                        "telemetry": _build_key_telemetry(target_key)
+                    }
+                return {
+                    "status": "error",
+                    "message": f"Key ID '{key_id}' not found",
+                    "key_id": key_id
+                }
+
+            all_telemetry = {}
+            for k in registered_keys:
+                all_telemetry[k["id"]] = _build_key_telemetry(k)
+
+            default_info = {
+                "id": "default",
+                "label": "Default System / Env Key",
+                "provider": "GOOGLE",
+                "tier": "FREE",
+                "safety_margin_percent": self.quotas.get("financial_shield", {}).get("safety_margin_percent", 85),
+                "custom_model_limits": {},
+                "status": "ACTIVE"
+            }
+            all_telemetry["default"] = _build_key_telemetry(default_info)
+
+            return {
+                "status": "success",
+                "total_keys": len(all_telemetry),
+                "keys": all_telemetry
+            }
+
+    def recalculate_all_working_limits(self, margin_pct: int = 85) -> Dict[str, Any]:
+        """
+        Loops through every Provider -> Tier -> Model in .agent_memory/provider_quotas.json,
+        updates financial_shield['safety_margin_percent'] = margin_pct,
+        recalculates working_limits = compute_working_limits(strict_limits, margin_pct, existing_thinking_budget),
+        and saves cleanly to .agent_memory/provider_quotas.json.
+        """
+        margin = max(10, min(100, int(margin_pct)))
+        with self.lock:
+            shield = self.quotas.setdefault("financial_shield", {})
+            shield["safety_margin_percent"] = margin
+
+            from src.config import compute_working_limits
+            providers = self.quotas.setdefault("providers", {})
+            for p_name, tiers in providers.items():
+                for t_name, models in tiers.items():
+                    for m_name, m_cfg in models.items():
+                        strict_limits = m_cfg.get("strict_limits", {})
+                        if not strict_limits:
+                            strict_limits = m_cfg.get("working_limits", {}).copy()
+                            m_cfg["strict_limits"] = strict_limits
+
+                        existing_working = m_cfg.get("working_limits", {})
+                        thinking_budget = existing_working.get("thinking_budget", 0)
+
+                        m_cfg["working_limits"] = compute_working_limits(
+                            strict_limits=strict_limits,
+                            margin_pct=margin,
+                            thinking_budget=thinking_budget
+                        )
+
+            self._save_quotas_internal()
+            return self.get_hierarchy_telemetry()
+
+    def sync_live_and_offline_models(self) -> Dict[str, Any]:
+        """
+        Syncs models from:
+        1. Offline Benchmark Database (/mnt/d/Project_Files/Ollama_Models_Testing)
+        2. Live Google AI Studio API (GET https://generativelanguage.googleapis.com/v1beta/models)
+        3. Live Groq API (GET https://api.groq.com/openai/v1/models)
+        4. Live Local Ollama Daemon (GET http://127.0.0.1:11434/api/tags)
+        and applies exact 85% working limits.
+        """
+        with self.lock:
+            from src.config import compute_working_limits, DEFAULT_PROVIDER_QUOTAS
+            margin_pct = self.quotas.get("financial_shield", {}).get("safety_margin_percent", 85)
+
+            providers = self.quotas.setdefault("providers", {})
+            google_tiers = providers.setdefault("GOOGLE", {})
+            google_free = google_tiers.setdefault("FREE", {})
+            google_paid = google_tiers.setdefault("PAID", {})
+
+            groq_tiers = providers.setdefault("GROQ", {})
+            groq_free = groq_tiers.setdefault("FREE", {})
+            groq_paid = groq_tiers.setdefault("PAID", {})
+
+            ollama_tiers = providers.setdefault("OLLAMA", {})
+            ollama_local = ollama_tiers.setdefault("LOCAL", {})
+
+            # Seed base models from DEFAULT_PROVIDER_QUOTAS if missing
+            for p_key in ["GOOGLE", "GROQ", "OLLAMA"]:
+                for t_key in DEFAULT_PROVIDER_QUOTAS.get(p_key, {}):
+                    for m_key, m_val in DEFAULT_PROVIDER_QUOTAS[p_key][t_key].items():
+                        if m_key not in providers[p_key].setdefault(t_key, {}):
+                            providers[p_key][t_key][m_key] = {
+                                "strict_limits": m_val["strict_limits"].copy(),
+                                "working_limits": m_val["working_limits"].copy()
+                            }
+
+            # ------------------------------------------------------------------
+            # Source 1: Offline Benchmark Database
+            # ------------------------------------------------------------------
+            bench_base = "/mnt/d/Project_Files/Ollama_Models_Testing"
+            tier1_matrix_path = os.path.join(bench_base, "config", "gemini_tier1_matrix.json")
+            if os.path.exists(tier1_matrix_path):
+                try:
+                    with open(tier1_matrix_path, "r", encoding="utf-8") as f:
+                        t1_data = json.load(f)
+                        t1_models = t1_data.get("models", {})
+                        if isinstance(t1_models, dict):
+                            for mid, minfo in t1_models.items():
+                                if isinstance(minfo, dict):
+                                    rpm = minfo.get("rpm", 1000)
+                                    tpm = minfo.get("tpm", 1000000)
+                                    rpd = minfo.get("rpd", 10000)
+                                    ctx = min(minfo.get("context_window", 128000), 128000)
+                                    out = 8192
+                                    think = 2048 if "pro" in mid.lower() else (512 if "flash" in mid.lower() else 0)
+                                    strict = {"rpm": rpm, "tpm": tpm, "rpd": rpd, "max_input_tokens": ctx, "max_output_tokens": out}
+                                    if mid not in google_paid:
+                                        google_paid[mid] = {
+                                            "strict_limits": strict,
+                                            "working_limits": compute_working_limits(strict, margin_pct, think)
+                                        }
+                except Exception as e:
+                    log_action("GOVERNOR", "TIER1_MATRIX_SYNC_ERROR", {"error": str(e)})
+
+            cloud_quotas_path = os.path.join(bench_base, "config", "cloud_quotas.json")
+            if os.path.exists(cloud_quotas_path):
+                try:
+                    with open(cloud_quotas_path, "r", encoding="utf-8") as f:
+                        cq_data = json.load(f)
+                        cq_free = cq_data.get("quotas", {}).get("FREE_TIER", {})
+                        if isinstance(cq_free, dict):
+                            for mname, mlimits in cq_free.items():
+                                if mname.startswith("gemini-") or mname.startswith("gemma-"):
+                                    if mlimits.get("available", True) and mname not in google_free:
+                                        rpm = mlimits.get("rpm", 15)
+                                        tpm = mlimits.get("tpm", 250000)
+                                        rpd = mlimits.get("rpd", 500)
+                                        ctx = 32768
+                                        out = 8192
+                                        think = 2048 if "pro" in mname.lower() else (512 if "flash" in mname.lower() else 0)
+                                        strict = {"rpm": rpm, "tpm": tpm, "rpd": rpd, "max_input_tokens": ctx, "max_output_tokens": out}
+                                        google_free[mname] = {
+                                            "strict_limits": strict,
+                                            "working_limits": compute_working_limits(strict, margin_pct, think)
+                                        }
+                except Exception as e:
+                    log_action("GOVERNOR", "CLOUD_QUOTAS_SYNC_ERROR", {"error": str(e)})
+
+            # ------------------------------------------------------------------
+            # Source 2: Live Google AI Studio API
+            # ------------------------------------------------------------------
+            try:
+                from src.key_manager import key_manager
+                raw_google_key = None
+                env_k = os.getenv("GEMINI_API_KEY")
+                if env_k and env_k.strip():
+                    raw_google_key = env_k.strip()
+                else:
+                    for k in key_manager._load_raw().get("keys", []):
+                        if k.get("provider", "GOOGLE") == "GOOGLE" and k.get("key"):
+                            raw_google_key = k["key"].strip()
+                            break
+
+                if raw_google_key:
+                    import urllib.request
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={raw_google_key}"
+                    req = urllib.request.Request(url, headers={"User-Agent": "AdvanceAssistant-OS/6.0"})
+                    with urllib.request.urlopen(req, timeout=5) as resp:
+                        if resp.status == 200:
+                            g_data = json.loads(resp.read().decode("utf-8"))
+                            for gm in g_data.get("models", []):
+                                if "generateContent" in gm.get("supportedGenerationMethods", []):
+                                    g_name = gm.get("name", "").replace("models/", "")
+                                    in_tokens = gm.get("inputTokenLimit", 32768)
+                                    out_tokens = gm.get("outputTokenLimit", 8192)
+                                    think = 2048 if "pro" in g_name.lower() else (512 if "flash" in g_name.lower() else 0)
+
+                                    if g_name not in google_paid:
+                                        strict_p = {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": min(in_tokens, 128000), "max_output_tokens": min(out_tokens, 8192)}
+                                        google_paid[g_name] = {
+                                            "strict_limits": strict_p,
+                                            "working_limits": compute_working_limits(strict_p, margin_pct, think)
+                                        }
+
+                                    if ("flash" in g_name.lower() or "pro" in g_name.lower() or "gemma" in g_name.lower()) and g_name not in google_free:
+                                        strict_f = {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": min(in_tokens, 32768), "max_output_tokens": min(out_tokens, 8192)}
+                                        google_free[g_name] = {
+                                            "strict_limits": strict_f,
+                                            "working_limits": compute_working_limits(strict_f, margin_pct, think)
+                                        }
+            except Exception as e:
+                log_action("GOVERNOR", "GOOGLE_LIVE_SYNC_SKIP", {"reason": str(e)})
+
+            # ------------------------------------------------------------------
+            # Source 3: Live Groq API
+            # ------------------------------------------------------------------
+            try:
+                from src.key_manager import key_manager
+                raw_groq_key = None
+                env_gr = os.getenv("GROQ_API_KEY")
+                if env_gr and env_gr.strip():
+                    raw_groq_key = env_gr.strip()
+                else:
+                    for k in key_manager._load_raw().get("keys", []):
+                        if k.get("provider") == "GROQ" and k.get("key"):
+                            raw_groq_key = k["key"].strip()
+                            break
+
+                if raw_groq_key:
+                    import urllib.request
+                    url = "https://api.groq.com/openai/v1/models"
+                    req = urllib.request.Request(url, headers={
+                        "Authorization": f"Bearer {raw_groq_key}",
+                        "User-Agent": "AdvanceAssistant-OS/6.0"
+                    })
+                    with urllib.request.urlopen(req, timeout=5) as resp:
+                        if resp.status == 200:
+                            gr_data = json.loads(resp.read().decode("utf-8"))
+                            for grm in gr_data.get("data", []):
+                                gid = grm.get("id", "")
+                                if gid and (gid.startswith("llama") or "qwen" in gid or "deepseek" in gid or "mixtral" in gid):
+                                    if gid not in groq_free:
+                                        strict_gf = {"rpm": 30, "tpm": 15000, "rpd": 1000, "max_input_tokens": 8192, "max_output_tokens": 4096}
+                                        groq_free[gid] = {
+                                            "strict_limits": strict_gf,
+                                            "working_limits": compute_working_limits(strict_gf, margin_pct, 0)
+                                        }
+                                    if gid not in groq_paid:
+                                        strict_gp = {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192}
+                                        groq_paid[gid] = {
+                                            "strict_limits": strict_gp,
+                                            "working_limits": compute_working_limits(strict_gp, margin_pct, 0)
+                                        }
+            except Exception as e:
+                log_action("GOVERNOR", "GROQ_LIVE_SYNC_SKIP", {"reason": str(e)})
+
+            # ------------------------------------------------------------------
+            # Source 4: Live Local Ollama Daemon
+            # ------------------------------------------------------------------
+            try:
+                import urllib.request
+                with urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=3) as resp:
+                    if resp.status == 200:
+                        ol_data = json.loads(resp.read().decode("utf-8"))
+                        for om in ol_data.get("models", []):
+                            oname = om.get("name", "")
+                            if oname and oname not in ollama_local:
+                                strict_ol = {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}
+                                ollama_local[oname] = {
+                                    "strict_limits": strict_ol,
+                                    "working_limits": compute_working_limits(strict_ol, margin_pct, 0)
+                                }
+            except Exception as e:
+                log_action("GOVERNOR", "OLLAMA_LIVE_SYNC_SKIP", {"reason": str(e)})
+
+            # Finalize and recalculate all working limits at exact margin_pct
+            self.recalculate_all_working_limits(margin_pct)
+
+            return {
+                "status": "success",
+                "google_free_count": len(google_free),
+                "google_paid_count": len(google_paid),
+                "groq_count": len(groq_free),
+                "ollama_count": len(ollama_local),
+                "margin_applied_pct": margin_pct,
+                "synced_at": get_ist_now().strftime("%Y-%m-%d %H:%M:%S IST")
             }
 
     def update_model_limits(

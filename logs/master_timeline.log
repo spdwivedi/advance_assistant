@@ -2403,3 +2403,50 @@
 [2026-10-16 08:59:26.295 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
 [2026-10-16 08:59:26.296 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/config.txt", "bytes_written": 21, "project_name": null, "test_name": null}
 [2026-10-16 08:59:26.297 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/utils.py", "bytes_written": 63, "project_name": null, "test_name": null}
+[2026-10-17 18:16:12.713 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [DAILY_130PM_RESET] [ENV:LOCAL] {"previous_date": "2026-10-16", "new_date": "2026-10-17"}
+[2026-10-17 18:58:28.690 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-17 18:58:30.000 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-17 18:58:30.338 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-17 18:59:54.443 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-17 18:59:54.599 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-17 18:59:54.925 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-17 19:00:07.224 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-17 19:00:08.201 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-17 19:00:08.495 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-17 19:02:00.023 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-17 19:02:00.538 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-17 19:02:00.847 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-17 19:02:00.874 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_7e210397:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-17 19:02:38.267 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-17 19:02:38.268 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-17 19:02:39.400 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-17 19:02:39.403 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-17 19:02:39.404 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-17 19:02:39.404 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-17 19:02:40.548 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Boilerplate_Optimizer_Agent", "target_model": "gemini-2.5-flash-lite", "target_tier": "FAST", "project_name": "default_project"}
+[2026-10-17 19:02:40.550 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "default_project"}
+[2026-10-17 19:02:40.550 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "default_project"}
+[2026-10-17 19:02:40.564 IST] [MODEL:GEMINI-3.6-FLASH] [CAT:HIGH] [CLOUD_GENERATE_SUCCESS] [ENV:LOCAL] {"model": "gemini-3.6-flash", "provider": "GOOGLE", "key_id": "key_e7c36116", "tokens_in": 145, "tokens_out": 210, "thinking_tokens": 32, "project_name": "stage14_pipeline_test"}
+[2026-10-17 19:02:40.565 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage14_2_agent/test_config.txt", "bytes_written": 25, "project_name": "stage14_pipeline_test", "test_name": null}
+[2026-10-17 19:02:43.428 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": true, "state": "PAUSED"}
+[2026-10-17 19:02:43.432 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": false, "state": "RUNNING"}
+[2026-10-17 19:02:43.434 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_STOP_REQUESTED] [ENV:LOCAL] {"state": "CANCELLED"}
+[2026-10-17 19:02:43.447 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:43.447 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:43.447 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:43.450 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-17 19:02:43.451 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/config.txt", "bytes_written": 21, "project_name": null, "test_name": null}
+[2026-10-17 19:02:43.453 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/utils.py", "bytes_written": 63, "project_name": null, "test_name": null}
+[2026-10-17 19:02:45.306 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-17 19:02:45.312 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-17 19:02:45.316 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-17 19:02:45.336 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": true, "state": "PAUSED"}
+[2026-10-17 19:02:45.338 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": false, "state": "RUNNING"}
+[2026-10-17 19:02:45.340 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_STOP_REQUESTED] [ENV:LOCAL] {"state": "CANCELLED"}
+[2026-10-17 19:02:45.352 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:45.352 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:45.352 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-17 19:02:46.551 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-17 19:02:46.736 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-17 19:02:47.027 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-17 19:02:47.050 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_88516fde:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}

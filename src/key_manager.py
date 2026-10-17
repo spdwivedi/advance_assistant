@@ -170,6 +170,10 @@ class KeyManager:
                         k["cooldown_until"] = 0
                     if "error_count" not in k:
                         k["error_count"] = 0
+                    if "safety_margin_percent" not in k or not isinstance(k.get("safety_margin_percent"), (int, float)):
+                        k["safety_margin_percent"] = 85
+                    if "custom_model_limits" not in k or not isinstance(k.get("custom_model_limits"), dict):
+                        k["custom_model_limits"] = {}
 
                 return data
         except Exception:
@@ -293,7 +297,9 @@ class KeyManager:
                 "status": "ACTIVE",
                 "last_used": None,
                 "error_count": 0,
-                "cooldown_until": 0
+                "cooldown_until": 0,
+                "safety_margin_percent": 85,
+                "custom_model_limits": {}
             }
             keys.append(new_entry)
             data["keys"] = keys
@@ -349,7 +355,9 @@ class KeyManager:
                     "status": "EXHAUSTED" if cooldown_remaining > 0 else k.get("status", "ACTIVE"),
                     "last_used": k.get("last_used"),
                     "error_count": k.get("error_count", 0),
-                    "cooldown_remaining_sec": cooldown_remaining
+                    "cooldown_remaining_sec": cooldown_remaining,
+                    "safety_margin_percent": k.get("safety_margin_percent", 85),
+                    "custom_model_limits": k.get("custom_model_limits", {})
                 })
             return res
 
@@ -761,6 +769,133 @@ class KeyManager:
 
 
 # Global singleton key manager instance
+
+    def get_key_by_id(self, key_id: str) -> Optional[Dict[str, Any]]:
+        """Returns full internal record for a registered key by ID."""
+        with _KEY_LOCK:
+            data = self._load_raw()
+            for k in data.get("keys", []):
+                if k.get("id") == key_id:
+                    return k.copy()
+            return None
+
+    def set_key_model_limits(
+        self,
+        key_id: str,
+        model_name: str,
+        working_limits: Dict[str, int],
+        strict_limits: Optional[Dict[str, int]] = None
+    ) -> Dict[str, Any]:
+        """Saves dedicated model limits for that specific key_id into .agent_memory/api_keys.json."""
+        if not key_id or not model_name:
+            raise ValueError("Key ID and model name must be provided.")
+
+        with _KEY_LOCK:
+            data = self._load_raw()
+            target = next((k for k in data.get("keys", []) if k.get("id") == key_id), None)
+            if not target:
+                raise ValueError(f"Key with ID '{key_id}' not found in registry.")
+
+            if "custom_model_limits" not in target or not isinstance(target["custom_model_limits"], dict):
+                target["custom_model_limits"] = {}
+
+            if strict_limits is None:
+                try:
+                    from src.token_governor import token_governor
+                    base = token_governor.get_model_limits(target.get("provider", "GOOGLE"), target.get("tier", "FREE"), model_name)
+                    strict_limits = base.get("strict_limits", working_limits.copy())
+                except Exception:
+                    strict_limits = working_limits.copy()
+
+            target["custom_model_limits"][model_name] = {
+                "strict_limits": strict_limits,
+                "working_limits": working_limits
+            }
+            self._save_raw(data)
+            return {
+                "key_id": key_id,
+                "model_name": model_name,
+                "limits": target["custom_model_limits"][model_name]
+            }
+
+    def set_key_safety_margin(self, key_id: str, safety_margin_percent: int = 85) -> Dict[str, Any]:
+        """Updates the key's dedicated safety margin % and recalculates any custom model limits on that key."""
+        if not key_id:
+            raise ValueError("Key ID must be provided.")
+
+        margin = max(10, min(100, int(safety_margin_percent)))
+        with _KEY_LOCK:
+            data = self._load_raw()
+            target = next((k for k in data.get("keys", []) if k.get("id") == key_id), None)
+            if not target:
+                raise ValueError(f"Key with ID '{key_id}' not found in registry.")
+
+            target["safety_margin_percent"] = margin
+
+            # Recalculate any existing custom model limits with new safety margin
+            try:
+                from src.config import compute_working_limits
+                for m_name, m_limits in target.get("custom_model_limits", {}).items():
+                    s_lim = m_limits.get("strict_limits", {})
+                    w_lim = m_limits.get("working_limits", {})
+                    think = w_lim.get("thinking_budget", 0)
+                    m_limits["working_limits"] = compute_working_limits(s_lim, margin, think)
+            except Exception:
+                pass
+
+            self._save_raw(data)
+            return {
+                "key_id": key_id,
+                "safety_margin_percent": margin,
+                "custom_model_limits": target.get("custom_model_limits", {})
+            }
+
+    def get_key_effective_limits(
+        self,
+        key_id: str,
+        provider: str,
+        tier: str,
+        model_name: str
+    ) -> Dict[str, Any]:
+        """
+        Returns the key's dedicated custom_model_limits[model_name] if set,
+        otherwise inherits the (provider, tier, model_name) limits scaled by the key's safety_margin_percent.
+        """
+        with _KEY_LOCK:
+            data = self._load_raw()
+            target = next((k for k in data.get("keys", []) if k.get("id") == key_id), None)
+            
+            if target:
+                custom_limits = target.get("custom_model_limits", {})
+                if model_name in custom_limits:
+                    return custom_limits[model_name]
+                
+                margin_pct = target.get("safety_margin_percent", 85)
+                try:
+                    from src.token_governor import token_governor
+                    from src.config import compute_working_limits
+                    base = token_governor.get_model_limits(provider, tier, model_name)
+                    strict_limits = base.get("strict_limits", {})
+                    base_working = base.get("working_limits", {})
+                    thinking = base_working.get("thinking_budget", 0)
+                    working = compute_working_limits(strict_limits, margin_pct, thinking)
+                    return {
+                        "strict_limits": strict_limits,
+                        "working_limits": working
+                    }
+                except Exception:
+                    pass
+
+        try:
+            from src.token_governor import token_governor
+            return token_governor.get_model_limits(provider, tier, model_name)
+        except Exception:
+            from src.config import DEFAULT_PROVIDER_QUOTAS
+            return DEFAULT_PROVIDER_QUOTAS.get(provider, {}).get(tier, {}).get(model_name, {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": {"rpm": 12, "tpm": 212500, "rpd": 425, "max_input_tokens": 27852, "max_output_tokens": 6963, "thinking_budget": 0}
+            })
+
     def reload_keys(self) -> None:
         """Reloads keys and invalidates any cached state."""
         with _KEY_LOCK:
