@@ -867,3 +867,46 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Core CLI Preservation Audit**:
   - `src/main.py`: **100% UNTOUCHED**
 - **Stage Status**: COMPLETED.
+
+
+## Stage 15.3: Global Top Control Bar & 3-Tab Minimalist Execution / Iterative Blueprint Studio
+- **Date**: 2026-10-17
+- **Goal**: Implement a persistent Global Top Control Bar in `Layout.tsx` for cross-page policy switching, 1-click paid spend locking, and emergency build lifecycle controls, and completely redesign `ExecutionStudio.tsx` into a 3-tab progressive-disclosure workspace supporting instant builds, pre-flight blueprint approval, and live code inspection.
+- **Key Deliverables Implemented**:
+  - `frontend/index.html`:
+    * Verified and ensured Google Fonts link includes both `Inter` and `JetBrains Mono` with valid syntax: `family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap`.
+  - `frontend/src/components/Layout.tsx`:
+    * Populated `PAGE_TITLES` cleanly for all 8 application routes (`/`, `/swarm`, `/agents`, `/knowledge`, `/governor`, `/keys`, `/logs`, `/tools`) with concise 1-line subtitles.
+    * Added **Global Top Control Bar** in the sticky `<header>` (polling `/api/health`, `/api/governor/hierarchy`, and `/api/keys/policy` every 5s):
+      - **Key Policy Quick-Select Dropdown**: 1-click switching between `GLOBAL_HYBRID`, `FREE_POOL`, `PAID_POOL`, and `SINGLE_PINNED` key routing policies from any screen.
+      - **1-Click Paid Tier Spend Lock Pill**: Live status indicator (`🔒 Paid Locked` emerald vs. `🔓 Paid Unlocked` amber) with 1-click toggle calling `POST /api/governor/shield`.
+      - **Global Build Status & Emergency Lifecycle Controls**: When active, displays live status pill (`🟢 Running` / `⏸️ Paused`) with 1-click `Pause/Resume` (`POST /api/execute/pause`) and `Stop` (`POST /api/execute/stop`) buttons.
+      - **Quick Log Center Shortcut Button**: 1-click navigation to `/logs` (`📜 Global Logs`) from any page.
+  - `frontend/src/pages/ExecutionStudio.tsx`:
+    * **Top Workspace Selector Bar**: Unified target directory input with recent history selector (`/api/history`) and a `"Scan Workspace"` button (`GET /api/workspace/scan?path=...`) displaying a file count pill (`📁 X files detected`) and ledger status badge.
+    * **3-Tab Progressive-Disclosure Mode Switcher**:
+      - **Tab 1: `🚀 Quick Direct Launch`**:
+        * Primary card with Goal directive textarea and click-to-apply preset template chips (Full-Stack Web App, Microservice API, Agent Bridge).
+        * 3 essential controls in a single clean row: Execution Mode dropdown, Swarm Concurrency slider (1 to 16 workers), and Launch Autonomous Build button (with inline Pause/Resume and Stop controls).
+        * Collapsible accordion (`⚙️ Advanced Routing, Research & Isolation Settings` - closed by default) configuring Research Depth Profile, Model Constraining Profile, Model Tier, and Staging/Cache/Defrag isolation toggles.
+      - **Tab 2: `🧭 Iterative Blueprint & Dry-Run`**:
+        * Pre-Flight Blueprint Generator bar with iterative prompt chips, workspace file context inclusion toggle, and `"🔍 Generate Pre-Flight Blueprint"` button calling `POST /api/blueprint/preview` (auto-loading any saved preview via `GET /api/blueprint/preview`).
+        * Summary header showing project name, existing files count, selected task ratio, estimated tokens, and `"Select All / Deselect All"` toggles.
+        * Compact task table with `CREATE` (emerald) vs `MODIFY` (amber) badges, assigned agent/model, token estimates, and expand chevrons.
+        * Click-to-expand drawer allowing inline editing of task directive, target file path, assigned model, or tier before execution.
+        * `+ Add File Task` custom task dialog for manual task injection.
+        * `Approve & Dispatch` bar calling `POST /api/blueprint/execute` with 1-click links to Swarm Monitor and Log Center.
+      - **Tab 3: `📂 Workspace Files & Code Inspector`**:
+        * Language breakdown filter pills (`.py`, `.tsx`, `.json`, etc.) and search bar filtering scanned files by path or extension.
+        * File list with relative path, extension, file size (KB), and last modified timestamp.
+        * `"👁️ Inspect Code"` button calling `GET /api/workspace/file` opening a code inspection modal with line numbers, metadata, and 1-click copy.
+        * `"✏️ Modify in Blueprint"` button sending target files directly to Tab 2 for iterative engineering.
+  - Cleaned typing issues in `frontend/src/pages/LogCenter.tsx` (NodeJS timeout typing) and `frontend/src/pages/AgentHub.tsx` (VRAM safety tier badge color and mapping index).
+- **Verification Results**:
+  - `vite build`: **100% SUCCESS (0 errors, 2.49s build time)**
+  - `tsc --noEmit`: **100% SUCCESS (0 errors across entire frontend)**
+  - `test/test_scripts/test_stage15_2_backend.py`: **100% PASS (6/6 tests passed)**
+  - `test/test_scripts/test_v6_full_suite.py`: **100% PASS (28/28 checks passed)**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Stage Status**: COMPLETED.

@@ -1768,7 +1768,7 @@ export const AgentHub: React.FC = () => {
                 </div>
 
                 {/* Verdict Badge */}
-                <div className={`px-4 py-2 rounded-xl border text-xs font-bold ${simVerdict.className} flex items-center gap-2 self-start sm:self-auto`}>
+                <div className={`px-4 py-2 rounded-xl border text-xs font-bold ${simVerdict.badgeColor} flex items-center gap-2 self-start sm:self-auto`}>
                   {simVerdict.badge}
                 </div>
               </div>
@@ -1882,7 +1882,7 @@ export const AgentHub: React.FC = () => {
 
                   return (
                     <div
-                      key={`${tagMod.name}-${idx}`}
+                      key={`${tagMod.name}-${i}`}
                       className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-md transition-all group"
                     >
                       <div>
@@ -1906,7 +1906,7 @@ export const AgentHub: React.FC = () => {
 
                         {/* Safety Tier Badge */}
                         <div className="mt-2.5">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border font-mono ${safety.className}`}>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border font-mono ${safety.color}`}>
                             {safety.badge}
                           </span>
                         </div>

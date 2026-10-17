@@ -215,7 +215,7 @@ export const LogCenter: React.FC = () => {
   // Refs
   const logContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ----------------------------------------------------------------------------
   // INITIAL SOURCES FETCH
