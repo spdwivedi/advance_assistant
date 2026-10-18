@@ -169,26 +169,31 @@ graph TB
 ### 2.1 Hierarchical Quota Model & 85% Working Limit Calculus
 
 The system enforces a 3-tier organizational hierarchy for all model execution quotas:
-$$	ext{Provider} \longrightarrow 	ext{Tier} \longrightarrow 	ext{Model}$$
+$$\text{Provider} \longrightarrow \text{Tier} \longrightarrow \text{Model}$$
 
 Where:
-- $	ext{Provider} \in \{	ext{GOOGLE}, 	ext{GROQ}, 	ext{OLLAMA}\}$
-- $	ext{Tier} \in \{	ext{FREE}, 	ext{PAID}, 	ext{LOCAL}\}$
-- $	ext{Model} \in \mathcal{M}_{p,t}$ represents the discrete model identifier.
+- $\text{Provider} \in \{\text{GOOGLE}, \text{GROQ}, \text{OLLAMA}\}$
+- $\text{Tier} \in \{\text{FREE}, \text{PAID}, \text{LOCAL}\}$
+- $\text{Model} \in \mathcal{M}_{p,t}$ represents the discrete model identifier.
 
 #### The 85% Safety Margin Formula
 Provider-published rate limits are strict ceilings. Operating at 100% of these limits guarantees HTTP 429 (`RESOURCE_EXHAUSTED` / `Too Many Requests`) failures due to network jitter, out-of-order packet arrivals, clock skew, and cloud-side token estimation discrepancies.
 
 To eliminate 429 errors completely, the governor computes **Working Limits** as a mathematical discount of strict limits using a configurable safety factor $\gamma$ (default $\gamma = 85\%$):
 
-$$L_{	ext{working}}(m, p, t) = \left\lfloor L_{	ext{strict}}(m, p, t) 	imes rac{\gamma}{100} ightfloor$$
+$$L_{\text{working}}(m, p, t) = \left\lfloor L_{\text{strict}}(m, p, t) \times \frac{\gamma}{100} \right\rfloor$$
 
 Specifically, for each metric:
-$$	ext{RPM}_{	ext{working}} = \max\left(1, \left\lfloor 	ext{RPM}_{	ext{strict}} 	imes 0.85 ightflooright)$$
-$$	ext{TPM}_{	ext{working}} = \max\left(1000, \left\lfloor 	ext{TPM}_{	ext{strict}} 	imes 0.85 ightflooright)$$
-$$	ext{RPD}_{	ext{working}} = \max\left(1, \left\lfloor 	ext{RPD}_{	ext{strict}} 	imes 0.85 ightflooright)$$
-$$	ext{MaxInput}_{	ext{working}} = \max\left(1024, \left\lfloor 	ext{MaxInput}_{	ext{strict}} 	imes 0.85 ightflooright)$$
-$$	ext{MaxOutput}_{	ext{working}} = \max\left(512, \left\lfloor 	ext{MaxOutput}_{	ext{strict}} 	imes 0.85 ightflooright)$$
+
+$$\text{RPM}_{\text{working}} = \max\left(1, \left\lfloor \text{RPM}_{\text{strict}} \times 0.85 \right\rfloor\right)$$
+
+$$\text{TPM}_{\text{working}} = \max\left(1000, \left\lfloor \text{TPM}_{\text{strict}} \times 0.85 \right\rfloor\right)$$
+
+$$\text{RPD}_{\text{working}} = \max\left(1, \left\lfloor \text{RPD}_{\text{strict}} \times 0.85 \right\rfloor\right)$$
+
+$$\text{MaxInput}_{\text{working}} = \max\left(1024, \left\lfloor \text{MaxInput}_{\text{strict}} \times 0.85 \right\rfloor\right)$$
+
+$$\text{MaxOutput}_{\text{working}} = \max\left(512, \left\lfloor \text{MaxOutput}_{\text{strict}} \times 0.85 \right\rfloor\right)$$
 
 #### Comparative Reference Table: Strict (100%) vs. Working (85%) Limits
 
@@ -211,9 +216,11 @@ $$	ext{MaxOutput}_{	ext{working}} = \max\left(512, \left\lfloor 	ext{MaxOutput}_
 ### 2.2 Two-Phase Atomic Token Lease Protocol
 
 #### The "Thundering Herd" Failure of Post-Hoc Rate Tracking
-Traditional naive rate limiting tracks token usage *after* an API call returns (`on_response(tokens)`). Under multi-threaded concurrent agent execution (e.g., 6 worker threads simultaneously initializing tasks at $t = 0.00	ext{s}$), each worker observes:
-$$	ext{Consumed Tokens}_{t=0} = 0$$
-All 6 workers launch requests concurrently. When the calls complete at $t = 2.50	ext{s}$, the total consumed tokens instantly surge to $6 	imes 35,000 = 210,000	ext{ tokens}$, violently bursting through the 212,500 TPM threshold and causing cascade 429 failures across the pool.
+Traditional naive rate limiting tracks token usage *after* an API call returns (`on_response(tokens)`). Under multi-threaded concurrent agent execution (e.g., 6 worker threads simultaneously initializing tasks at $t = 0.00\text{s}$), each worker observes:
+
+$$\text{Consumed Tokens}_{t=0} = 0$$
+
+All 6 workers launch requests concurrently. When the calls complete at $t = 2.50\text{s}$, the total consumed tokens instantly surge to $6 \times 35,000 = 210,000\text{ tokens}$, violently bursting through the 212,500 TPM threshold and causing cascade 429 failures across the pool.
 
 #### Two-Phase Atomic Protocol Mechanics
 Advance Assistant OS solves this with a **Two-Phase Atomic Lease Protocol** implemented inside `src/token_governor.py`:
@@ -243,38 +250,43 @@ Advance Assistant OS solves this with a **Two-Phase Atomic Lease Protocol** impl
 #### Pre-Flight Reservation Mathematics
 Before a thread can dispatch a request, it must estimate its input token footprint based on character density and reserve worst-case generation tokens:
 
-$$T_{	ext{est\_in}} = \max\left(1, \left\lfloor rac{	ext{len}(	ext{prompt})}{3.5} ightflooright)$$
+$$T_{\text{est\_in}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right)$$
 
-$$T_{	ext{reserved}} = T_{	ext{est\_in}} + T_{	ext{max\_out}} + T_{	ext{think\_budget}}$$
+$$T_{\text{reserved}} = T_{\text{est\_in}} + T_{\text{max\_out}} + T_{\text{think\_budget}}$$
 
 Where:
-- $	ext{len}(	ext{prompt}) / 3.5$: Conservative token-to-character ratio across UTF-8 English and programming source code.
-- $T_{	ext{max\_out}}$: Max completion tokens configured for the target model.
-- $T_{	ext{think\_budget}}$: Dedicated reasoning token budget (e.g., Gemini 2.5 Thinking / DeepSeek R1).
+- $\text{len}(\text{prompt}) / 3.5$: Conservative token-to-character ratio across UTF-8 English and programming source code.
+- $T_{\text{max\_out}}$: Max completion tokens configured for the target model.
+- $T_{\text{think\_budget}}$: Dedicated reasoning token budget (e.g., Gemini 2.5 Thinking / DeepSeek R1).
 
 #### Sliding 60-Second Window Verification
-For a given key and model bucket $B = \{p, t, k, m\}$, the Governor queries the sliding window $\mathcal{W}_{60	ext{s}}$ containing all timestamps $t_i > (t_{	ext{now}} - 60.0	ext{s})$, and the active in-flight lease set $\mathcal{L}_{	ext{in\_flight}}$:
+For a given key and model bucket $B = \{p, t, k, m\}$, the Governor queries the sliding window $\mathcal{W}_{60\text{s}}$ containing all timestamps $t_i > (t_{\text{now}} - 60.0\text{s})$, and the active in-flight lease set $\mathcal{L}_{\text{in\_flight}}$:
 
-$$	ext{RPM}_{	ext{effective}} = |\mathcal{W}_{60	ext{s}}| + |\mathcal{L}_{	ext{in\_flight}}| < 	ext{RPM}_{	ext{working}}$$
+$$\text{RPM}_{\text{effective}} = |\mathcal{W}_{60\text{s}}| + |\mathcal{L}_{\text{in\_flight}}| < \text{RPM}_{\text{working}}$$
 
-$$	ext{TPM}_{	ext{effective}} = \sum_{e \in \mathcal{W}_{60	ext{s}}} T_{	ext{actual}}(e) + \sum_{l \in \mathcal{L}_{	ext{in\_flight}}} T_{	ext{reserved}}(l) + T_{	ext{reserved}}(	ext{new}) \le 	ext{TPM}_{	ext{working}}$$
+$$\text{TPM}_{\text{effective}} = \sum_{e \in \mathcal{W}_{60\text{s}}} T_{\text{actual}}(e) + \sum_{l \in \mathcal{L}_{\text{in\_flight}}} T_{\text{reserved}}(l) + T_{\text{reserved}}(\text{new}) \le \text{TPM}_{\text{working}}$$
 
 If either condition is violated, `acquire_lease()` blocks until the oldest window entry expires or an active in-flight lease commits, preventing rate limit breaches.
 
 #### Staggered Request Pacing Formula
 To prevent micro-burst packet aggregation at upstream provider load balancers, the Governor injects a dynamic inter-request delay proportional to the current in-flight concurrency:
 
-$$\Delta t_{	ext{pace}} = 	ext{round}\left(rac{60.0}{\max(1, 	ext{RPM}_{	ext{working}})}, 2ight) 	imes |\mathcal{L}_{	ext{in\_flight}}|$$
+$$\Delta t_{\text{pace}} = \text{round}\left(\frac{60.0}{\max(1, \text{RPM}_{\text{working}})}, 2\right) \times |\mathcal{L}_{\text{in\_flight}}|$$
 
 For example, on Google Free (`RPM_working = 12`):
-$$	ext{Base Pace} = rac{60.0}{12} = 5.0	ext{ seconds}$$
+
+$$\text{Base Pace} = \frac{60.0}{12} = 5.0\text{ seconds}$$
+
 If 2 workers are already in-flight, worker 3 pauses for:
-$$\Delta t_{	ext{pace}} = 5.0 	imes 2 = 10.0	ext{ seconds}$$
+
+$$\Delta t_{\text{pace}} = 5.0 \times 2 = 10.0\text{ seconds}$$
 
 #### Post-Request Reconciliation
-Upon receiving the API response, `commit_lease(lease_id, actual_usage)` replaces the speculative $T_{	ext{reserved}}$ with exact tokens parsed from `usage_metadata`:
-$$T_{	ext{committed}} = T_{	ext{actual\_in}} + T_{	ext{actual\_out}} + T_{	ext{actual\_think}}$$
-The difference $\Delta T = T_{	ext{reserved}} - T_{	ext{committed}}$ is immediately returned to the governor's available pool, enabling other workers to proceed without artificial delay.
+Upon receiving the API response, `commit_lease(lease_id, actual_usage)` replaces the speculative $T_{\text{reserved}}$ with exact tokens parsed from `usage_metadata`:
+
+$$T_{\text{committed}} = T_{\text{actual\_in}} + T_{\text{actual\_out}} + T_{\text{actual\_think}}$$
+
+The difference $\Delta T = T_{\text{reserved}} - T_{\text{committed}}$ is immediately returned to the governor's available pool, enabling other workers to proceed without artificial delay.
 
 ---
 
@@ -294,13 +306,13 @@ Each extracted snippet retains:
 #### Weighted Relevance Scoring Function
 When an agent prepares to execute a task, its prompt query $q$ is tokenized into word stems. Each candidate snippet $s$ is evaluated using a weighted multi-signal scoring function:
 
-$$S(q, s) = 3.0 \cdot 	ext{Match}_{	ext{heading}}(q, s) + 2.5 \cdot 	ext{Match}_{	ext{cat/book}}(q, s) + 1.0 \cdot 	ext{Match}_{	ext{body}}(q, s) + 1.5 \cdot \mathbb{I}_{	ext{code}}(q, s)$$
+$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}}(q, s) + 2.5 \cdot \text{Match}_{\text{cat/book}}(q, s) + 1.0 \cdot \text{Match}_{\text{body}}(q, s) + 1.5 \cdot \mathbb{I}_{\text{code}}(q, s)$$
 
 Where:
-- $	ext{Match}_{	ext{heading}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in 	ext{heading}(s))$: Exact word hits in section headings.
-- $	ext{Match}_{	ext{cat/book}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in 	ext{category}(s) \cup 	ext{book\_name}(s))$: Domain alignment hits.
-- $	ext{Match}_{	ext{body}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in 	ext{body}(s))$: Keyword hits in explanation text.
-- $\mathbb{I}_{	ext{code}}(q, s) \in \{0, 1\}$: Binary bonus indicator indicating whether the snippet provides actionable code implementations.
+- $\text{Match}_{\text{heading}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{heading}(s))$: Exact word hits in section headings.
+- $\text{Match}_{\text{cat/book}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{category}(s) \cup \text{book\_name}(s))$: Domain alignment hits.
+- $\text{Match}_{\text{body}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{body}(s))$: Keyword hits in explanation text.
+- $\mathbb{I}_{\text{code}}(q, s) \in \{0, 1\}$: Binary bonus indicator indicating whether the snippet provides actionable code implementations.
 
 #### Model-Scale Aware Knapsack Token Budget Tiers
 Snippets are sorted in descending order of $S(q, s)$ and packed into prompt context using a greedy 0/1 knapsack algorithm bounded by the target model's parameter scale:
@@ -333,21 +345,23 @@ To prevent Windows Desktop Manager (DWM) stuttering and CUDA Out-Of-Memory (OOM)
   +--------------------+------------------+--------------------------------------+---->
 ```
 
-1. **`SAFE_GPU` ($\le 5.2	ext{ GB}$)**: Models fit entirely within GPU VRAM with $\ge 2.8	ext{ GB}$ head-room reserved for Windows display buffers and WSL2 virtualization overhead. Safe for continuous multi-threaded execution.
-2. **`HIGH_LOAD` ($5.2	ext{ GB} - 8.0	ext{ GB}$)**: Models fully saturate GPU VRAM. Permitted only for single-threaded batch execution.
-3. **`PAGED_HYBRID` ($8.0	ext{ GB} - 16.0	ext{ GB}$)**: Models exceed physical GDDR6 capacity. Ollama offloads upper layers to host system RAM via PCIe. Inference throughput drops from ~65 tok/s to ~12 tok/s.
-4. **`OOM_HAZARDOUS` ($> 16.0	ext{ GB}$)**: Severe thrashing and system unresponsiveness. Blocked by governor arbitration.
+1. **`SAFE_GPU` ($\le 5.2\text{ GB}$)**: Models fit entirely within GPU VRAM with $\ge 2.8\text{ GB}$ head-room reserved for Windows display buffers and WSL2 virtualization overhead. Safe for continuous multi-threaded execution.
+2. **`HIGH_LOAD` ($5.2\text{ GB} - 8.0\text{ GB}$)**: Models fully saturate GPU VRAM. Permitted only for single-threaded batch execution.
+3. **`PAGED_HYBRID` ($8.0\text{ GB} - 16.0\text{ GB}$)**: Models exceed physical GDDR6 capacity. Ollama offloads upper layers to host system RAM via PCIe. Inference throughput drops from ~65 tok/s to ~12 tok/s.
+4. **`OOM_HAZARDOUS` ($> 16.0\text{ GB}$)**: Severe thrashing and system unresponsiveness. Blocked by governor arbitration.
 
 #### KV-Cache Overhead Calculation
-VRAM consumption is not static; it scales with context window length $L_{	ext{ctx}}$:
+VRAM consumption is not static; it scales with context window length $L_{\text{ctx}}$:
 
-$$	ext{VRAM}_{	ext{total}} = 	ext{VRAM}_{	ext{weights}} + 	ext{VRAM}_{	ext{KV\_cache}}(L_{	ext{ctx}}) + 	ext{VRAM}_{	ext{CUDA\_overhead}}$$
+$$\text{VRAM}_{\text{total}} = \text{VRAM}_{\text{weights}} + \text{VRAM}_{\text{KV\_cache}}(L_{\text{ctx}}) + \text{VRAM}_{\text{CUDA\_overhead}}$$
 
-$$	ext{VRAM}_{	ext{KV\_cache}} = 2 	imes n_{	ext{layers}} 	imes n_{	ext{heads\_kv}} 	imes d_{	ext{head}} 	imes L_{	ext{ctx}} 	imes 	ext{bytes\_per\_elem}$$
+$$\text{VRAM}_{\text{KV\_cache}} = 2 \times n_{\text{layers}} \times n_{\text{heads\_kv}} \times d_{\text{head}} \times L_{\text{ctx}} \times \text{bytes\_per\_elem}$$
 
-For `qwen2.5-coder:7b` at $L_{	ext{ctx}} = 32,768$ in 16-bit float:
-$$	ext{VRAM}_{	ext{KV}} pprox 2 	imes 28 	imes 4 	imes 128 	imes 32768 	imes 2 pprox 1.87	ext{ GB}$$
-Thus, base weights ($4.7	ext{ GB}$) + KV-cache ($1.87	ext{ GB}$) = $6.57	ext{ GB}$, pushing into `HIGH_LOAD`. The governor automatically trims local model context when running concurrent workloads to keep total VRAM $< 5.2	ext{ GB}$.
+For `qwen2.5-coder:7b` at $L_{\text{ctx}} = 32,768$ in 16-bit float:
+
+$$\text{VRAM}_{\text{KV}} \approx 2 \times 28 \times 4 \times 128 \times 32768 \times 2 \approx 1.87\text{ GB}$$
+
+Thus, base weights ($4.7\text{ GB}$) + KV-cache ($1.87\text{ GB}$) = $6.57\text{ GB}$, pushing into `HIGH_LOAD`. The governor automatically trims local model context when running concurrent workloads to keep total VRAM $< 5.2\text{ GB}$.
 
 #### Idle VRAM Scavenging
 When switching from local model execution to cloud tasks, `src/testing_bridge.py` immediately issues an explicit unload request to Ollama:
@@ -355,7 +369,7 @@ When switching from local model execution to cloud tasks, `src/testing_bridge.py
 POST http://127.0.0.1:11434/api/generate
 { "model": "active_model", "keep_alive": 0 }
 ```
-This forces the CUDA runtime to release all weights and KV caches, returning available VRAM to $8.0	ext{ GB}$ for local developer tools and host GPU tasks.
+This forces the CUDA runtime to release all weights and KV caches, returning available VRAM to $8.0\text{ GB}$ for local developer tools and host GPU tasks.
 
 ---
 
@@ -374,18 +388,22 @@ The system maintains real-time financial telemetry tracking actual dollar expend
 | **Local Ollama (Any)**| $0.000 | $0.000 | $0.000 (Hardware Bound) |
 
 #### Financial Valuation Formulas
-Let $T_{	ext{in}}(m, k)$ and $T_{	ext{out}}(m, k)$ denote input and output tokens consumed on model $m$ using key $k$:
+Let $T_{\text{in}}(m, k)$ and $T_{\text{out}}(m, k)$ denote input and output tokens consumed on model $m$ using key $k$:
 
 1. **Actual Paid Expenditure**:
-   $$	ext{Spend}_{	ext{USD}} = \sum_{k \in \mathcal{K}_{	ext{PAID}}} \sum_{m} \left( rac{T_{	ext{in}}(m, k)}{10^6} \cdot P_{	ext{in}}(m) + rac{T_{	ext{out}}(m, k)}{10^6} \cdot P_{	ext{out}}(m) ight)$$
+
+$$\text{Spend}_{\text{USD}} = \sum_{k \in \mathcal{K}_{\text{PAID}}} \sum_{m} \left( \frac{T_{\text{in}}(m, k)}{10^6} \cdot P_{\text{in}}(m) + \frac{T_{\text{out}}(m, k)}{10^6} \cdot P_{\text{out}}(m) \right)$$
 
 2. **Cloud Value Saved (Via Free Tier Pool & Local Ollama)**:
-   $$	ext{Savings}_{	ext{USD}} = \sum_{k \in \mathcal{K}_{	ext{FREE}}} \sum_{m} \left( rac{T_{	ext{in}}(m, k)}{10^6} \cdot P_{	ext{in}}(m) + rac{T_{	ext{out}}(m, k)}{10^6} \cdot P_{	ext{out}}(m) ight) + \sum_{m \in \mathcal{M}_{	ext{local}}} \left( rac{T_{	ext{in}}(m)}{10^6} \cdot P_{	ext{in}}(	ext{equiv}) + rac{T_{	ext{out}}(m)}{10^6} \cdot P_{	ext{out}}(	ext{equiv}) ight)$$
+
+$$\text{Savings}_{\text{USD}} = \sum_{k \in \mathcal{K}_{\text{FREE}}} \sum_{m} \left( \frac{T_{\text{in}}(m, k)}{10^6} \cdot P_{\text{in}}(m) + \frac{T_{\text{out}}(m, k)}{10^6} \cdot P_{\text{out}}(m) \right) + \sum_{m \in \mathcal{M}_{\text{local}}} \left( \frac{T_{\text{in}}(m)}{10^6} \cdot P_{\text{in}}(\text{equiv}) + \frac{T_{\text{out}}(m)}{10^6} \cdot P_{\text{out}}(\text{equiv}) \right)$$
 
 3. **Currency Conversion to Indian Rupee (INR)**:
-   Using fixed benchmark conversion rate ($1	ext{ USD} = 84.00	ext{ INR}$):
-   $$	ext{Spend}_{	ext{INR}} = 	ext{Spend}_{	ext{USD}} 	imes 84.00$$
-   $$	ext{Savings}_{	ext{INR}} = 	ext{Savings}_{	ext{USD}} 	imes 84.00$$
+   Using fixed benchmark conversion rate ($1\text{ USD} = 84.00\text{ INR}$):
+
+$$\text{Spend}_{\text{INR}} = \text{Spend}_{\text{USD}} \times 84.00$$
+
+$$\text{Savings}_{\text{INR}} = \text{Savings}_{\text{USD}} \times 84.00$$
 
 4. **Financial Shield Limit Enforcement**:
-   The `TokenGovernor` enforces a user-defined hard cap on total session tokens ($C_{	ext{financial}}$, default 150,000 tokens for paid builds). When total accumulated session tokens exceed $C_{	ext{financial}}$, all paid keys are automatically locked (`paid_tier_locked = true`), forcing the multi-model dispatcher to fall back to the Free pool or local offline execution.
+   The `TokenGovernor` enforces a user-defined hard cap on total session tokens ($C_{\text{financial}}$, default 150,000 tokens for paid builds). When total accumulated session tokens exceed $C_{\text{financial}}$, all paid keys are automatically locked (`paid_tier_locked = true`), forcing the multi-model dispatcher to fall back to the Free pool or local offline execution.

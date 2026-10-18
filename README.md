@@ -26,21 +26,27 @@ The operating system operates on a **Dual-Mode Architectural Foundation**:
 ### 🏛️ 1. 3-Level Hierarchical Quota Governor & 85% Working Limit Calculus
 - Enforces an organizational hierarchy: `Provider -> Tier -> Model`.
 - Solves HTTP 429 (`RESOURCE_EXHAUSTED`) failures by decoupling **Strict 100% Limits** from active **Working Limits** calculated at a strict 85% ceiling:
-  $$L_{	ext{working}}(m, p, t) = \left\lfloor L_{	ext{strict}}(m, p, t) 	imes 0.85 ightfloor$$
+
+$$L_{\text{working}}(m, p, t) = \left\lfloor L_{\text{strict}}(m, p, t) \times 0.85 \right\rfloor$$
+
 - Protects 148+ models across Google Free/Paid, Groq Free/Paid, and Local Ollama pools.
 
 ### ⚡ 2. Two-Phase Atomic Token Lease Protocol
-- Prevents the multi-threaded "Thundering Herd" race condition at $t = 0.00	ext{s}$.
+- Prevents the multi-threaded "Thundering Herd" race condition at $t = 0.00\text{s}$.
 - Pre-request `acquire_lease()` reserves worst-case input and output tokens:
-  $$T_{	ext{reserved}} = \max\left(1, \left\lfloor rac{	ext{len}(	ext{prompt})}{3.5} ightflooright) + T_{	ext{max\_out}} + T_{	ext{think\_budget}}$$
+
+$$T_{\text{reserved}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right) + T_{\text{max\_out}} + T_{\text{think\_budget}}$$
+
 - Injects dynamic inter-request pacing sleep based on active in-flight worker density:
-  $$\Delta t_{	ext{pace}} = 	ext{round}\left(rac{60.0}{\max(1, 	ext{RPM}_{	ext{working}})}, 2ight) 	imes |\mathcal{L}_{	ext{in\_flight}}|$$
+
+$$\Delta t_{\text{pace}} = \left(\frac{60}{\text{RPM}_{\text{working}}}\right) \times \vert{}\mathcal{L}_{\text{in\_flight}}\vert{}$$
+
 - Post-request `commit_lease()` reconciles speculative reservations with exact provider `usage_metadata`.
 
 ### 🛡️ 3. Paid Tier Financial Shield & Cost/Savings Telemetry
-- Dedicated 1-click **Paid Lock** switch immediately halts paid API consumption upon reaching configurable caps ($C_{	ext{financial}} = 150,000$ tokens).
+- Dedicated 1-click **Paid Lock** switch immediately halts paid API consumption upon reaching configurable caps ($C_{\text{financial}} = 150,000$ tokens).
 - Automatically falls back to the Free key pool or local offline models.
-- Real-time USD and INR conversion ($1	ext{ USD} = 84.00	ext{ INR}$) displaying actual spend alongside commercial cloud value saved.
+- Real-time USD and INR conversion ($1\text{ USD} = 84.00\text{ INR}$) displaying actual spend alongside commercial cloud value saved.
 
 ### 🧭 4. Continuous Iterative Blueprint & Dry-Run Engine
 - Workspace scanner detects `CREATE` vs `MODIFY` tasks across the project.
@@ -50,15 +56,17 @@ The operating system operates on a **Dual-Mode Architectural Foundation**:
 ### 📚 5. Precision Memory Snippet Engine (Knapsack Retrieval)
 - Decomposes Markdown knowledge books in `.agent_memory/books/` by `##` and `###` headings into atomic recipes.
 - Scores candidates using multi-signal relevance:
-  $$S(q, s) = 3.0 \cdot 	ext{Match}_{	ext{heading}} + 2.5 \cdot 	ext{Match}_{	ext{cat/book}} + 1.0 \cdot 	ext{Match}_{	ext{body}} + 1.5 \cdot \mathbb{I}_{	ext{code}}$$
+
+$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}} + 2.5 \cdot \text{Match}_{\text{cat/book}} + 1.0 \cdot \text{Match}_{\text{body}} + 1.5 \cdot \mathbb{I}_{\text{code}}$$
+
 - Packs recipes into model-scale parameter tiers (600 tok for 1.5B, 1200 tok for 7B/14B, 2000 tok for 32B, 3500 tok for Cloud), providing **up to 96.4% token savings**.
 
 ### 🎮 6. NVIDIA RTX 4060 8GB VRAM Arbitrator & Scavenger
 - Monitors dedicated GDDR6 VRAM across 4 hardware safety zones:
-  - `SAFE_GPU` ($\le 5.2	ext{ GB}$): 1.5B to 7B models (Safe for multi-threaded concurrency).
-  - `HIGH_LOAD` ($5.2 - 8.0	ext{ GB}$): 8B to 14B models (Single-thread batch only).
-  - `PAGED_HYBRID` ($8.0 - 16.0	ext{ GB}$): 32B models (PCIe CPU RAM paging).
-  - `OOM_HAZARDOUS` ($> 16.0	ext{ GB}$): Blocked.
+  - `SAFE_GPU` ($\le 5.2\text{ GB}$): 1.5B to 7B models (Safe for multi-threaded concurrency).
+  - `HIGH_LOAD` ($5.2 - 8.0\text{ GB}$): 8B to 14B models (Single-thread batch only).
+  - `PAGED_HYBRID` ($8.0 - 16.0\text{ GB}$): 32B models (PCIe CPU RAM paging).
+  - `OOM_HAZARDOUS` ($> 16.0\text{ GB}$): Blocked.
 - One-click idle scavenging sends `keep_alive: 0` to Ollama unload APIs, returning VRAM to 8.0 GB for host tasks.
 
 ---

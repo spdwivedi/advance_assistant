@@ -1412,3 +1412,25 @@ This document tracks all prompt executions, file additions, architecture extensi
     * Zero Test Pollution: `.agent_memory/` files remained completely clean.
 - **Stage Status**: COMPLETED.
 - **Milestone Status**: STAGE 17 (COMPREHENSIVE TECHNICAL DOCUMENTATION & SECURITY AUDIT SUITE) 100% COMPLETE.
+
+
+### AUDIT & REPAIR: GITHUB LATEX MATH RENDERING ACROSS README.md & docs/
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Scan & Fix Root `README.md`:
+    * Audited and eliminated corrupted escape sequences produced by Python/bash string escapes (`\x09ext` -> `\text`, `\x09imes` -> `\times`, `\x0crac` -> `\frac`, `\x0dight` -> `\right`, `\x0dfloor` -> `\rfloor`).
+    * Repaired 85% Working Limit equation: `$$L_{\text{working}}(m, p, t) = \left\lfloor L_{\text{strict}}(m, p, t) \times 0.85 \right\rfloor$$`.
+    * Repaired Two-Phase Token Reservation equation: `$$T_{\text{reserved}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right) + T_{\text{max\_out}} + T_{\text{think\_budget}}$$`.
+    * Repaired Staggered Pacing Delay equation: `$$\Delta t_{\text{pace}} = \left(\frac{60}{\text{RPM}_{\text{working}}}\right) \times \vert{}\mathcal{L}_{\text{in\_flight}}\vert{}$$`.
+    * Separated standalone display math blocks from bullet points with blank lines above and below to prevent GFM KaTeX multiline list parsing errors.
+  - Deliverable 2: Scan & Repair All Documentation in `docs/`:
+    * Repaired `docs/01_SYSTEM_ARCHITECTURE_AND_THEORY.md`: 228 corrupted control sequences resolved, blank line separation added around all display math blocks in Sections 2.1, 2.2, 2.4, and 2.5; unindented list math blocks; verified 17 `\left` / `\right` delimiter pairs match 1:1.
+    * Repaired `docs/02_PROCESS_FLOWS_AND_SEQUENCES.md`: Restored 7 occurrences of `\text` in Section 6.1 formula.
+    * Repaired `docs/03_DFD_AND_ER_DIAGRAMS.md`: Restored corrupted KaTeX formulas in working limits data dictionary table (`\lfloor \text{strict\_rpm} \times 0.85 \rfloor`).
+    * Updated `docs/architecture_atlas.html`: Embedded KaTeX CDN stylesheet and JavaScript auto-render module to ensure robust, client-side LaTeX and Mermaid rendering.
+  - Deliverable 3: Automated Verification & Certification:
+    * Executed Python verification audit: Checked 8 target files, 94 math expressions, confirming 0 corrupted escapes, 0 literal tabs/CR inside math expressions, and 100% delimiter balance.
+    * Executed master certification test harness (`./venv/bin/python3 test/test_scripts/run_all_tests.py`): **100% PASS (7/7 Suites, 70/70 checks in 11.67s)**.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+    * Zero Test Pollution: Verified zero state leakage.
+- **Stage Status**: COMPLETED.

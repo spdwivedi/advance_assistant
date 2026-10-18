@@ -351,7 +351,7 @@ MaxOutput * 0.85]
 ### 6.1 Context Extraction & Packing
 1. The developer prompt is analyzed for tokens and programming language signatures.
 2. The Memory Manager reads `.agent_memory/books/**/*.md` and extracts all `##` and `###` recipes.
-3. Each recipe is scored using $S(q, s) = 3.0 \cdot 	ext{Match}_{	ext{heading}} + 2.5 \cdot 	ext{Match}_{	ext{cat}} + 1.0 \cdot 	ext{Match}_{	ext{body}} + 1.5 \cdot \mathbb{I}_{	ext{code}}$.
+3. Each recipe is scored using $S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}} + 2.5 \cdot \text{Match}_{\text{cat}} + 1.0 \cdot \text{Match}_{\text{body}} + 1.5 \cdot \mathbb{I}_{\text{code}}$.
 4. High-scoring recipes are packed into the target model's budget tier (e.g. 1,200 tokens for 7B models).
 5. The compiled memory snippet block is prepended to the system prompt.
 
