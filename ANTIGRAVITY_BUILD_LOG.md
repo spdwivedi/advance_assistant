@@ -1346,3 +1346,39 @@ This document tracks all prompt executions, file additions, architecture extensi
     * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
     * Zero Test Pollution: `.agent_memory/` files remained completely clean.
 - **Stage Status**: COMPLETED.
+
+### STAGE 17.2: REST/WEBSOCKET API SPECIFICATION, 8-PAGE WEB CONSOLE VISUAL GUIDE & FOLDER-WISE README SUITE
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Create `docs/04_API_AND_WEBSOCKET_SPEC.md`:
+    * Comprehensive developer reference documenting all 35+ REST endpoints across 7 core subsystems:
+      1. Core System, Health & Configuration (`GET /api/health`, `GET /api/config`, `GET /api/history`, `GET /api/telemetry`, `GET /api/models/catalog`).
+      2. Execution Lifecycle, Pre-Flight Blueprints & Workspace Inspection (`POST /api/execute`, `POST /api/execute/pause`, `POST /api/execute/stop`, `POST /api/blueprint/preview`, `GET /api/blueprint/preview`, `POST /api/blueprint/execute`, `GET /api/workspace/scan`, `GET /api/workspace/file`).
+      3. Hierarchical Token Governor, Live Model Sync & Cost Analytics (`GET /api/governor/hierarchy`, `POST /api/governor/limits`, `POST /api/governor/provider-model`, `POST /api/governor/shield`, `GET /api/governor/sub-agents`, `POST /api/governor/sub-agents`, `POST /api/governor/sync-models`, `POST /api/governor/recalculate-85`, `GET /api/governor/cost-estimate`).
+      4. Multi-Provider API Key Matrix & Dedicated Per-Key 85% Quotas (`GET /api/keys`, `POST /api/keys`, `DELETE /api/keys/{key_id}`, `POST /api/keys/test`, `GET /api/keys/policy`, `POST /api/keys/policy`, `POST /api/keys/selection`, `POST /api/keys/tier-mode`, `GET /api/keys/quotas`, `GET /api/keys/{key_id}/quotas`, `POST /api/keys/{key_id}/limits`).
+      5. Testing Bridge, RTX 4060 VRAM Arbitrator & Swarm Profiles (`GET /api/bridge/status`, `GET /api/bridge/models`, `GET /api/bridge/vram`, `POST /api/bridge/vram/scavenge`, `GET /api/bridge/ollama/tags`, `GET /api/swarms/profiles`, `POST /api/swarms/profiles`, `GET /api/swarm/status`).
+      6. Precision Memory Snippet Engine & Knowledge Book CRUD (`GET /api/memory/books`, `GET /api/memory/book/{category}/{book_name}`, `POST /api/memory/book`, `POST /api/memory/book/recipe`, `DELETE /api/memory/book/{category}/{book_name}`, `POST /api/memory/simulate-injection`, `POST /api/memory/defrag`).
+      7. 6-Stream Log Center & Dual WebSocket Streams (`GET /api/logs/sources`, `GET /api/logs/query`, `GET /api/logs/project/{project_name}/ledger`, `WebSocket /ws/telemetry` 1.0s full snapshot stream, and `WebSocket /ws/logs` event stream with `initial_batch`, `new_entries`, and `heartbeat` frames).
+  - Deliverable 2: Create `docs/05_WEB_CONSOLE_VISUAL_GUIDE.md` & `docs/README.md`:
+    * Authored exhaustive visual guide with ASCII wireframes, Mermaid navigation maps, and step-by-step operational playbooks for all 8 views and the Global Top Bar:
+      - Global Top Control Bar (`Layout.tsx`): Routing policy dropdown, Paid Lock toggle, Pause/Resume/Stop lifecycle controls, quick jump to logs.
+      - View 1: Execution Studio (`/`): Active Swarm & Model Roster Bar, Tab 1 Quick Launch, Tab 2 Iterative Blueprint & Dry-Run, Tab 3 Workspace Files & Code Inspector.
+      - View 2: Live Swarm Monitor (`/swarm`): Concurrency meters, Active Agents & Tasks, Generated Files & Code, Live Model Quotas, minimizable Agent Task Drawer.
+      - View 3: Agent & Model Intelligence Hub (`/agents`): Benchmark Champions, RTX 4060 8GB VRAM Co-Residency Simulator, Swarm & Role Builder with multi-model worker roster selector.
+      - View 4: Knowledge Base Workspace (`/knowledge`): Collapsible book section explorer, raw Markdown editor, recipe appender, precision context injection simulator.
+      - View 5: Hierarchical Token Governor (`/governor`): Global vs Dedicated Per-Key scope, live model sync, 85% recalculation, model limit editor with 85% auto-fill, USD/INR cost & savings gauges.
+      - View 6: Multi-Provider API Key Manager (`/keys`): Key registration and test pings, 85% working cap badges, expandable drawer with dedicated per-key model quotas & 85% limits, inline custom model limit modal.
+      - View 7: Full-Screen 6-Stream Log Center (`/logs`): Source filters (master, daily, categories, models, projects), virtualized log console, structured JSON metadata inspector, blueprint ledgers.
+      - View 8: Tool Bridges & Gatekeeper Security (`/tools`): Adapter readiness (Aider, RooCode, n8n, Antigravity MCP, Vision, Voice) and security guardrails.
+    * Authored `docs/README.md` indexing all technical documentation files (`01` through `05`) with quick links and descriptions.
+  - Deliverable 3: Create Folder-Wise `README.md` Suite across 5 Subdirectories:
+    * `src/README.md`: Architectural reference for all 15 core Python engine files, Mermaid module dependency graph, thread-safety lock hierarchy (`threading.RLock()`), and Zero-Mutation CLI preservation contract.
+    * `frontend/README.md`: Guide to Vite + React 18 + TypeScript + Tailwind CSS architecture, progressive-disclosure UI design patterns, Vite proxy configuration, and build/typecheck commands.
+    * `.agent_memory/README.md`: Directory guide detailing all persistent state JSON files, 9 canonical knowledge book categories (`books/`), credential safety, and `preserve_agent_memory()` testing isolation.
+    * `logs/README.md`: Observability architecture, 6-stream directory layout, structured log line format, and WebSocket real-time tailing.
+    * `test/README.md`: Automated test & certification architecture, 7 subsystem test suites (70 checks total), state guard sandbox isolation, and WSL2 execution instructions.
+  - Deliverable 4: Verification & Certification:
+    * Executed master certification test harness `run_all_tests.py`: **100% PASS (7/7 Suites, 70/70 checks in 10.19s)**.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+    * Zero Test Pollution: `.agent_memory/` files remained completely clean.
+- **Stage Status**: COMPLETED.

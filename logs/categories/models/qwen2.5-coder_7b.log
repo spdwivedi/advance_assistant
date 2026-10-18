@@ -184,3 +184,5 @@
 [2026-10-18 18:06:25.948 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
 [2026-10-18 18:46:43.187 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
 [2026-10-18 18:46:43.189 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-18 19:27:05.406 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-18 19:27:05.408 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
