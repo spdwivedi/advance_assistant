@@ -1309,3 +1309,40 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Zero Test Pollution Audit**:
   - `.agent_memory/` remains completely clean; all tests ran in isolated sandbox environments.
 - **Stage Status**: COMPLETED.
+
+### STAGE 17.1: CREDENTIAL SECURITY AUDIT & CORE TECHNICAL DOCUMENTATION (THEORY, PROCESS FLOWS, DFD LEVEL 0/1/2 & ER DIAGRAMS)
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Credential & Secret Safety Audit (`.gitignore`, `.env.example`, `.agent_memory/api_keys.json`):
+    * Hardened `.gitignore` to block `.env`, `.env.*`, `!.env.example`, `models_config.json`, `git_config.json`, `cloud_credentials.json`, `*credentials*.json`, `*secret*`, `api_keys.json`, `.agent_memory/api_keys.json`, `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `node_modules/`, `frontend/dist/`, `*.tsbuildinfo`, `*.db`, `*.sqlite`, `*.sqlite3`, and `.staging_temp/`.
+    * Verified `.agent_memory/api_keys.json` is safely excluded from git index and created clean `.agent_memory/api_keys.example.json` schema without real keys.
+    * Updated `.env.example` documenting all supported environment variables (`GEMINI_API_KEY`, `GROQ_API_KEY`, `OLLAMA_API_BASE`, `TESTING_SUITE_ROOT`, `AIDER_BIN`, `N8N_WEBHOOK_URL`, `ROOCODE_SOCKET`, `ANTIGRAVITY_MCP_PORT`, `DISABLE_PACING_SLEEP`) with safe placeholders.
+    * Scanned all tracked files in git to confirm zero raw `AIza...` or `gsk_...` production credentials exist in tracked source code.
+  - Deliverable 2: Create `docs/01_SYSTEM_ARCHITECTURE_AND_THEORY.md`:
+    * Comprehensive dual-mode architecture overview (Legacy CLI `src/main.py`, FastAPI/WebSocket Gateway `src/server.py`, 8-view React 18 frontend).
+    * High-level Mermaid System Architecture Diagram (`graph TB`) and ASCII system block diagram.
+    * Section 2.1: Hierarchical Quota Model (`Provider -> Tier -> Model`) & 85% Working Limit Calculus with mathematical formula and 11-model comparative reference table.
+    * Section 2.2: Two-Phase Atomic Token Lease Protocol (`acquire_lease` & `commit_lease`) solving the "Thundering Herd" race condition, with pre-flight reservation math, sliding 60s bucket window check, staggered request pacing formula, and post-request reconciliation.
+    * Section 2.3: Precision Memory Snippet Engine & TF/Keyword Relevance Scoring with weighted scoring formula, 4 parameter-aware token budget tiers, and up to 96.4% token savings ratio.
+    * Section 2.4: NVIDIA RTX 4060 8.0 GB VRAM Arbitration & Co-Residency Math (`SAFE_GPU <= 5.2GB`, `HIGH_LOAD 5.2-8.0GB`, `PAGED_HYBRID 8.0-16.0GB`, `OOM_HAZARDOUS > 16.0GB`), KV-cache overhead calculation, and idle VRAM scavenging (`keep_alive: 0`).
+    * Section 2.5: Real-time Cloud Cost & Cloud Savings Valuation Model (USD & INR at 1 USD = 84 INR) with Financial Shield limit enforcement.
+  - Deliverable 3: Create `docs/02_PROCESS_FLOWS_AND_SEQUENCES.md`:
+    * Detailed step-by-step narratives, Mermaid Sequence Diagrams (`sequenceDiagram`), and Mermaid Flowcharts (`flowchart TD`) for all 7 core operational processes:
+      1. Process Flow 1: End-to-End Autonomous Project Build (`POST /api/execute` -> Phase 0 to Phase 4).
+      2. Process Flow 2: Continuous Iterative Pre-Flight Blueprint & Approval Gate (`POST /api/blueprint/preview` -> User Edit -> `POST /api/blueprint/execute`).
+      3. Process Flow 3: Build Lifecycle Control State Machine (`IDLE` -> `RUNNING` <-> `PAUSED` -> `CANCELLED` / `COMPLETED`).
+      4. Process Flow 4: Two-Phase Atomic Lease & Multi-Key Failover Sequence.
+      5. Process Flow 5: Live & Offline Model Synchronization Pipeline (`POST /api/governor/sync-models`).
+      6. Process Flow 6: Precision Context Retrieval & Book Defragmentation Lifecycle.
+      7. Process Flow 7: Real-Time Dual WebSocket Telemetry & 6-Stream Log Tailing (`/ws/telemetry` & `/ws/logs`).
+  - Deliverable 4: Create `docs/03_DFD_AND_ER_DIAGRAMS.md`:
+    * Formal Data Flow Diagrams:
+      - DFD Level 0 (Context Diagram) showing external entities, user surfaces, cloud APIs, and local daemons.
+      - DFD Level 1 (Major Subsystem Decomposition) mapping flows between 8 core processes (`P1`–`P8`) and 9 persistent data stores (`D1`–`D9`).
+      - DFD Level 2 (Deep-Dive: Token Governor, Per-Key Sliding Window & Swarm Model Dispatcher) detailing pre-flight calculations, rate checks, lease issues, pacing sleep, and reconciliation.
+    * Complete Entity-Relationship (ER) Diagrams (`erDiagram`) and exhaustive field-by-field Data Dictionary tables for all 9 data stores (`D1` through `D9`).
+  - Deliverable 5: Verification & Certification:
+    * Executed master certification test harness `run_all_tests.py`: **100% PASS (7/7 Suites, 70/70 checks in 10.68s)**.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+    * Zero Test Pollution: `.agent_memory/` files remained completely clean.
+- **Stage Status**: COMPLETED.

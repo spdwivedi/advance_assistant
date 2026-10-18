@@ -1,9 +1,32 @@
-# Virtual Environments
+# ==============================================================================
+# ADVANCE ASSISTANT OS v6.0 - HARDENED GITIGNORE
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Secrets, Environment Files & Credentials (CRITICAL - NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.crt
+*secret*
+*credentials*.json
+models_config.json
+git_config.json
+cloud_credentials.json
+secrets.json
+api_keys.json
+.agent_memory/api_keys.json
+
+# ------------------------------------------------------------------------------
+# Python Virtual Environments & Bytecode
+# ------------------------------------------------------------------------------
 venv/
 .venv/
 env/
-
-# Python & Bytecode
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,25 +35,12 @@ __pycache__/
 .mypy_cache/
 *.log
 
-# Node & Frontend
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-
-# Secrets & Credentials (CRITICAL)
-.env
-.env.local
-.env.*
-!.env.example
-*.env
-*.pem
-*.key
-secrets.json
-api_keys.json
-.agent_memory/api_keys.json
-
-# Build & Test Scratches
+# ------------------------------------------------------------------------------
+# Databases, Staging & Temporary Artifacts
+# ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
 .staging_temp/
 test/test_data/
 logs/projects/
@@ -38,11 +48,24 @@ build_test.log
 vite_build.log
 tsc_test.log
 
-# Temporary Inspection Files
+# ------------------------------------------------------------------------------
+# Node.js, Frontend & Build Outputs
+# ------------------------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# Temporary Inspection & Scratch Files
+# ------------------------------------------------------------------------------
 project_tree.txt
 all_file_paths.txt
 
-# IDE & System Metadata
+# ------------------------------------------------------------------------------
+# IDE, Editor & OS Metadata
+# ------------------------------------------------------------------------------
 .vscode/
 .idea/
 .DS_Store

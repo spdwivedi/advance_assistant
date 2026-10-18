@@ -1,0 +1,34 @@
+{
+    "keys": [
+        {
+            "id": "key_example_google_001",
+            "key": "AIzaSyExamplePlaceholderKeyNotReal12345",
+            "provider": "GOOGLE",
+            "tier": "FREE",
+            "label": "Google Free Key Example",
+            "is_selected": true,
+            "status": "ACTIVE",
+            "last_used": null,
+            "error_count": 0,
+            "cooldown_until": 0,
+            "safety_margin_percent": 85,
+            "custom_model_limits": {}
+        },
+        {
+            "id": "key_example_groq_002",
+            "key": "gsk_examplePlaceholderKeyNotRealABC123",
+            "provider": "GROQ",
+            "tier": "FREE",
+            "label": "Groq LPU Key Example",
+            "is_selected": true,
+            "status": "ACTIVE",
+            "last_used": null,
+            "error_count": 0,
+            "cooldown_until": 0,
+            "safety_margin_percent": 85,
+            "custom_model_limits": {}
+        }
+    ],
+    "routing_policy": "FREE_POOL",
+    "pinned_key_id": null
+}
