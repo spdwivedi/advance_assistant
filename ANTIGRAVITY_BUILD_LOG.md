@@ -1434,3 +1434,30 @@ This document tracks all prompt executions, file additions, architecture extensi
     * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
     * Zero Test Pollution: Verified zero state leakage.
 - **Stage Status**: COMPLETED.
+
+
+### AUDIT & REPAIR: KATEX COMPILER AUDIT & TEXT-MODE UNDERSCORE REPAIR ACROSS README.md & docs/
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Root `README.md` KaTeX Repair:
+    * Identified root cause for GitHub KaTeX parser crashes ("'_' allowed only in math mode"): unescaped underscores inside `\text{...}` text mode.
+    * Replaced all text-mode underscores and slash characters with clean, universally supported hyphenated tokens:
+      - `\text{max_out}` -> `\text{max-out}`
+      - `\text{think_budget}` -> `\text{think-budget}`
+      - `\text{in_flight}` -> `\text{in-flight}`
+      - `\text{cat/book}` -> `\text{cat-book}`
+    * Standardized Equation 3 pacing notation to clean bracketed cardinality: `|\mathcal{L}_{\text{in-flight}}|`.
+    * Enforced blank line isolation above and below all display math blocks (`$$...$$`).
+  - Deliverable 2: Scan & Repair All Documentation in `docs/`:
+    * `docs/01_SYSTEM_ARCHITECTURE_AND_THEORY.md`: Replaced all text mode underscores across Equations and definitions (`\text{est-in}`, `\text{max-out}`, `\text{think-budget}`, `\text{in-flight}`, `\text{actual-in}`, `\text{actual-out}`, `\text{actual-think}`, `\text{cat-book}`, `\text{book-name}`, `\text{KV-cache}`, `\text{CUDA-overhead}`, `\text{heads-kv}`, `\text{bytes-per-elem}`).
+    * `docs/03_DFD_AND_ER_DIAGRAMS.md`: Replaced `\text{strict_rpm}`, `\text{strict_tpm}`, `\text{strict_rpd}` with clean hyphenated identifiers `\text{strict-rpm}`, `\text{strict-tpm}`, `\text{strict-rpd}` in working limits dictionary.
+  - Deliverable 3: Real Node.js KaTeX Compiler Verification Suite:
+    * Implemented compiler test harness (`test/verify_katex_compiler.cjs`) utilizing `katex.renderToString(expr, { throwOnError: true, displayMode: isDisplay })`.
+    * Compiled 87 math expressions across 8 files (README.md, docs/01 to 05, docs/README.md, and docs/architecture_atlas.html).
+    * Confirmed **100% of expressions compiled with ZERO KaTeX errors**, 0 syntax errors, 0 delimiter mismatches, and 0 text-mode underscore exceptions.
+    * Removed temporary test runner after verification.
+  - Deliverable 4: Regression Test & Certification:
+    * Executed master certification test harness (`./venv/bin/python3 test/test_scripts/run_all_tests.py`): **100% PASS (7/7 Suites, 70/70 checks in 11.09s)**.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+    * Zero Test Pollution: Verified zero state leakage.
+- **Stage Status**: COMPLETED.

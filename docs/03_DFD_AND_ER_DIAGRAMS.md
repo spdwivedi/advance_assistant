@@ -263,9 +263,9 @@ Maintains strict API limits and working 85% caps across all providers, tiers, an
 | | `strict_limits.rpd` | Integer | No | Strict 100% provider requests-per-day limit. |
 | | `strict_limits.max_input_tokens` | Integer | No | Maximum context prompt input length. |
 | | `strict_limits.max_output_tokens` | Integer | No | Maximum completion token generation limit. |
-| | `working_limits.rpm` | Integer | No | 85% Working RPM cap ($\lfloor \text{strict\_rpm} \times 0.85 \rfloor$). |
-| | `working_limits.tpm` | Integer | No | 85% Working TPM cap ($\lfloor \text{strict\_tpm} \times 0.85 \rfloor$). |
-| | `working_limits.rpd` | Integer | No | 85% Working RPD cap ($\lfloor \text{strict\_rpd} \times 0.85 \rfloor$). |
+| | `working_limits.rpm` | Integer | No | 85% Working RPM cap ($\lfloor \text{strict-rpm} \times 0.85 \rfloor$). |
+| | `working_limits.tpm` | Integer | No | 85% Working TPM cap ($\lfloor \text{strict-tpm} \times 0.85 \rfloor$). |
+| | `working_limits.rpd` | Integer | No | 85% Working RPD cap ($\lfloor \text{strict-rpd} \times 0.85 \rfloor$). |
 | | `working_limits.thinking_budget` | Integer | Yes | Optional dedicated reasoning token budget (e.g., Gemini 2.5 Think). |
 
 ---

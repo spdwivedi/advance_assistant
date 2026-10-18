@@ -35,11 +35,11 @@ $$L_{\text{working}}(m, p, t) = \left\lfloor L_{\text{strict}}(m, p, t) \times 0
 - Prevents the multi-threaded "Thundering Herd" race condition at $t = 0.00\text{s}$.
 - Pre-request `acquire_lease()` reserves worst-case input and output tokens:
 
-$$T_{\text{reserved}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right) + T_{\text{max\_out}} + T_{\text{think\_budget}}$$
+$$T_{\text{reserved}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right) + T_{\text{max-out}} + T_{\text{think-budget}}$$
 
 - Injects dynamic inter-request pacing sleep based on active in-flight worker density:
 
-$$\Delta t_{\text{pace}} = \left(\frac{60}{\text{RPM}_{\text{working}}}\right) \times \vert{}\mathcal{L}_{\text{in\_flight}}\vert{}$$
+$$\Delta t_{\text{pace}} = \left(\frac{60}{\text{RPM}_{\text{working}}}\right) \times |\mathcal{L}_{\text{in-flight}}|$$
 
 - Post-request `commit_lease()` reconciles speculative reservations with exact provider `usage_metadata`.
 
@@ -57,7 +57,7 @@ $$\Delta t_{\text{pace}} = \left(\frac{60}{\text{RPM}_{\text{working}}}\right) \
 - Decomposes Markdown knowledge books in `.agent_memory/books/` by `##` and `###` headings into atomic recipes.
 - Scores candidates using multi-signal relevance:
 
-$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}} + 2.5 \cdot \text{Match}_{\text{cat/book}} + 1.0 \cdot \text{Match}_{\text{body}} + 1.5 \cdot \mathbb{I}_{\text{code}}$$
+$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}} + 2.5 \cdot \text{Match}_{\text{cat-book}} + 1.0 \cdot \text{Match}_{\text{body}} + 1.5 \cdot \mathbb{I}_{\text{code}}$$
 
 - Packs recipes into model-scale parameter tiers (600 tok for 1.5B, 1200 tok for 7B/14B, 2000 tok for 32B, 3500 tok for Cloud), providing **up to 96.4% token savings**.
 

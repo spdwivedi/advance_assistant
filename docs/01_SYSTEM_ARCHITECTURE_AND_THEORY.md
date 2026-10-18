@@ -250,28 +250,28 @@ Advance Assistant OS solves this with a **Two-Phase Atomic Lease Protocol** impl
 #### Pre-Flight Reservation Mathematics
 Before a thread can dispatch a request, it must estimate its input token footprint based on character density and reserve worst-case generation tokens:
 
-$$T_{\text{est\_in}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right)$$
+$$T_{\text{est-in}} = \max\left(1, \left\lfloor \frac{\text{len}(\text{prompt})}{3.5} \right\rfloor\right)$$
 
-$$T_{\text{reserved}} = T_{\text{est\_in}} + T_{\text{max\_out}} + T_{\text{think\_budget}}$$
+$$T_{\text{reserved}} = T_{\text{est-in}} + T_{\text{max-out}} + T_{\text{think-budget}}$$
 
 Where:
 - $\text{len}(\text{prompt}) / 3.5$: Conservative token-to-character ratio across UTF-8 English and programming source code.
-- $T_{\text{max\_out}}$: Max completion tokens configured for the target model.
-- $T_{\text{think\_budget}}$: Dedicated reasoning token budget (e.g., Gemini 2.5 Thinking / DeepSeek R1).
+- $T_{\text{max-out}}$: Max completion tokens configured for the target model.
+- $T_{\text{think-budget}}$: Dedicated reasoning token budget (e.g., Gemini 2.5 Thinking / DeepSeek R1).
 
 #### Sliding 60-Second Window Verification
-For a given key and model bucket $B = \{p, t, k, m\}$, the Governor queries the sliding window $\mathcal{W}_{60\text{s}}$ containing all timestamps $t_i > (t_{\text{now}} - 60.0\text{s})$, and the active in-flight lease set $\mathcal{L}_{\text{in\_flight}}$:
+For a given key and model bucket $B = \{p, t, k, m\}$, the Governor queries the sliding window $\mathcal{W}_{60\text{s}}$ containing all timestamps $t_i > (t_{\text{now}} - 60.0\text{s})$, and the active in-flight lease set $\mathcal{L}_{\text{in-flight}}$:
 
-$$\text{RPM}_{\text{effective}} = |\mathcal{W}_{60\text{s}}| + |\mathcal{L}_{\text{in\_flight}}| < \text{RPM}_{\text{working}}$$
+$$\text{RPM}_{\text{effective}} = |\mathcal{W}_{60\text{s}}| + |\mathcal{L}_{\text{in-flight}}| < \text{RPM}_{\text{working}}$$
 
-$$\text{TPM}_{\text{effective}} = \sum_{e \in \mathcal{W}_{60\text{s}}} T_{\text{actual}}(e) + \sum_{l \in \mathcal{L}_{\text{in\_flight}}} T_{\text{reserved}}(l) + T_{\text{reserved}}(\text{new}) \le \text{TPM}_{\text{working}}$$
+$$\text{TPM}_{\text{effective}} = \sum_{e \in \mathcal{W}_{60\text{s}}} T_{\text{actual}}(e) + \sum_{l \in \mathcal{L}_{\text{in-flight}}} T_{\text{reserved}}(l) + T_{\text{reserved}}(\text{new}) \le \text{TPM}_{\text{working}}$$
 
 If either condition is violated, `acquire_lease()` blocks until the oldest window entry expires or an active in-flight lease commits, preventing rate limit breaches.
 
 #### Staggered Request Pacing Formula
 To prevent micro-burst packet aggregation at upstream provider load balancers, the Governor injects a dynamic inter-request delay proportional to the current in-flight concurrency:
 
-$$\Delta t_{\text{pace}} = \text{round}\left(\frac{60.0}{\max(1, \text{RPM}_{\text{working}})}, 2\right) \times |\mathcal{L}_{\text{in\_flight}}|$$
+$$\Delta t_{\text{pace}} = \text{round}\left(\frac{60.0}{\max(1, \text{RPM}_{\text{working}})}, 2\right) \times |\mathcal{L}_{\text{in-flight}}|$$
 
 For example, on Google Free (`RPM_working = 12`):
 
@@ -284,7 +284,7 @@ $$\Delta t_{\text{pace}} = 5.0 \times 2 = 10.0\text{ seconds}$$
 #### Post-Request Reconciliation
 Upon receiving the API response, `commit_lease(lease_id, actual_usage)` replaces the speculative $T_{\text{reserved}}$ with exact tokens parsed from `usage_metadata`:
 
-$$T_{\text{committed}} = T_{\text{actual\_in}} + T_{\text{actual\_out}} + T_{\text{actual\_think}}$$
+$$T_{\text{committed}} = T_{\text{actual-in}} + T_{\text{actual-out}} + T_{\text{actual-think}}$$
 
 The difference $\Delta T = T_{\text{reserved}} - T_{\text{committed}}$ is immediately returned to the governor's available pool, enabling other workers to proceed without artificial delay.
 
@@ -306,11 +306,11 @@ Each extracted snippet retains:
 #### Weighted Relevance Scoring Function
 When an agent prepares to execute a task, its prompt query $q$ is tokenized into word stems. Each candidate snippet $s$ is evaluated using a weighted multi-signal scoring function:
 
-$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}}(q, s) + 2.5 \cdot \text{Match}_{\text{cat/book}}(q, s) + 1.0 \cdot \text{Match}_{\text{body}}(q, s) + 1.5 \cdot \mathbb{I}_{\text{code}}(q, s)$$
+$$S(q, s) = 3.0 \cdot \text{Match}_{\text{heading}}(q, s) + 2.5 \cdot \text{Match}_{\text{cat-book}}(q, s) + 1.0 \cdot \text{Match}_{\text{body}}(q, s) + 1.5 \cdot \mathbb{I}_{\text{code}}(q, s)$$
 
 Where:
 - $\text{Match}_{\text{heading}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{heading}(s))$: Exact word hits in section headings.
-- $\text{Match}_{\text{cat/book}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{category}(s) \cup \text{book\_name}(s))$: Domain alignment hits.
+- $\text{Match}_{\text{cat-book}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{category}(s) \cup \text{book-name}(s))$: Domain alignment hits.
 - $\text{Match}_{\text{body}}(q, s) = \sum_{w \in q} \mathbb{I}(w \in \text{body}(s))$: Keyword hits in explanation text.
 - $\mathbb{I}_{\text{code}}(q, s) \in \{0, 1\}$: Binary bonus indicator indicating whether the snippet provides actionable code implementations.
 
@@ -353,9 +353,9 @@ To prevent Windows Desktop Manager (DWM) stuttering and CUDA Out-Of-Memory (OOM)
 #### KV-Cache Overhead Calculation
 VRAM consumption is not static; it scales with context window length $L_{\text{ctx}}$:
 
-$$\text{VRAM}_{\text{total}} = \text{VRAM}_{\text{weights}} + \text{VRAM}_{\text{KV\_cache}}(L_{\text{ctx}}) + \text{VRAM}_{\text{CUDA\_overhead}}$$
+$$\text{VRAM}_{\text{total}} = \text{VRAM}_{\text{weights}} + \text{VRAM}_{\text{KV-cache}}(L_{\text{ctx}}) + \text{VRAM}_{\text{CUDA-overhead}}$$
 
-$$\text{VRAM}_{\text{KV\_cache}} = 2 \times n_{\text{layers}} \times n_{\text{heads\_kv}} \times d_{\text{head}} \times L_{\text{ctx}} \times \text{bytes\_per\_elem}$$
+$$\text{VRAM}_{\text{KV-cache}} = 2 \times n_{\text{layers}} \times n_{\text{heads-kv}} \times d_{\text{head}} \times L_{\text{ctx}} \times \text{bytes-per-elem}$$
 
 For `qwen2.5-coder:7b` at $L_{\text{ctx}} = 32,768$ in 16-bit float:
 
