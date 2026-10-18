@@ -516,7 +516,8 @@ class KeyManager:
         self,
         model_name: Optional[str] = None,
         tier_preference: str = "AUTO",
-        provider: Optional[str] = None
+        provider: Optional[str] = None,
+        preferred_key_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Stage 14.2 Multi-Provider Key Resolution Context:
@@ -599,7 +600,20 @@ class KeyManager:
 
             candidates: List[Dict[str, Any]] = []
 
-            if routing_policy == "SINGLE_PINNED":
+            # Stage 16.2: Preferred Key Direct Dispatcher Override
+            preferred_match = None
+            if preferred_key_id and str(preferred_key_id).strip().upper() not in ("AUTO", "DEFAULT", "NONE", ""):
+                match = next((k for k in keys if k.get("id") == preferred_key_id), None)
+                if match and match.get("status") == "ACTIVE" and (not match.get("cooldown_until") or now >= match.get("cooldown_until", 0)):
+                    if not (paid_tier_locked and match.get("tier", "FREE").upper() == "PAID"):
+                        k_prov = match.get("provider", "GOOGLE").upper()
+                        if provider is None or k_prov == target_provider:
+                            preferred_match = match
+                            target_provider = k_prov
+
+            if preferred_match:
+                candidates = [preferred_match]
+            elif routing_policy == "SINGLE_PINNED":
                 if pinned_key_id:
                     pinned = next((k for k in selected_active if k.get("id") == pinned_key_id), None)
                     if pinned:

@@ -3,7 +3,7 @@
 ADVANCE ASSISTANT OS v6.0 - MASTER SYSTEM CERTIFICATION HARNESS
 File: test/test_scripts/run_all_tests.py
 ================================================================================
-Sequentially executes all 6 core subsystem certification suites:
+Sequentially executes all 7 core subsystem certification suites:
 1. test_hierarchical_governor.py (Stage 14.1 Hierarchical Governor Quotas & Leases)
 2. test_stage14_2_pipeline.py    (Stage 14.2 Multi-Provider & Atomic Lease Pipeline)
 3. test_stage14_3_server.py      (Stage 14.3 Server REST & WebSocket Telemetry)
@@ -61,6 +61,11 @@ TEST_SUITES = [
     {
         "file": "test_stage16_1_quotas.py",
         "name": "Stage 16.1 Live Model Sync & Per-Key Quota Engine",
+        "expected_checks": 4
+    },
+    {
+        "file": "test_stage16_2_swarm_roster.py",
+        "name": "Stage 16.2 Swarm Roster Engine & Dispatcher",
         "expected_checks": 4
     }
 ]

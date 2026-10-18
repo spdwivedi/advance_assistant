@@ -1,8 +1,10 @@
 {
-  "history": [
-    "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator",
-    "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App",
-    "/tmp"
-  ],
-  "last_location": "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator"
+    "history": [
+        "/tmp/test_debug_worker",
+        "/tmp/test_debug_exec_ws",
+        "/mnt/d/Project_Files/Assistant_Projects/DevPulse_Orchestrator",
+        "/mnt/d/Project_Files/Assistant_Projects/TaskVault_App",
+        "/tmp"
+    ],
+    "last_location": "/tmp/test_debug_worker"
 }

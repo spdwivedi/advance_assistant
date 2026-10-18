@@ -1,3 +1,4 @@
+from typing import Optional, List, Dict, Any
 import os
 import json
 import time
@@ -102,6 +103,48 @@ def check_build_lifecycle() -> bool:
     return not build_cancel_event.is_set()
 
 
+
+def _load_active_swarm_config() -> dict:
+    """
+    Stage 16.2: Reads .agent_memory/swarm_profiles.json to retrieve the active
+    orchestrator engine, worker models roster, max models used, routing strategy,
+    and preferred API key ID with safe defaults.
+    """
+    default_cfg = {
+        "active_swarm_id": "GLOBAL_HYBRID_SWARM",
+        "orchestrator_engine": "qwen2.5-coder:32b",
+        "worker_models": [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash-lite",
+            "qwen-2.5-coder-32b",
+            "qwen2.5-coder:7b"
+        ],
+        "max_models_used": 4,
+        "max_concurrency_workers": 8,
+        "routing_strategy": "ROUND_ROBIN",
+        "preferred_key_id": "AUTO"
+    }
+    try:
+        swarm_file = os.path.join(os.path.abspath("./.agent_memory"), "swarm_profiles.json")
+        if os.path.exists(swarm_file):
+            with open(swarm_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                active_id = data.get("active_swarm_id")
+                swarms = data.get("swarms", [])
+                active_profile = next((s for s in swarms if s.get("id") == active_id), {})
+                return {
+                    "active_swarm_id": active_id or default_cfg["active_swarm_id"],
+                    "orchestrator_engine": active_profile.get("orchestrator") or data.get("orchestrator_engine") or default_cfg["orchestrator_engine"],
+                    "worker_models": active_profile.get("worker_models") or data.get("worker_models") or default_cfg["worker_models"],
+                    "max_models_used": active_profile.get("max_models_used") or data.get("max_models_used") or default_cfg["max_models_used"],
+                    "max_concurrency_workers": active_profile.get("default_concurrency") or data.get("max_concurrency_workers") or default_cfg["max_concurrency_workers"],
+                    "routing_strategy": active_profile.get("routing_strategy") or data.get("routing_strategy") or default_cfg["routing_strategy"],
+                    "preferred_key_id": data.get("preferred_key_id") or default_cfg["preferred_key_id"]
+                }
+    except Exception:
+        pass
+    return default_cfg
+
 class ProjectSupervisor:
     def __init__(self, target_destination: str, isolate: bool = None, max_workers: int = None, project_name: str = None, test_name: str = None):
         """
@@ -140,12 +183,28 @@ class ProjectSupervisor:
             "project_root": self.target_destination,
             "active_workspace": self.active_workspace,
             "max_available_workers": self.max_workers,
+            "active_orchestrator": getattr(self, "active_orchestrator", None),
+            "active_worker_models": getattr(self, "active_worker_models", []),
+            "worker_assignments": getattr(self, "worker_assignments", {}),
             "domain_locks": {},
             "completed_files": [],
             "status": "INITIALIZED"
         }
         with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
             json.dump(registry_data, f, indent=4)
+
+    def _update_worker_assignment(self, file_path: str, worker_id: str, model_name: str):
+        """Stage 16.2: Records per-worker model assignment in swarm_registry.json."""
+        try:
+            with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if "worker_assignments" not in data:
+                data["worker_assignments"] = {}
+            data["worker_assignments"][file_path] = {"worker": worker_id, "model": model_name}
+            with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+        except Exception:
+            pass
 
     def _initialize_project_blueprint_ledger(self):
         """Initializes or loads the project-scoped workspace historical blueprint ledger."""
@@ -250,8 +309,19 @@ class ProjectSupervisor:
             print(f" ⚙️ Current Swarm Operation: {active_op[:72]}")
             print("═"*78 + "\n")
 
-    def run_sub_agent_worker(self, task_id: int, task_description: str, tasks_status: dict, mode_override: str = None, profile_level: str = "MEDIUM", constraining_profile: str = "HIGH_RPM_TPM"):
-        """Worker Thread v6.0: Operates strictly inside its assigned sub-plan domain."""
+    def run_sub_agent_worker(
+        self,
+        task_id: int,
+        task_description: str,
+        tasks_status: dict,
+        mode_override: str = None,
+        profile_level: str = "MEDIUM",
+        constraining_profile: str = "HIGH_RPM_TPM",
+        explicit_model: str = None,
+        fallback_models: list = None,
+        preferred_key_id: str = None
+    ):
+        """Worker Thread v6.0: Operates strictly inside its assigned sub-plan domain with explicit model dispatcher."""
         if not check_build_lifecycle():
             tasks_status[task_id] = {"agent_role": f"SubAgent-{task_id}", "description": task_description, "status": "CANCELLED"}
             return
@@ -263,6 +333,7 @@ class ProjectSupervisor:
         
         self.print_dashboard(tasks_status, active_op=f"{agent_role} locked target file: {assigned_file}", constraining_profile=constraining_profile)
         self._update_registry_lock(assigned_file, agent_role)
+        self._update_worker_assignment(assigned_file, agent_role, explicit_model or "default")
         self._update_project_blueprint_ledger(assigned_file, task_description, "COMPILING")
         
         prompt = f"project:{self.project_name} | Task Directive: {task_description}. You are strictly assigned to generate content for: '{assigned_file}'. Do NOT edit other file layers."
@@ -276,7 +347,10 @@ class ProjectSupervisor:
                 profile_override=profile_level,
                 constraining_profile_override=constraining_profile,
                 project_name=self.project_name,
-                test_name=self.test_name
+                test_name=self.test_name,
+                explicit_model=explicit_model,
+                fallback_models=fallback_models,
+                preferred_key_id=preferred_key_id
             )
             tasks_status[task_id]["status"] = "DONE"
             self._mark_file_completed_in_registry(assigned_file)
@@ -288,10 +362,21 @@ class ProjectSupervisor:
             
         self.print_dashboard(tasks_status, active_op=f"{agent_role} finalized operations.", constraining_profile=constraining_profile)
 
-    def process_complete_development_cycle(self, master_instruction: str, mode_override: str = None, profile_level: str = "MAX", constraining_profile: str = "HIGH_RPM_TPM"):
+    def process_complete_development_cycle(
+        self,
+        master_instruction: str,
+        mode_override: str = None,
+        profile_level: str = "MAX",
+        constraining_profile: str = "HIGH_RPM_TPM",
+        orchestrator_model: Optional[str] = None,
+        worker_models: Optional[List[str]] = None,
+        max_models_used: Optional[int] = None,
+        routing_strategy: str = "ROUND_ROBIN",
+        preferred_key_id: Optional[str] = None
+    ):
         """
-        Executes an architecture-aware cross-platform multi-phase system compilation loop
-        with dynamic limit-aware concurrency scaling and atomic lease staggered queueing.
+        Stage 16.2: Executes an architecture-aware cross-platform multi-phase system compilation loop
+        with explicit multi-model swarm distribution and atomic lease staggered queueing.
         """
         reset_build_lifecycle()
         try:
@@ -300,7 +385,26 @@ class ProjectSupervisor:
         except Exception:
             pass
 
-        tasks_status = {0: {"agent_role": "Orchestrator", "description": "Analyzing specifications and isolated project history blueprints", "status": "RUNNING"}}
+        active_swarm_cfg = _load_active_swarm_config()
+        orch = orchestrator_model or active_swarm_cfg.get("orchestrator_engine") or "qwen2.5-coder:32b"
+        roster = worker_models or active_swarm_cfg.get("worker_models") or ["gemini-2.5-flash", "qwen2.5-coder:7b"]
+        limit_n = max(1, min(len(roster), int(max_models_used or active_swarm_cfg.get("max_models_used") or len(roster))))
+        active_roster = roster[:limit_n]
+        self.active_orchestrator = orch
+        self.active_worker_models = active_roster
+        self.worker_assignments = {}
+
+        try:
+            with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+                reg_d = json.load(f)
+            reg_d["active_orchestrator"] = orch
+            reg_d["active_worker_models"] = active_roster
+            with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+                json.dump(reg_d, f, indent=4)
+        except Exception:
+            pass
+
+        tasks_status = {0: {"agent_role": "Orchestrator", "description": f"Phase 0 Orchestrator ({orch}) mapping context-aware blueprints", "status": "RUNNING"}}
         self.print_dashboard(tasks_status, active_op="Orchestrator initializing context-aware blueprint mapping...", constraining_profile=constraining_profile)
 
         log_action(
@@ -331,7 +435,10 @@ Goal: {master_instruction}"""
             profile_override=profile_level,
             constraining_profile_override=constraining_profile,
             project_name=self.project_name,
-            test_name=self.test_name
+            test_name=self.test_name,
+            explicit_model=orch,
+            fallback_models=active_roster,
+            preferred_key_id=preferred_key_id
         )
         
         raw_tasks = [line.strip() for line in blueprint.split("\n") if line.strip() and not line.startswith("=")]
@@ -394,9 +501,11 @@ Goal: {master_instruction}"""
         with concurrent.futures.ThreadPoolExecutor(max_workers=effective_workers) as executor:
             futures = []
             for idx, task in enumerate(coding_tasks):
+                assigned_model = active_roster[idx % len(active_roster)]
                 fut = executor.submit(
                     self.run_sub_agent_worker,
-                    idx + 1, task, tasks_status, mode_override, profile_level, constraining_profile
+                    idx + 1, task, tasks_status, mode_override, profile_level, constraining_profile,
+                    explicit_model=assigned_model, fallback_models=active_roster, preferred_key_id=preferred_key_id
                 )
                 futures.append(fut)
                 time.sleep(0.15)  # Stagger worker submissions slightly so threads acquire atomic leases in orderly queue
@@ -473,6 +582,10 @@ def generate_preflight_blueprint(
     project_name: str = None,
     execution_mode: str = "AUTO_DETECT",
     orchestrator_model: str = None,
+    worker_models: list = None,
+    max_models_used: int = None,
+    routing_strategy: str = "ROUND_ROBIN",
+    preferred_key_id: str = None,
     use_existing_context: bool = True
 ) -> dict:
     """
@@ -504,7 +617,13 @@ def generate_preflight_blueprint(
         sample_files = existing_files[:30]
         historical_context = f"\nExisting Project Workspace Files:\n" + "\n".join(sample_files)
 
-    orch_model = orchestrator_model or "gemini-3.6-flash"
+    active_swarm_cfg = _load_active_swarm_config()
+    orch_model = orchestrator_model or active_swarm_cfg.get("orchestrator_engine") or "gemini-3.6-flash"
+    roster = worker_models or active_swarm_cfg.get("worker_models") or ["gemini-2.5-flash", "qwen2.5-coder:7b"]
+    limit_n = max(1, min(len(roster), int(max_models_used or active_swarm_cfg.get("max_models_used") or len(roster))))
+    active_roster = roster[:limit_n]
+    active_strategy = routing_strategy or active_swarm_cfg.get("routing_strategy", "ROUND_ROBIN")
+    active_pref_key = preferred_key_id or active_swarm_cfg.get("preferred_key_id", "AUTO")
 
     planning_prompt = f"""Decompose this software development goal into discrete, file-specific task directives.
 Assign exactly one specific target relative filename per task line (e.g., 'src/auth.py: Implement JWT authentication').
@@ -520,7 +639,10 @@ Goal: {goal}"""
             target_workspace=norm_target_dir,
             mode_override=execution_mode if execution_mode != "AUTO_DETECT" else "HYBRID_CLOUD",
             profile_override="BASIC",
-            project_name=proj_name
+            project_name=proj_name,
+            explicit_model=orch_model,
+            fallback_models=active_roster,
+            preferred_key_id=active_pref_key
         )
     except Exception:
         raw_output = goal
@@ -552,7 +674,8 @@ Goal: {goal}"""
 
         action = "MODIFY" if rel_file_path in existing_set else "CREATE"
         plan = auto_detect_execution_plan(line, project_name=proj_name)
-        provider_name = governor.resolve_provider(plan["target_model"])
+        assigned_model = active_roster[idx % len(active_roster)]
+        provider_name = governor.resolve_provider(assigned_model)
         est_in = 800 + (len(line) * 2)
         est_out = 1200
         total_est_tokens += (est_in + est_out)
@@ -562,7 +685,7 @@ Goal: {goal}"""
             "target_file": rel_file_path,
             "action": action,
             "assigned_agent": plan["selected_agent"],
-            "assigned_model": plan["target_model"],
+            "assigned_model": assigned_model,
             "provider": provider_name,
             "target_tier": plan["target_tier"],
             "directive": line,
@@ -577,6 +700,10 @@ Goal: {goal}"""
         "target_dir": norm_target_dir,
         "goal": goal,
         "orchestrator_model": orch_model,
+        "worker_models": active_roster,
+        "max_models_used": limit_n,
+        "routing_strategy": active_strategy,
+        "preferred_key_id": active_pref_key,
         "created_at": time.strftime("%Y-%m-%d %H:%M:%S IST"),
         "existing_files_detected": len(existing_files),
         "estimated_total_tokens": total_est_tokens,
@@ -604,7 +731,12 @@ def execute_approved_blueprint(
     execution_mode: str = "HYBRID_CLOUD",
     research_profile: str = "BASIC",
     model_profile: str = "HIGH_RPM_TPM",
-    isolate: bool = False
+    isolate: bool = False,
+    orchestrator_model: Optional[str] = None,
+    worker_models: Optional[List[str]] = None,
+    max_models_used: Optional[int] = None,
+    routing_strategy: str = "ROUND_ROBIN",
+    preferred_key_id: Optional[str] = None
 ) -> dict:
     """
     Stage 15.2 Approved Blueprint Execution:
@@ -618,12 +750,31 @@ def execute_approved_blueprint(
     norm_dest = normalize_wsl_path(target_destination)
     proj_name = project_name or os.path.basename(norm_dest.rstrip("/")) or "default_project"
 
+    active_swarm_cfg = _load_active_swarm_config()
+    orch = orchestrator_model or active_swarm_cfg.get("orchestrator_engine") or "gemini-3.6-flash"
+    roster = worker_models or active_swarm_cfg.get("worker_models") or ["gemini-2.5-flash", "qwen2.5-coder:7b"]
+    limit_n = max(1, min(len(roster), int(max_models_used or active_swarm_cfg.get("max_models_used") or len(roster))))
+    active_roster = roster[:limit_n]
+
     supervisor = ProjectSupervisor(
         target_destination=norm_dest,
         isolate=isolate,
         max_workers=max_workers,
         project_name=proj_name
     )
+    supervisor.active_orchestrator = orch
+    supervisor.active_worker_models = active_roster
+    supervisor.worker_assignments = {}
+
+    try:
+        with open(SWARM_REGISTRY_FILE, "r", encoding="utf-8") as f:
+            reg_d = json.load(f)
+        reg_d["active_orchestrator"] = orch
+        reg_d["active_worker_models"] = active_roster
+        with open(SWARM_REGISTRY_FILE, "w", encoding="utf-8") as f:
+            json.dump(reg_d, f, indent=4)
+    except Exception:
+        pass
 
     reset_build_lifecycle()
     try:
@@ -697,9 +848,11 @@ def execute_approved_blueprint(
                         break
                     t_id = idx + 1
                     t_desc = f"{ct.get('target_file')}: {ct.get('directive')}"
+                    assigned_model = ct.get("assigned_model") or active_roster[idx % len(active_roster)]
                     fut = executor.submit(
                         supervisor.run_sub_agent_worker,
-                        t_id, t_desc, tasks_status, execution_mode, research_profile, model_profile
+                        t_id, t_desc, tasks_status, execution_mode, research_profile, model_profile,
+                        explicit_model=assigned_model, fallback_models=active_roster, preferred_key_id=preferred_key_id
                     )
                     futures.append((fut, ct.get("target_file")))
                     time.sleep(0.1)

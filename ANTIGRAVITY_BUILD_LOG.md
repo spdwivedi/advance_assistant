@@ -1204,3 +1204,50 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Zero Test Pollution Audit**:
   - All tests executed within `preserve_agent_memory()` with clean snapshot restoration.
 - **Stage Status**: COMPLETED.
+
+### STAGE 16.2: EXPLICIT MULTI-MODEL SWARM ROSTER ENGINE, PER-WORKER MODEL DISPATCHER & UNIFIED CATALOG API
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Upgrade `.agent_memory/swarm_profiles.json` schema with explicit multi-model swarm roster arrays (`worker_models`), maximum model concurrency caps (`max_models_used`), dynamic swarm routing strategies (`routing_strategy`), and pinned key preference (`preferred_key_id`).
+  - Upgrade `src/key_manager.py` with `preferred_key_id` resolution in `resolve_key_context`, prioritizing user-selected keys when active and compatible.
+  - Upgrade `src/agent.py` `run_agent_pipeline` with `explicit_model`, `fallback_models`, and `preferred_key_id`, adding direct local Ollama execution with `OLLAMA:LOCAL` governor leases and automated fallback through the user-specified candidate queue.
+  - Upgrade `src/supervisor.py` with `_load_active_swarm_config`, Phase 0 architectural orchestrator execution, per-worker model slicing (`active_roster = roster[:limit_n]`), blueprint task assignment, and real-time per-worker model telemetry (`worker_assignments`, `active_orchestrator`, `active_worker_models`) in `swarm_registry.json`.
+  - Expose `GET /api/models/catalog` in `src/server.py` grouping Google (Free/Paid), Groq (Free/Paid), and Ollama (Local) with 85% working limits and live key availability flags.
+  - Upgrade `POST /api/swarms/profiles`, `POST /api/execute`, `POST /api/blueprint/preview`, and `POST /api/blueprint/execute` with swarm model and key override capabilities.
+  - Create and certify `test/test_scripts/test_stage16_2_swarm_roster.py`, update `run_all_tests.py`, and certify 100% pass across all 7 suites with zero state pollution.
+- **Key Modifications**:
+  - `.agent_memory/swarm_profiles.json`:
+    * Upgraded root schema with `orchestrator_engine`, `worker_models`, `max_models_used`, `max_concurrency_workers`, `routing_strategy`, and `preferred_key_id`.
+    * Upgraded individual swarm profiles (`GLOBAL_HYBRID_SWARM`, `FULLSTACK_CLOUD_SWARM`, `AIR_GAPPED_LOCAL_SWARM`) with explicit `worker_models`, `max_models_used`, and `routing_strategy`.
+  - `src/key_manager.py`:
+    * Updated `resolve_key_context` signature with `preferred_key_id: Optional[str] = None`.
+    * Added preferred key override check verifying key status (`ACTIVE`), cooldown, and financial shield lock before falling back to routing policies.
+  - `src/agent.py`:
+    * Updated `run_agent_pipeline` signature with `explicit_model`, `fallback_models`, and `preferred_key_id`, preserving 100% backward compatibility for all kwargs.
+    * Implemented explicit candidate queue construction and direct local Ollama execution path acquiring and committing `OLLAMA:LOCAL` leases.
+    * Added graceful fallback progression from `explicit_model` to `fallback_models` and finally to offline core weights on cloud saturation.
+  - `src/supervisor.py`:
+    * Implemented `_load_active_swarm_config()` loading persistent swarm settings from `.agent_memory/swarm_profiles.json`.
+    * Implemented `_update_worker_assignment(file_path, worker_id, model_name)` recording real-time assignments in `swarm_registry.json`.
+    * Updated `ProjectSupervisor._initialize_swarm_registry()` with `active_orchestrator`, `active_worker_models`, and `worker_assignments`.
+    * Updated `generate_preflight_blueprint` with `worker_models`, `max_models_used`, `routing_strategy`, and `preferred_key_id`, distributing preview tasks strictly across the active roster.
+    * Updated `process_complete_development_cycle` and `execute_approved_blueprint` to drive Phase 0 and Phase 2 with explicit models and publish real-time telemetry.
+  - `src/server.py`:
+    * Implemented `GET /api/models/catalog` querying `token_governor.get_hierarchy_telemetry()` and `key_manager.get_masked_keys()`.
+    * Updated `DEFAULT_SWARM_PROFILES` and `_get_or_init_swarm_profiles` with backward-compatible roster initialization.
+    * Updated `POST /api/swarms/profiles` persisting explicit multi-model fields.
+    * Updated `ExecutePayload`, `BlueprintPreviewRequest`, and `BlueprintExecuteRequest` schemas with model and key overrides.
+    * Connected background build threads to pass orchestrator and worker model parameters into supervisor methods.
+  - `test/test_scripts/test_stage16_2_swarm_roster.py`:
+    * Created 4-test certification suite verifying catalog endpoint, profile persistence, blueprint model distribution, and explicit dispatch.
+  - `test/test_scripts/run_all_tests.py`:
+    * Added `test_stage16_2_swarm_roster.py` as the 7th subsystem certification suite.
+- **Verification Results**:
+  - `test_stage16_2_swarm_roster.py`: **4/4 tests passed (100% OK in 0.02s)**
+  - `run_all_tests.py`: **7/7 suites passed (100% OK, 70/70 checks in 9.64s)**
+  - `frontend/tsc -b && vite build`: **100% SUCCESS in 1.90s**
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED**
+- **Zero Test Pollution Audit**:
+  - All test suites executed inside `preserve_agent_memory()` with complete state restoration.
+- **Stage Status**: COMPLETED.

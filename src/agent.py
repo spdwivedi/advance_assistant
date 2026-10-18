@@ -1,3 +1,4 @@
+from typing import Optional, List, Dict, Any
 import os
 import json
 import time
@@ -168,13 +169,22 @@ def verify_action_result_offline(filepath: str, task_instruction: str, project_n
 
 def run_agent_pipeline(
     user_prompt: str,
-    tier: str = "HIGH",
-    target_workspace: str = None,
-    mode_override: str = None,
-    profile_override: str = None,
-    constraining_profile_override: str = None,
+    execution_mode: str = "AUTO_DETECT",
+    research_profile: str = "BASIC",
+    use_agentic_tool: Optional[str] = None,
     project_name: str = "default_project",
-    test_name: str = None
+    model_profile: str = "HIGH_RPM_TPM",
+    target_tier_override: Optional[str] = None,
+    explicit_model: Optional[str] = None,
+    fallback_models: Optional[List[str]] = None,
+    preferred_key_id: Optional[str] = None,
+    tier: str = "HIGH",
+    target_workspace: Optional[str] = None,
+    mode_override: Optional[str] = None,
+    profile_override: Optional[str] = None,
+    constraining_profile_override: Optional[str] = None,
+    test_name: Optional[str] = None,
+    **kwargs
 ) -> str:
     """
     Stage 14.2 Multi-Provider Execution Pipeline:
@@ -189,15 +199,17 @@ def run_agent_pipeline(
     except ImportError:
         pass
 
-    active_mode = mode_override or DEFAULT_EXECUTION_MODE
-    profile_level = profile_override or DEFAULT_RESEARCH_PROFILE
-    constraining_profile = constraining_profile_override or DEFAULT_MODEL_CONSTRAINING_PROFILE
+    active_mode = mode_override or execution_mode or DEFAULT_EXECUTION_MODE
+    profile_level = profile_override or research_profile or DEFAULT_RESEARCH_PROFILE
+    constraining_profile = constraining_profile_override or model_profile or DEFAULT_MODEL_CONSTRAINING_PROFILE
+    effective_tier = target_tier_override or tier or "HIGH"
+    tier = effective_tier
 
     selected_target_model = None
-    if active_mode == "AUTO_DETECT":
+    if active_mode == "AUTO_DETECT" and not explicit_model:
         plan = auto_detect_execution_plan(user_prompt, project_name=project_name)
         active_mode = plan["mode"]
-        tier = plan["target_tier"]
+        effective_tier = plan["target_tier"]
         profile_level = plan["research_profile"]
         constraining_profile = plan["constraining_profile"]
         selected_target_model = plan.get("target_model")
@@ -240,12 +252,20 @@ RULES FOR SYSTEM COMMAND GENERATION:
     reply = None
     full_prompt = user_prompt
 
-    # Multi-Provider Cloud Execution Path (GOOGLE, GROQ)
+    # Multi-Provider Execution Path (GOOGLE, GROQ, OLLAMA ROSTER)
     pool_status = key_manager.get_routing_status()
     has_cloud_keys = (pool_status["active_keys"] > 0) or bool(os.getenv("GEMINI_API_KEY")) or bool(os.getenv("GROQ_API_KEY"))
 
-    if "HYBRID" in active_mode and has_cloud_keys and tier != "LOW" and constraining_profile != "OFFLINE_PURE":
-        primary_candidates = TIER_POOLS.get(tier, [])
+    # Stage 16.2 Explicit Multi-Model Swarm Queue Construction
+    full_candidate_queue: List[str] = []
+    if explicit_model:
+        full_candidate_queue = [explicit_model]
+        if fallback_models:
+            for fb in fallback_models:
+                if fb not in full_candidate_queue:
+                    full_candidate_queue.append(fb)
+    elif ("HYBRID" in active_mode or active_mode == "AUTO_DETECT") and has_cloud_keys and effective_tier != "LOW" and constraining_profile != "OFFLINE_PURE":
+        primary_candidates = TIER_POOLS.get(effective_tier, [])
         fast_fallback_candidates = TIER_POOLS.get("FAST", [])
         full_candidate_queue = primary_candidates + [m for m in fast_fallback_candidates if m not in primary_candidates]
 
@@ -256,15 +276,79 @@ RULES FOR SYSTEM COMMAND GENERATION:
         if selected_target_model and selected_target_model in full_candidate_queue:
             full_candidate_queue = [selected_target_model] + [m for m in full_candidate_queue if m != selected_target_model]
 
-        tier_pref = "PAID" if tier in ["HIGH", "MID"] else "FREE"
+    if full_candidate_queue:
+        tier_pref = "PAID" if effective_tier in ["HIGH", "MID"] else "FREE"
 
         for model_id in full_candidate_queue:
-            # Skip local models in the cloud loop
-            if ":" in model_id:
-                continue
+            is_local = (":" in model_id) or (governor.resolve_provider(model_id) == "OLLAMA")
+            if is_local:
+                # Stage 16.2 Direct Local Ollama Swarm Roster Execution
+                log_action(effective_tier, "LOCAL_OLLAMA_ROSTER_EXECUTE", {"model": model_id, "project_name": project_name}, model_name=model_id)
+                loc_lease = governor.acquire_lease(
+                    model_name=model_id,
+                    prompt_text=full_prompt,
+                    provider="OLLAMA",
+                    tier="LOCAL",
+                    key_id="local_ollama"
+                )
+                try:
+                    print(f"⏳ [Local Swarm Roster Stream ({model_id})]: ", end="", flush=True)
+                    stream = ollama.chat(
+                        model=model_id,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": full_prompt}
+                        ],
+                        keep_alive="2m",
+                        stream=True
+                    )
+                    reply_chunks = []
+                    for chunk in stream:
+                        token = chunk["message"]["content"]
+                        reply_chunks.append(token)
+                        print(token, end="", flush=True)
+                    print()
+                    reply = "".join(reply_chunks)
+                    loc_in = max(1, len(full_prompt) // 4)
+                    loc_out = max(1, len(reply) // 4)
+                    governor.commit_lease(
+                        lease_id=loc_lease.get("lease_id"),
+                        model_name=model_id,
+                        actual_input_tokens=loc_in,
+                        actual_output_tokens=loc_out,
+                        actual_thinking_tokens=0,
+                        provider="OLLAMA",
+                        tier="LOCAL",
+                        key_id="local_ollama",
+                        project_name=project_name,
+                        success=True
+                    )
+                    ACTIVE_WORKING_MODELS[effective_tier] = model_id
+                    log_action(effective_tier, "LOCAL_ROSTER_EXECUTE_SUCCESS", {
+                        "model": model_id,
+                        "tokens_in": loc_in,
+                        "tokens_out": loc_out,
+                        "project_name": project_name
+                    }, model_name=model_id)
+                    break
+                except Exception as e:
+                    governor.commit_lease(
+                        lease_id=loc_lease.get("lease_id"),
+                        model_name=model_id,
+                        actual_input_tokens=0,
+                        actual_output_tokens=0,
+                        actual_thinking_tokens=0,
+                        provider="OLLAMA",
+                        tier="LOCAL",
+                        key_id="local_ollama",
+                        project_name=project_name,
+                        success=False
+                    )
+                    log_action(effective_tier, "LOCAL_ROSTER_EXECUTE_FAILED", {"model": model_id, "error": str(e), "project_name": project_name}, model_name=model_id)
+                    continue
 
-            # Model constraining profile check
-            if not governor.is_model_allowed_by_profile(model_id, constraining_profile):
+            # Model constraining profile check (bypass if user explicitly requested model)
+            if model_id != explicit_model and not governor.is_model_allowed_by_profile(model_id, constraining_profile):
                 continue
 
             # Look up agent bounds from registry
@@ -276,8 +360,13 @@ RULES FOR SYSTEM COMMAND GENERATION:
             # Determine provider for model
             target_provider = agent_cfg.get("provider") or governor.resolve_provider(model_id)
 
-            # Resolve key context for model and provider
-            ctx = key_manager.resolve_key_context(model_name=model_id, tier_preference=tier_pref, provider=target_provider)
+            # Resolve key context for model and provider with optional preferred_key_id
+            ctx = key_manager.resolve_key_context(
+                model_name=model_id,
+                tier_preference=tier_pref,
+                provider=target_provider,
+                preferred_key_id=preferred_key_id
+            )
             if not ctx.get("key_id") or (target_provider == "GOOGLE" and not ctx.get("client") and not ctx.get("raw_key")):
                 continue
 

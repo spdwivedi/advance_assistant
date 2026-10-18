@@ -1,31 +1,30 @@
 {
-    "active_swarm_id": "GLOBAL_HYBRID_SWARM",
+    "active_swarm_id": "CUSTOM_MULTI_SWARM",
     "orchestrator_engine": "qwen2.5-coder:32b",
-    "max_concurrency_workers": 8,
+    "worker_models": [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash-lite",
+        "qwen2.5-coder:7b"
+    ],
+    "max_models_used": 2,
+    "max_concurrency_workers": 6,
+    "routing_strategy": "ROUND_ROBIN",
+    "preferred_key_id": "key_e7c36116",
     "swarms": [
         {
-            "id": "GLOBAL_HYBRID_SWARM",
-            "name": "Global Hybrid Adaptive Swarm",
-            "description": "Cloud Pro/Ollama 32B for Architecture; Cloud Flash & Local 7B for Parallel Workers.",
+            "id": "CUSTOM_MULTI_SWARM",
+            "name": "Custom Multi-Model Test Swarm",
+            "description": "Testing multi-model roster dispatch",
             "orchestrator": "qwen2.5-coder:32b",
             "worker_tier": "HIGH_RPM_TPM",
-            "default_concurrency": 8
-        },
-        {
-            "id": "FULLSTACK_CLOUD_SWARM",
-            "name": "High-Throughput Cloud Swarm",
-            "description": "Gemini Pro Orchestrator paired with 4,000 RPM Flash/Lite Workers.",
-            "orchestrator": "gemini-2.5-pro",
-            "worker_tier": "HIGHEST_RPM_TPM",
-            "default_concurrency": 12
-        },
-        {
-            "id": "AIR_GAPPED_LOCAL_SWARM",
-            "name": "Air-Gapped Private Local Swarm",
-            "description": "Zero external API calls. Runs exclusively on Ollama local weights.",
-            "orchestrator": "qwen2.5-coder:32b",
-            "worker_tier": "OFFLINE_PURE",
-            "default_concurrency": 4
+            "worker_models": [
+                "gemini-2.5-flash",
+                "gemini-2.0-flash-lite",
+                "qwen2.5-coder:7b"
+            ],
+            "max_models_used": 2,
+            "routing_strategy": "ROUND_ROBIN",
+            "default_concurrency": 6
         }
     ]
 }

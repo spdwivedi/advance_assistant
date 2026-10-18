@@ -1,10 +1,10 @@
 {
-    "last_reset_date": "2026-10-17",
+    "last_reset_date": "2026-10-18",
     "daily_tokens": 0,
     "requests_today": 0,
     "paid_tokens_today": 0,
     "paid_tokens_current_build": 0,
-    "active_build_project": "default_project",
+    "active_build_project": "bp_exec_cert",
     "model_usage": {},
     "bucket_usage": {},
     "project_usage": {},

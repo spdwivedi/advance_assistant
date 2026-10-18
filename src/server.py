@@ -108,6 +108,11 @@ class ExecutePayload(BaseModel):
     constrain: Optional[str] = None
     isolate: Optional[bool] = None
     max_workers: Optional[int] = None
+    orchestrator_model: Optional[str] = None
+    worker_models: Optional[List[str]] = None
+    max_models_used: Optional[int] = None
+    routing_strategy: Optional[str] = None
+    preferred_key_id: Optional[str] = None
 
 
 class ModelLimitsUpdateRequest(BaseModel):
@@ -155,6 +160,10 @@ class BlueprintPreviewRequest(BaseModel):
     project_name: Optional[str] = None
     execution_mode: str = "AUTO_DETECT"
     orchestrator_model: Optional[str] = None
+    worker_models: Optional[List[str]] = None
+    max_models_used: Optional[int] = None
+    routing_strategy: Optional[str] = None
+    preferred_key_id: Optional[str] = None
     use_existing_context: bool = True
 
 
@@ -167,6 +176,11 @@ class BlueprintExecuteRequest(BaseModel):
     execution_mode: str = "HYBRID_CLOUD"
     research_profile: str = "BASIC"
     model_profile: str = "HIGH_RPM_TPM"
+    orchestrator_model: Optional[str] = None
+    worker_models: Optional[List[str]] = None
+    max_models_used: Optional[int] = None
+    routing_strategy: Optional[str] = None
+    preferred_key_id: Optional[str] = None
 
 
 class SubAgentUpdateRequest(BaseModel):
@@ -299,22 +313,47 @@ SWARM_PROFILES_FILE = os.path.join(os.path.dirname(SWARM_REGISTRY_FILE), "swarm_
 DEFAULT_SWARM_PROFILES = {
     "active_swarm_id": "GLOBAL_HYBRID_SWARM",
     "orchestrator_engine": "qwen2.5-coder:32b",
+    "worker_models": [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash-lite",
+        "qwen-2.5-coder-32b",
+        "qwen2.5-coder:7b"
+    ],
+    "max_models_used": 4,
     "max_concurrency_workers": 8,
+    "routing_strategy": "ROUND_ROBIN",
+    "preferred_key_id": "AUTO",
     "swarms": [
         {
             "id": "GLOBAL_HYBRID_SWARM",
             "name": "Global Hybrid Adaptive Swarm",
-            "description": "Cloud Pro/Ollama 32B for Architecture; Cloud Flash & Local 7B for Parallel Workers.",
+            "description": "Cloud Pro/Ollama 32B for Architecture; Cloud Flash, Groq & Local 7B for Parallel Workers.",
             "orchestrator": "qwen2.5-coder:32b",
             "worker_tier": "HIGH_RPM_TPM",
+            "worker_models": [
+                "gemini-2.5-flash",
+                "gemini-2.0-flash-lite",
+                "qwen-2.5-coder-32b",
+                "qwen2.5-coder:7b"
+            ],
+            "max_models_used": 4,
+            "routing_strategy": "ROUND_ROBIN",
             "default_concurrency": 8
         },
         {
             "id": "FULLSTACK_CLOUD_SWARM",
             "name": "High-Throughput Cloud Swarm",
-            "description": "Gemini Pro Orchestrator paired with 4,000 RPM Flash/Lite Workers.",
+            "description": "Gemini 2.5 Pro Orchestrator paired with Gemini Flash, Flash-Lite & Groq Workers.",
             "orchestrator": "gemini-2.5-pro",
             "worker_tier": "HIGHEST_RPM_TPM",
+            "worker_models": [
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite"
+            ],
+            "max_models_used": 4,
+            "routing_strategy": "QUOTA_WEIGHTED",
             "default_concurrency": 12
         },
         {
@@ -323,6 +362,14 @@ DEFAULT_SWARM_PROFILES = {
             "description": "Zero external API calls. Runs exclusively on Ollama local weights.",
             "orchestrator": "qwen2.5-coder:32b",
             "worker_tier": "OFFLINE_PURE",
+            "worker_models": [
+                "qwen2.5-coder:7b",
+                "qwen2.5-coder:1.5b",
+                "deepseek-r1:8b",
+                "sqlcoder:7b"
+            ],
+            "max_models_used": 2,
+            "routing_strategy": "ROUND_ROBIN",
             "default_concurrency": 4
         }
     ]
@@ -332,14 +379,20 @@ DEFAULT_SWARM_PROFILES = {
 def _get_or_init_swarm_profiles() -> Dict[str, Any]:
     """
     Retrieves swarm profile configurations or initializes with production defaults.
+    Ensures backward compatible presence of multi-model roster fields.
     """
+    import copy
     if not os.path.exists(SWARM_PROFILES_FILE):
         try:
             _save_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
         except Exception:
             pass
-        return dict(DEFAULT_SWARM_PROFILES)
-    return _load_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+        return copy.deepcopy(DEFAULT_SWARM_PROFILES)
+    data = _load_json(SWARM_PROFILES_FILE, DEFAULT_SWARM_PROFILES)
+    for k, v in DEFAULT_SWARM_PROFILES.items():
+        if k not in data:
+            data[k] = v
+    return data
 
 
 @app.get("/api/health")
@@ -440,6 +493,62 @@ def get_swarm_status() -> Dict[str, Any]:
     return reg
 
 
+@app.get("/api/models/catalog")
+def get_models_catalog() -> Dict[str, Any]:
+    """
+    Stage 16.2 Unified Catalog API:
+    Returns a structured catalog of all available models grouped by GOOGLE (FREE/PAID),
+    GROQ (FREE/PAID), and OLLAMA (LOCAL), including strict_limits, working_limits (85%),
+    safety_margin_percent, and whether active keys are available for that tier.
+    """
+    telemetry = token_governor.get_hierarchy_telemetry()
+    keys = key_manager.get_masked_keys()
+    safety_margin = telemetry.get("financial_shield", {}).get("safety_margin_percent", 85)
+
+    catalog = {}
+    providers = telemetry.get("providers", {})
+    for prov_name, tiers_data in providers.items():
+        catalog[prov_name] = {}
+        for tier_name, models_data in tiers_data.items():
+            if prov_name == "OLLAMA":
+                has_keys = True
+                active_key_count = 1
+            else:
+                prov_tier_keys = [
+                    k for k in keys
+                    if k.get("provider", "").upper() == prov_name.upper()
+                    and k.get("tier", "").upper() == tier_name.upper()
+                    and k.get("status") == "ACTIVE"
+                    and (k.get("cooldown_remaining_sec", 0) <= 0)
+                ]
+                has_keys = len(prov_tier_keys) > 0
+                active_key_count = len(prov_tier_keys)
+
+            models_list = []
+            for m_name, m_info in models_data.items():
+                models_list.append({
+                    "model_name": m_name,
+                    "provider": prov_name,
+                    "tier": tier_name,
+                    "strict_limits": m_info.get("strict_limits", {}),
+                    "working_limits": m_info.get("working_limits", {}),
+                    "safety_margin_percent": safety_margin,
+                    "keys_available": has_keys,
+                    "active_key_count": active_key_count
+                })
+            catalog[prov_name][tier_name] = {
+                "keys_available": has_keys,
+                "active_key_count": active_key_count,
+                "models": models_list
+            }
+
+    return {
+        "status": "success",
+        "safety_margin_percent": safety_margin,
+        "catalog": catalog
+    }
+
+
 @app.get("/api/swarms/profiles")
 def get_swarm_profiles() -> Dict[str, Any]:
     """
@@ -451,11 +560,17 @@ def get_swarm_profiles() -> Dict[str, Any]:
 @app.post("/api/swarms/profiles")
 def save_swarm_profiles(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Persists updated swarm profile rosters and active orchestrator to swarm_profiles.json.
+    Stage 16.2: Persists updated swarm profile rosters, active orchestrator,
+    worker models, max models used, routing strategy, and preferred key id.
     """
     try:
-        _save_json(SWARM_PROFILES_FILE, payload)
-        return {"status": "success", "profiles": payload}
+        existing = _get_or_init_swarm_profiles()
+        for k in ["active_swarm_id", "orchestrator_engine", "worker_models", "max_models_used",
+                  "max_concurrency_workers", "routing_strategy", "preferred_key_id", "swarms"]:
+            if k in payload:
+                existing[k] = payload[k]
+        _save_json(SWARM_PROFILES_FILE, existing)
+        return {"status": "success", "profiles": existing}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1060,9 +1175,14 @@ def _run_background_blueprint(
     mode: str,
     profile: str,
     constrain: str,
-    max_workers: int
+    max_workers: int,
+    orchestrator_model: Optional[str] = None,
+    worker_models: Optional[List[str]] = None,
+    max_models_used: Optional[int] = None,
+    routing_strategy: str = "ROUND_ROBIN",
+    preferred_key_id: Optional[str] = None
 ):
-    """Worker function executed inside a detached background thread for approved blueprint execution."""
+    """Worker function executed inside a detached background thread for approved blueprint execution with swarm roster."""
     try:
         res = execute_approved_blueprint(
             tasks=tasks,
@@ -1073,7 +1193,12 @@ def _run_background_blueprint(
             execution_mode=mode,
             research_profile=profile,
             model_profile=constrain,
-            isolate=False
+            isolate=False,
+            orchestrator_model=orchestrator_model,
+            worker_models=worker_models,
+            max_models_used=max_models_used,
+            routing_strategy=routing_strategy,
+            preferred_key_id=preferred_key_id
         )
         final_status = res.get("status", "COMPLETED")
         with execution_lock:
@@ -1099,9 +1224,14 @@ def _run_background_build(
     profile: str,
     constrain: str,
     isolate: bool,
-    max_workers: Optional[int]
+    max_workers: Optional[int],
+    orchestrator_model: Optional[str] = None,
+    worker_models: Optional[List[str]] = None,
+    max_models_used: Optional[int] = None,
+    routing_strategy: str = "ROUND_ROBIN",
+    preferred_key_id: Optional[str] = None
 ):
-    """Worker function executed inside a detached background thread."""
+    """Worker function executed inside a detached background thread with multi-model swarm dispatch."""
     try:
         supervisor = ProjectSupervisor(
             target_destination=target_dest,
@@ -1113,7 +1243,12 @@ def _run_background_build(
             master_instruction=goal,
             mode_override=mode,
             profile_level=profile,
-            constraining_profile=constrain
+            constraining_profile=constrain,
+            orchestrator_model=orchestrator_model,
+            worker_models=worker_models,
+            max_models_used=max_models_used,
+            routing_strategy=routing_strategy,
+            preferred_key_id=preferred_key_id
         )
         with execution_lock:
             execution_state["status"] = "COMPLETED"
@@ -1171,7 +1306,11 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
         active_isolate = DEFAULT_ISOLATION_ENABLED if payload.isolate is None else payload.isolate
         swarm_conf = _get_or_init_swarm_profiles()
         active_swarm_id = swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM")
-        active_orchestrator = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        active_orchestrator = payload.orchestrator_model or swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        active_worker_models = payload.worker_models or swarm_conf.get("worker_models", ["gemini-2.5-flash", "qwen2.5-coder:7b"])
+        active_max_models = payload.max_models_used or swarm_conf.get("max_models_used", len(active_worker_models))
+        active_strategy = payload.routing_strategy or swarm_conf.get("routing_strategy", "ROUND_ROBIN")
+        active_preferred_key = payload.preferred_key_id or swarm_conf.get("preferred_key_id", "AUTO")
         default_workers = swarm_conf.get("max_concurrency_workers", 8)
 
         # Worker clamping from [1, 9] to [1, 16]
@@ -1191,6 +1330,10 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
         execution_state["isolate"] = active_isolate
         execution_state["active_swarm_id"] = active_swarm_id
         execution_state["orchestrator_engine"] = active_orchestrator
+        execution_state["worker_models"] = active_worker_models
+        execution_state["max_models_used"] = active_max_models
+        execution_state["routing_strategy"] = active_strategy
+        execution_state["preferred_key_id"] = active_preferred_key
         execution_state["max_workers"] = active_max_workers
         execution_state["start_time"] = time.time()
         execution_state["end_time"] = None
@@ -1205,6 +1348,7 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
             "active_workspace": target_dest,
             "active_swarm_id": active_swarm_id,
             "orchestrator_engine": active_orchestrator,
+            "active_worker_models": active_worker_models[:active_max_models],
             "max_available_workers": active_max_workers,
             "status": "RUNNING"
         })
@@ -1222,7 +1366,12 @@ def execute_build(payload: ExecutePayload) -> Dict[str, Any]:
             active_profile,
             active_constrain,
             active_isolate,
-            active_max_workers
+            active_max_workers,
+            active_orchestrator,
+            active_worker_models,
+            active_max_models,
+            active_strategy,
+            active_preferred_key
         ),
         daemon=True
     )
@@ -1969,6 +2118,10 @@ def create_blueprint_preview(req: BlueprintPreviewRequest) -> Dict[str, Any]:
             project_name=req.project_name,
             execution_mode=req.execution_mode,
             orchestrator_model=req.orchestrator_model,
+            worker_models=req.worker_models,
+            max_models_used=req.max_models_used,
+            routing_strategy=req.routing_strategy or "ROUND_ROBIN",
+            preferred_key_id=req.preferred_key_id,
             use_existing_context=req.use_existing_context
         )
         return {
@@ -2022,7 +2175,11 @@ def execute_blueprint(req: BlueprintExecuteRequest) -> Dict[str, Any]:
 
         swarm_conf = _get_or_init_swarm_profiles()
         active_swarm_id = swarm_conf.get("active_swarm_id", "GLOBAL_HYBRID_SWARM")
-        active_orchestrator = swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        active_orchestrator = req.orchestrator_model or swarm_conf.get("orchestrator_engine", LOCAL_ORCHESTRATOR_MODEL)
+        active_worker_models = req.worker_models or swarm_conf.get("worker_models", ["gemini-2.5-flash", "qwen2.5-coder:7b"])
+        active_max_models = req.max_models_used or swarm_conf.get("max_models_used", len(active_worker_models))
+        active_strategy = req.routing_strategy or swarm_conf.get("routing_strategy", "ROUND_ROBIN")
+        active_preferred_key = req.preferred_key_id or swarm_conf.get("preferred_key_id", "AUTO")
         active_max_workers = max(1, min(int(req.max_workers), 16))
 
         execution_state["is_running"] = True
@@ -2037,6 +2194,10 @@ def execute_blueprint(req: BlueprintExecuteRequest) -> Dict[str, Any]:
         execution_state["constrain"] = req.model_profile
         execution_state["active_swarm_id"] = active_swarm_id
         execution_state["orchestrator_engine"] = active_orchestrator
+        execution_state["worker_models"] = active_worker_models
+        execution_state["max_models_used"] = active_max_models
+        execution_state["routing_strategy"] = active_strategy
+        execution_state["preferred_key_id"] = active_preferred_key
         execution_state["max_workers"] = active_max_workers
         execution_state["start_time"] = time.time()
         execution_state["end_time"] = None
@@ -2050,6 +2211,7 @@ def execute_blueprint(req: BlueprintExecuteRequest) -> Dict[str, Any]:
             "active_workspace": target_dest,
             "active_swarm_id": active_swarm_id,
             "orchestrator_engine": active_orchestrator,
+            "active_worker_models": active_worker_models[:active_max_models],
             "max_available_workers": active_max_workers,
             "status": "RUNNING"
         })
@@ -2067,7 +2229,12 @@ def execute_blueprint(req: BlueprintExecuteRequest) -> Dict[str, Any]:
             req.execution_mode,
             req.research_profile,
             req.model_profile,
-            active_max_workers
+            active_max_workers,
+            active_orchestrator,
+            active_worker_models,
+            active_max_models,
+            active_strategy,
+            active_preferred_key
         ),
         daemon=True
     )
