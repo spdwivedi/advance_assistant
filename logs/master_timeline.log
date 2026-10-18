@@ -2684,3 +2684,43 @@
 [2026-10-18 19:27:05.406 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
 [2026-10-18 19:27:05.408 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
 [2026-10-18 19:27:05.409 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}
+[2026-10-18 19:40:13.683 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-18 19:40:13.687 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-18 19:40:15.067 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-18 19:40:15.070 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-18 19:40:15.071 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-18 19:40:15.071 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-18 19:40:16.135 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Boilerplate_Optimizer_Agent", "target_model": "gemini-2.5-flash-lite", "target_tier": "FAST", "project_name": "default_project"}
+[2026-10-18 19:40:16.136 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "default_project"}
+[2026-10-18 19:40:16.136 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "default_project"}
+[2026-10-18 19:40:16.146 IST] [MODEL:GEMINI-3.6-FLASH] [CAT:HIGH] [CLOUD_GENERATE_SUCCESS] [ENV:LOCAL] {"model": "gemini-3.6-flash", "provider": "GOOGLE", "key_id": "key_e7c36116", "tokens_in": 145, "tokens_out": 210, "thinking_tokens": 32, "project_name": "stage14_pipeline_test"}
+[2026-10-18 19:40:16.147 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage14_2_agent/test_config.txt", "bytes_written": 25, "project_name": "stage14_pipeline_test", "test_name": null}
+[2026-10-18 19:40:18.977 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": true, "state": "PAUSED"}
+[2026-10-18 19:40:18.981 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": false, "state": "RUNNING"}
+[2026-10-18 19:40:18.983 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_STOP_REQUESTED] [ENV:LOCAL] {"state": "CANCELLED"}
+[2026-10-18 19:40:18.995 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:18.995 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:18.995 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:18.998 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-18 19:40:18.999 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/config.txt", "bytes_written": 21, "project_name": null, "test_name": null}
+[2026-10-18 19:40:19.001 IST] [MODEL:DEV_CODER] [CAT:GATEKEEPER] [FILE_WRITE_SUCCESS] [ENV:LOCAL] {"path": "/tmp/test_stage15_2_exec_ws/src/utils.py", "bytes_written": 63, "project_name": null, "test_name": null}
+[2026-10-18 19:40:20.662 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-18 19:40:20.667 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-18 19:40:20.671 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-18 19:40:20.689 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": true, "state": "PAUSED"}
+[2026-10-18 19:40:20.691 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_PAUSE_TOGGLED] [ENV:LOCAL] {"paused": false, "state": "RUNNING"}
+[2026-10-18 19:40:20.693 IST] [MODEL:SUPERVISOR] [CAT:GENERAL] [BUILD_STOP_REQUESTED] [ENV:LOCAL] {"state": "CANCELLED"}
+[2026-10-18 19:40:20.706 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:20.706 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:20.706 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "preview_cert_project"}
+[2026-10-18 19:40:21.911 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-18 19:40:22.133 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-18 19:40:22.481 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-18 19:40:22.505 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_1fab87af:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-18 19:40:23.766 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "test_roster_proj"}
+[2026-10-18 19:40:23.766 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "Enterprise_Architect_Agent", "target_model": "gemini-2.5-pro", "target_tier": "HIGH", "project_name": "test_roster_proj"}
+[2026-10-18 19:40:23.766 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "test_roster_proj"}
+[2026-10-18 19:40:23.766 IST] [MODEL:ROUTER] [CAT:SYSTEM] [AUTO_DETECT_PLAN_SUCCESS] [ENV:LOCAL] {"selected_agent": "High_Performance_Developer_Agent", "target_model": "gemini-3.6-flash", "target_tier": "HIGH", "project_name": "test_roster_proj"}
+[2026-10-18 19:40:23.772 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-18 19:40:23.774 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-18 19:40:23.775 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}

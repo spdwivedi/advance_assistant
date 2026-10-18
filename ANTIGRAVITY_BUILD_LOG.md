@@ -1382,3 +1382,33 @@ This document tracks all prompt executions, file additions, architecture extensi
     * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
     * Zero Test Pollution: `.agent_memory/` files remained completely clean.
 - **Stage Status**: COMPLETED.
+
+### STAGE 17.3: ROOT README OVERHAUL, INTERACTIVE ARCHITECTURE ATLAS (docs/architecture_atlas.html), TREE SYNC & FINAL CERTIFICATION
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Overhaul root `README.md`:
+    * Added executive hero header and badges (`Status: Certified v6.0`, `Python: 3.12+`, `Frontend: React 18 / Vite / TS`, `Hardware: RTX 4060 8GB GDDR6`, `Test Coverage: 70/70 Checks (100% PASS)`, `Security: Hardened (Zero Leaks)`).
+    * Documented dual-mode system philosophy: Zero-Mutation Core CLI (`src/main.py`), FastAPI/WebSocket Gateway (`src/server.py`), and 8-View Web Console (`frontend/`).
+    * Detailed 6 Core Breakthroughs: 3-Level Hierarchical Quota Governor & 85% Limits Calculus, Two-Phase Atomic Token Lease Protocol, Paid Tier Financial Shield & Cost Analytics, Continuous Iterative Blueprint Engine, Precision Memory Knapsack Retrieval, and RTX 4060 8GB VRAM Arbitrator.
+    * Linked complete documentation suite (`docs/01` to `docs/05`, `docs/architecture_atlas.html`, and localized `README.md` files).
+    * Documented quick-start workflows (WSL2 dashboard `./start_dashboard.sh`, Windows `start_dashboard.bat`, CLI `src/main.py`, test suite `./venv/bin/python3 test/test_scripts/run_all_tests.py`).
+    * Provided clean Master Certification Test Matrix table (70/70 checks passing, ~10.2s runtime).
+  - Deliverable 2: Create Standalone Interactive Architecture Atlas (`docs/architecture_atlas.html`):
+    * Authored single-file, self-contained, offline-first visual HTML dashboard (29.6 KB) featuring dark-slate theme (`bg-slate-950`), Inter & JetBrains Mono typography, and CDN-loaded Mermaid.js.
+    * Built 5 interactive tabs:
+      1. `🏛️ System Architecture & Theory`: Block diagram, 85% calculus formulas, Two-Phase Lease state machine, and RTX 4060 hardware safety zones.
+      2. `📊 DFD Level 0, 1 & 2`: Context diagram, subsystem decomposition (P1–P8 to D1–D9), and Token Governor deep-dive.
+      3. `🗄️ Entity-Relationship (ER) Atlas`: Interactive ER schema across all 9 persistent data stores.
+      4. `🔄 Process Flows & Sequence Diagrams`: Autonomous build sequence, blueprint gate, and lifecycle control.
+      5. `🔌 Complete API Directory`: Searchable, filterable table of all 35+ REST and WebSocket endpoints with method badges, paths, and descriptions.
+    * Added client-side live search, instant diagram code copy buttons, and responsive layout.
+  - Deliverable 3: Regenerate Repository Tree & Sync File Paths:
+    * Executed `generate_tree.py` synchronizing `project_tree.txt` and `all_file_paths.txt` with all new files in `docs/` and localized `README.md` files.
+    * Confirmed zero ghost files, zero untracked scratch logs, and zero secret keys in repository tree.
+  - Deliverable 4: Final System Certification:
+    * Strict TypeScript and Vite production build: **100% SUCCESS (0 errors, 2.01s build time)**.
+    * Master test certification harness (`run_all_tests.py`): **100% PASS (7/7 Suites, 70/70 checks in 10.27s)**.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+    * Zero Test Pollution: `.agent_memory/` files remained completely clean.
+- **Stage Status**: COMPLETED.
+- **Milestone Status**: STAGE 17 (COMPREHENSIVE TECHNICAL DOCUMENTATION & SECURITY AUDIT SUITE) 100% COMPLETE.

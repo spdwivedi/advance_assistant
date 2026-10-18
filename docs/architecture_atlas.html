@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advance Assistant OS v6.0 - Interactive Architecture Atlas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .mermaid { background: #090d16; border-radius: 12px; padding: 16px; border: 1px solid #1e293b; }
+    .tab-btn.active { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.15); color: #818cf8; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-bold shadow-lg shadow-indigo-500/10 text-lg">
+        ⚡
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-white tracking-wide flex items-center gap-2">
+          <span>ADVANCE ASSISTANT OS v6.0</span>
+          <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-700/80">CERTIFIED v6.0</span>
+        </h1>
+        <p class="text-[11px] text-slate-400 font-mono">Interactive Architecture & System Engineering Atlas</p>
+      </div>
+    </div>
+
+    <!-- QUICK STATUS BADGES -->
+    <div class="flex items-center gap-2 font-mono text-[11px]">
+      <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300">RTX 4060 8GB GDDR6</span>
+      <span class="px-2.5 py-1 rounded-lg bg-indigo-950/80 border border-indigo-700 text-indigo-300">🛡️ 85% Rate Caps</span>
+      <span class="px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-700 text-emerald-300">70/70 Checks PASS</span>
+    </div>
+  </header>
+
+  <!-- TAB NAVIGATION BAR -->
+  <nav class="bg-slate-900/60 border-b border-slate-800/80 px-6 py-2 flex items-center justify-between overflow-x-auto gap-2">
+    <div class="flex items-center gap-1.5 text-xs font-medium">
+      <button onclick="switchTab('tab-arch')" id="btn-tab-arch" class="tab-btn active px-3.5 py-1.5 rounded-lg border border-transparent hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+        🏛️ System Architecture & Theory
+      </button>
+      <button onclick="switchTab('tab-dfd')" id="btn-tab-dfd" class="tab-btn px-3.5 py-1.5 rounded-lg border border-transparent hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+        📊 DFD Levels 0, 1 & 2
+      </button>
+      <button onclick="switchTab('tab-er')" id="btn-tab-er" class="tab-btn px-3.5 py-1.5 rounded-lg border border-transparent hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+        🗄️ Entity-Relationship (ER) Atlas
+      </button>
+      <button onclick="switchTab('tab-seq')" id="btn-tab-seq" class="tab-btn px-3.5 py-1.5 rounded-lg border border-transparent hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+        🔄 Process Flows & Sequences
+      </button>
+      <button onclick="switchTab('tab-api')" id="btn-tab-api" class="tab-btn px-3.5 py-1.5 rounded-lg border border-transparent hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+        🔌 Complete API Directory (35+ Endpoints)
+      </button>
+    </div>
+
+    <div class="relative shrink-0">
+      <input type="text" id="global-search" oninput="filterApiDirectory()" placeholder="Filter endpoints or schemas..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1 text-xs text-slate-200 placeholder-slate-500 font-mono w-56 focus:outline-none focus:border-indigo-500">
+    </div>
+  </nav>
+
+  <!-- MAIN TAB CONTENT CONTAINER -->
+  <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: SYSTEM ARCHITECTURE & THEORY                                 -->
+    <!-- =================================================================== -->
+    <section id="tab-arch" class="tab-content space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🏛️ System Architecture Block Diagram</span>
+              <span class="text-xs font-mono font-normal text-slate-400">(Core & Multi-Model Swarm Hierarchy)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Interaction between React Web Console, FastAPI Gateway, Supervisor Swarm, and Hybrid Providers.</p>
+          </div>
+          <button onclick="copyCode('diag-arch')" class="text-xs font-mono text-indigo-400 hover:text-indigo-300 bg-indigo-950/60 border border-indigo-800 px-2.5 py-1 rounded">Copy Mermaid</button>
+        </div>
+
+        <div class="mermaid overflow-x-auto text-xs" id="diag-arch">
+graph TB
+    Browser["User Browser (React 18 Console)"] -->|HTTP / WebSocket| Server["FastAPI Gateway (:8000)"]
+    CLI["Legacy CLI (src/main.py)"] -->|Direct Pipeline| Agent["Agent Pipeline (src/agent.py)"]
+
+    Server --> Sup["Project Supervisor (src/supervisor.py)"]
+    Server --> Gov["Token Governor (src/token_governor.py)"]
+    Server --> KM["Key Manager (src/key_manager.py)"]
+    Server --> MM["Memory Manager (src/memory_manager.py)"]
+
+    Sup --> Agent
+    Agent --> KM
+    Agent --> Gov
+    Agent --> MM
+    Agent --> TB["VRAM Bridge (src/testing_bridge.py)"]
+
+    Agent -->|gRPC / REST| Google["Google AI Studio (Gemini 2.5/3.6)"]
+    Agent -->|HTTPS REST| Groq["Groq Cloud LPU (Qwen 2.5 / Llama 3.3)"]
+    Agent -->|HTTP :11434| Ollama["Local Ollama Daemon (RTX 4060 GPU)"]
+        </div>
+      </div>
+
+      <!-- MATHEMATICAL FORMULATIONS GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3 font-mono text-xs">
+          <h3 class="text-sm font-bold text-indigo-400 font-sans flex items-center gap-2">
+            <span>📐 85% Working Limit Calculus</span>
+          </h3>
+          <p class="text-slate-300 font-sans text-xs">Decouples strict published quotas from active dispatch limits to eliminate 429 errors:</p>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-indigo-300 leading-relaxed">
+            L_working = floor(L_strict * 0.85)<br>
+            RPM_working = max(1, floor(RPM_strict * 0.85))<br>
+            TPM_working = max(1000, floor(TPM_strict * 0.85))<br>
+            RPD_working = max(1, floor(RPD_strict * 0.85))
+          </div>
+          <div class="text-[11px] text-slate-400 font-sans">
+            Example on Gemini 2.5 Flash Free: 15 RPM → <strong>12 RPM</strong>, 250K TPM → <strong>212.5K TPM</strong>, 500 RPD → <strong>425 RPD</strong>.
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3 font-mono text-xs">
+          <h3 class="text-sm font-bold text-emerald-400 font-sans flex items-center gap-2">
+            <span>⚡ Two-Phase Atomic Lease Protocol</span>
+          </h3>
+          <p class="text-slate-300 font-sans text-xs">Pre-flight worst-case reservation and staggered pacing delay:</p>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-emerald-300 leading-relaxed">
+            T_est_in = max(1, floor(len(prompt) / 3.5))<br>
+            T_reserved = T_est_in + T_max_out + T_think<br>
+            Delta_t_pace = round(60.0 / RPM_working, 2) * |L_in_flight|
+          </div>
+          <div class="text-[11px] text-slate-400 font-sans">
+            Post-flight: commit_lease reconciles with exact provider usage_metadata.
+          </div>
+        </div>
+      </div>
+
+      <!-- RTX 4060 VRAM SAFETY TIERS -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+          <span>🎮 NVIDIA RTX 4060 8.0 GB GDDR6 Hardware Safety Tiers</span>
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/80">
+            <span class="text-emerald-400 font-bold block mb-1">🟢 SAFE_GPU</span>
+            <span class="text-slate-300 block mb-1">VRAM &le; 5.2 GB</span>
+            <span class="text-[11px] text-slate-400 font-sans">1.5B–7B models. Safe for multi-threaded concurrency.</span>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-800/80">
+            <span class="text-amber-400 font-bold block mb-1">🟡 HIGH_LOAD</span>
+            <span class="text-slate-300 block mb-1">5.2 GB – 8.0 GB</span>
+            <span class="text-[11px] text-slate-400 font-sans">8B, 14B Q4 models. Dedicated single-thread batch only.</span>
+          </div>
+          <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/80">
+            <span class="text-indigo-400 font-bold block mb-1">🔵 PAGED_HYBRID</span>
+            <span class="text-slate-300 block mb-1">8.0 GB – 16.0 GB</span>
+            <span class="text-[11px] text-slate-400 font-sans">32B models. PCIe CPU host RAM paging (~12 tok/s).</span>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-950/40 border border-rose-800/80">
+            <span class="text-rose-400 font-bold block mb-1">🔴 OOM_HAZARDOUS</span>
+            <span class="text-slate-300 block mb-1">&gt; 16.0 GB</span>
+            <span class="text-[11px] text-slate-400 font-sans">70B+ models. Blocked by governor arbitration.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: DFD LEVELS 0, 1 & 2                                          -->
+    <!-- =================================================================== -->
+    <section id="tab-dfd" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-base font-bold text-white">📊 DFD Level 0: System Context Diagram</h2>
+        <div class="mermaid text-xs">
+flowchart TD
+    User["Developer Web Console / CLI"] -->|Build Tasks, Blueprints| OS["Advance Assistant OS Core"]
+    OS -->|Live Telemetry, Logs| User
+    OS -->|Inference Prompts| Google["Google AI Studio API"]
+    Google -->|Candidate Tokens, Metadata| OS
+    OS -->|Ultra-Low Latency Prompts| Groq["Groq Cloud LPU"]
+    Groq -->|Generated Tokens| OS
+    OS -->|Local HTTP Inference| Ollama["Local Ollama Daemon"]
+    Ollama -->|Streamed Local Tokens| OS
+    OS -->|Atomic Writes, Lints| FS["Target Workspace Filesystem"]
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-base font-bold text-white">📊 DFD Level 1: Major Subsystem Decomposition (P1–P8 to D1–D9)</h2>
+        <div class="mermaid text-xs">
+flowchart TB
+    subgraph Processes ["Subsystem Processes"]
+        P1["P1: FastAPI Gateway (:8000)"]
+        P2["P2: Project Supervisor"]
+        P3["P3: Multi-Model Agent Pipeline"]
+        P4["P4: Hierarchical Token Governor"]
+        P5["P5: Multi-Provider Key Dispatcher"]
+        P6["P6: Precision Memory Engine"]
+    end
+    subgraph Stores ["Data Stores (.agent_memory/)"]
+        D1[("D1: provider_quotas.json")]
+        D2[("D2: api_keys.json")]
+        D3[("D3: token_ledger.json")]
+        D4[("D4: swarm_profiles.json")]
+        D7[("D7: blueprint_preview.json")]
+        D8[("D8: catalog_index.json & books/")]
+    end
+    P1 --> P2
+    P2 -->|Read/Write Blueprint| D7
+    P2 -->|Read Active Swarm| D4
+    P2 --> P3
+    P3 --> P5
+    P5 -->|Manage Keys| D2
+    P3 --> P4
+    P4 -->|Enforce 85% Limits| D1
+    P4 -->|Track 60s Sliding Windows| D3
+    P3 --> P6
+    P6 -->|Query Snippets| D8
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: ENTITY-RELATIONSHIP ATLAS                                    -->
+    <!-- =================================================================== -->
+    <section id="tab-er" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-base font-bold text-white">🗄️ Master Entity-Relationship (ER) Schema</h2>
+        <div class="mermaid text-xs">
+erDiagram
+    FINANCIAL_SHIELD ||--o{ PROVIDER : enforces
+    PROVIDER ||--|{ TIER : contains
+    TIER ||--|{ MODEL_QUOTA : registers
+    KEY_POOL_CONFIG ||--|{ API_KEY : manages
+    API_KEY ||--o{ CUSTOM_MODEL_LIMIT : overrides
+    TOKEN_LEDGER ||--|{ BUCKET_USAGE : tracks
+    BUCKET_USAGE ||--|{ ROLLING_WINDOW_ENTRY : records
+    SWARM_CONFIG ||--|{ SWARM_PROFILE : defines
+    SWARM_PROFILE ||--|{ WORKER_MODEL : assigns
+    BLUEPRINT ||--|{ BLUEPRINT_TASK : contains
+    BLUEPRINT_TASK }o--|| WORKER_MODEL : routes_to
+    CATEGORY ||--|{ KNOWLEDGE_BOOK : catalogs
+    KNOWLEDGE_BOOK ||--|{ PARSED_SECTION : decomposes
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: PROCESS FLOWS & SEQUENCES                                    -->
+    <!-- =================================================================== -->
+    <section id="tab-seq" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-base font-bold text-white">🔄 End-to-End Autonomous Project Build Sequence</h2>
+        <div class="mermaid text-xs">
+sequenceDiagram
+    autonumber
+    actor User as Developer
+    participant Server as FastAPI Server
+    participant Sup as Supervisor
+    participant Lock as Domain Locker
+    participant Agent as Agent Pipeline
+    participant Gov as Token Governor
+    participant FS as Workspace FS
+
+    User->>Server: POST /api/execute { prompt, workspace_path }
+    Server->>Sup: Start Async Build (Phases 0 to 4)
+    Sup->>Agent: Phase 0: Master Orchestrator Decomposition
+    Agent-->>Sup: Validated Blueprint
+    Sup->>Agent: Phase 1: Sequential Base Scaffolding
+    Agent->>FS: Write package.json, configs
+    par Phase 2: Parallel Swarm Execution
+        Sup->>Lock: Acquire Lock("backend/main.py")
+        Sup->>Agent: Implement backend/main.py (Model 1)
+        Agent->>Gov: acquire_lease() & commit_lease()
+        Agent->>FS: Write Code
+        Sup->>Lock: Release Lock("backend/main.py")
+    and Worker 2
+        Sup->>Lock: Acquire Lock("backend/models.py")
+        Sup->>Agent: Implement backend/models.py (Model 2)
+        Agent->>Gov: acquire_lease() & commit_lease()
+        Agent->>FS: Write Code
+        Sup->>Lock: Release Lock("backend/models.py")
+    end
+    Sup->>FS: Phase 3: Verification & Self-Healing
+    Sup->>FS: Phase 4: Consolidate Memory Books
+    Sup-->>Server: Build Complete (Exit Code 0)
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: COMPLETE API DIRECTORY                                       -->
+    <!-- =================================================================== -->
+    <section id="tab-api" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white">🔌 REST & WebSocket API Directory (35+ Endpoints)</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Authoritative endpoint directory for Advance Assistant OS v6.0 (`src/server.py`).</p>
+          </div>
+          <span id="api-count" class="text-xs font-mono px-2.5 py-1 rounded bg-slate-800 text-indigo-300 border border-slate-700">35 Endpoints Listed</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono" id="api-table">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[11px]">
+                <th class="py-2.5 px-3">Method</th>
+                <th class="py-2.5 px-3">Path</th>
+                <th class="py-2.5 px-3">Subsystem</th>
+                <th class="py-2.5 px-3 font-sans">Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-slate-300">
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/health</td><td class="py-2 px-3 text-slate-400">Core</td><td class="py-2 px-3 font-sans">System health, active swarm ID, orchestrator model, worker concurrency.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/config</td><td class="py-2 px-3 text-slate-400">Core</td><td class="py-2 px-3 font-sans">System operational modes, registered models, and timeout configurations.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/history</td><td class="py-2 px-3 text-slate-400">Core</td><td class="py-2 px-3 font-sans">Recent target workspaces and execution history.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/telemetry</td><td class="py-2 px-3 text-slate-400">Core</td><td class="py-2 px-3 font-sans">Snapshot of token governor accumulators, in-flight leases, and financial shield.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/models/catalog</td><td class="py-2 px-3 text-slate-400">Core</td><td class="py-2 px-3 font-sans">Unified multi-tier model catalog with strict and 85% working limits.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/execute</td><td class="py-2 px-3 text-slate-400">Execution</td><td class="py-2 px-3 font-sans">Initiates autonomous project build with swarm roster and key overrides.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/execute/pause</td><td class="py-2 px-3 text-slate-400">Execution</td><td class="py-2 px-3 font-sans">Cooperatively pauses active worker threads.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/execute/stop</td><td class="py-2 px-3 text-slate-400">Execution</td><td class="py-2 px-3 font-sans">Cancels active build and cleanly releases all domain file locks.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/blueprint/preview</td><td class="py-2 px-3 text-slate-400">Blueprint</td><td class="py-2 px-3 font-sans">Generates pre-flight task decomposition plan (CREATE vs MODIFY) without writing code.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/blueprint/preview</td><td class="py-2 px-3 text-slate-400">Blueprint</td><td class="py-2 px-3 font-sans">Retrieves currently cached blueprint preview.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/blueprint/execute</td><td class="py-2 px-3 text-slate-400">Blueprint</td><td class="py-2 px-3 font-sans">Executes developer-approved tasks from pre-flight blueprint.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/workspace/scan</td><td class="py-2 px-3 text-slate-400">Workspace</td><td class="py-2 px-3 font-sans">Recursively scans workspace directory tree and filetype breakdowns.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/workspace/file</td><td class="py-2 px-3 text-slate-400">Workspace</td><td class="py-2 px-3 font-sans">Safely reads file content with path traversal and credential security shields.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/governor/hierarchy</td><td class="py-2 px-3 text-slate-400">Governor</td><td class="py-2 px-3 font-sans">Retrieves live provider/tier/model quota tree and active caps.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/governor/limits</td><td class="py-2 px-3 text-slate-400">Governor</td><td class="py-2 px-3 font-sans">Updates global working limits for a target model.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/governor/sync-models</td><td class="py-2 px-3 text-slate-400">Governor</td><td class="py-2 px-3 font-sans">Discovers live models from Google, Groq, and Ollama and applies 85% caps.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/governor/recalculate-85</td><td class="py-2 px-3 text-slate-400">Governor</td><td class="py-2 px-3 font-sans">Recalculates all registered models' working limits as exact 85% of strict limits.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/governor/cost-estimate</td><td class="py-2 px-3 text-slate-400">Governor</td><td class="py-2 px-3 font-sans">Returns session and daily USD/INR spend and commercial cloud value saved.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/keys</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Returns registered API keys with secret masking (AIzaSy...4xQ1).</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/keys</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Registers a new API key with auto-provider prefix detection.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-rose-400 font-bold">DELETE</td><td class="py-2 px-3 text-white">/api/keys/{key_id}</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Deletes an API key from the persistent key pool.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/keys/test</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Executes live upstream validation ping to test API key status and latency.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/keys/policy</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Returns current key routing policy (FREE_POOL, BALANCED, etc.).</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/keys/policy</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Switches active key routing policy.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/keys/quotas</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Returns dedicated per-key metrics: 60s rolling rates, token breakdown, and custom limits.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/keys/{key_id}/limits</td><td class="py-2 px-3 text-slate-400">Keys</td><td class="py-2 px-3 font-sans">Sets dedicated safety margin % or custom model limits on a specific key.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/bridge/vram</td><td class="py-2 px-3 text-slate-400">Hardware</td><td class="py-2 px-3 font-sans">Queries RTX 4060 VRAM allocation, headroom, and safety tier.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/bridge/vram/scavenge</td><td class="py-2 px-3 text-slate-400">Hardware</td><td class="py-2 px-3 font-sans">Issues keep_alive: 0 to Ollama, purging idle VRAM back to host OS.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/swarms/profiles</td><td class="py-2 px-3 text-slate-400">Swarm</td><td class="py-2 px-3 font-sans">Returns all configured swarm profiles and worker rosters.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/swarms/profiles</td><td class="py-2 px-3 text-slate-400">Swarm</td><td class="py-2 px-3 font-sans">Persists multi-model worker roster and concurrency caps.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/memory/books</td><td class="py-2 px-3 text-slate-400">Memory</td><td class="py-2 px-3 font-sans">Lists all indexed knowledge books across 9 categories.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-indigo-400 font-bold">POST</td><td class="py-2 px-3 text-white">/api/memory/simulate-injection</td><td class="py-2 px-3 text-slate-400">Memory</td><td class="py-2 px-3 font-sans">Simulates knapsack recipe injection and calculates token savings ratio.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-emerald-400 font-bold">GET</td><td class="py-2 px-3 text-white">/api/logs/query</td><td class="py-2 px-3 text-slate-400">Logs</td><td class="py-2 px-3 font-sans">Queries multi-stream log entries with severity and source filtering.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-amber-400 font-bold">WS</td><td class="py-2 px-3 text-white">/ws/telemetry</td><td class="py-2 px-3 text-slate-400">Streaming</td><td class="py-2 px-3 font-sans">Dedicated 1.0 Hz WebSocket push of complete system telemetry frame.</td></tr>
+              <tr class="api-row"><td class="py-2 px-3 text-amber-400 font-bold">WS</td><td class="py-2 px-3 text-white">/ws/logs</td><td class="py-2 px-3 text-slate-400">Streaming</td><td class="py-2 px-3 font-sans">Real-time non-blocking WebSocket stream tailing multi-stream log files.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.remove('hidden');
+      const btnId = 'btn-' + tabId;
+      if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+    }
+
+    function filterApiDirectory() {
+      const q = document.getElementById('global-search').value.toLowerCase();
+      const rows = document.querySelectorAll('.api-row');
+      let visible = 0;
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        if (text.includes(q)) {
+          r.style.display = '';
+          visible++;
+        } else {
+          r.style.display = 'none';
+        }
+      });
+      document.getElementById('api-count').innerText = `${visible} Endpoints Matched`;
+    }
+
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        navigator.clipboard.writeText(el.innerText.trim()).then(() => {
+          alert('Mermaid diagram source copied to clipboard!');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
