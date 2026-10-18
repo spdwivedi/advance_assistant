@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Rocket,
@@ -37,7 +37,10 @@ import {
   History,
   FileText,
   Lock,
-  Unlock
+  Unlock,
+  Key,
+  Users,
+  CheckSquare
 } from 'lucide-react';
 
 interface ConfigData {
@@ -135,6 +138,55 @@ interface FileInspectResult {
   content: string;
 }
 
+// Stage 16.3 Swarm & Catalog Interfaces
+export interface CatalogModelItem {
+  model_name: string;
+  provider: string;
+  tier: string;
+  strict_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number };
+  working_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number; thinking_budget?: number };
+  safety_margin_percent?: number;
+  keys_available?: boolean;
+  active_key_count?: number;
+}
+
+export interface SwarmProfileOption {
+  id: string;
+  name: string;
+  description: string;
+  orchestrator: string;
+  worker_tier?: string;
+  worker_models?: string[];
+  max_models_used?: number;
+  routing_strategy?: 'ROUND_ROBIN' | 'QUOTA_WEIGHTED';
+  default_concurrency: number;
+}
+
+export interface RegisteredKeyOption {
+  id: string;
+  key?: string;
+  label?: string;
+  provider?: string;
+  tier?: string;
+  safety_margin_percent?: number;
+}
+
+// Prompt Inspiration Chips
+const PROMPT_INSPIRATIONS = [
+  'Refactor authentication system to JWT with refresh tokens',
+  'Implement REST API endpoints for user profile management',
+  'Add unit tests for core pipeline processors and handlers',
+  'Build responsive dashboard view with WebSocket telemetry',
+  'Migrate storage layer to async SQLite database with migrations'
+];
+
+const ITERATIVE_PROMPTS = [
+  'Generate complete file blueprint with dry-run tokens',
+  'Add security middleware and input validation guards',
+  'Create end-to-end integration test suite',
+  'Optimize query performance and cache layer'
+];
+
 export const ExecutionStudio: React.FC = () => {
   const navigate = useNavigate();
 
@@ -153,6 +205,24 @@ export const ExecutionStudio: React.FC = () => {
   const [goal, setGoal] = useState<string>('');
   const [mode, setMode] = useState<string>('AUTO_DETECT');
   const [maxWorkers, setMaxWorkers] = useState<number>(8);
+
+  // Stage 16.3 Swarm, Orchestrator, Multi-Model Worker & Key States
+  const [swarmsList, setSwarmsList] = useState<SwarmProfileOption[]>([]);
+  const [selectedSwarmId, setSelectedSwarmId] = useState<string>('GLOBAL_HYBRID_SWARM');
+  const [orchestratorModel, setOrchestratorModel] = useState<string>('qwen2.5-coder:32b');
+  const [workerModels, setWorkerModels] = useState<string[]>([
+    'gemini-2.5-flash',
+    'gemini-2.0-flash-lite',
+    'qwen2.5-coder:7b'
+  ]);
+  const [maxModelsUsed, setMaxModelsUsed] = useState<number>(2);
+  const [routingStrategy, setRoutingStrategy] = useState<'ROUND_ROBIN' | 'QUOTA_WEIGHTED'>('ROUND_ROBIN');
+  const [preferredKeyId, setPreferredKeyId] = useState<string>('AUTO');
+  const [registeredKeys, setRegisteredKeys] = useState<RegisteredKeyOption[]>([]);
+  const [catalogModels, setCatalogModels] = useState<CatalogModelItem[]>([]);
+  const [showWorkerPicker, setShowWorkerPicker] = useState<boolean>(false);
+  const [pickerFilter, setPickerFilter] = useState<'ALL' | 'GOOGLE_FREE' | 'GOOGLE_PAID' | 'GROQ' | 'OLLAMA'>('ALL');
+  const [swarmSaving, setSwarmSaving] = useState<boolean>(false);
 
   // Advanced Settings Accordion state
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false);
@@ -218,11 +288,14 @@ export const ExecutionStudio: React.FC = () => {
 
     const fetchInitialData = async () => {
       try {
-        const [configRes, historyRes, healthRes, bpRes] = await Promise.all([
+        const [configRes, historyRes, healthRes, bpRes, swarmsRes, keysRes, catRes] = await Promise.all([
           fetch('/api/config'),
           fetch('/api/history'),
           fetch('/api/health'),
-          fetch('/api/blueprint/preview')
+          fetch('/api/blueprint/preview'),
+          fetch('/api/swarms/profiles'),
+          fetch('/api/keys'),
+          fetch('/api/models/catalog')
         ]);
 
         if (configRes.ok && isMounted) {
@@ -240,7 +313,6 @@ export const ExecutionStudio: React.FC = () => {
           setHistory(hist);
           if (hist.last_location) {
             updatePathAndProject(hist.last_location);
-            // Auto scan last location
             performWorkspaceScan(hist.last_location);
           }
         }
@@ -257,6 +329,43 @@ export const ExecutionStudio: React.FC = () => {
           if (bpResp.status === 'success' && bpResp.blueprint) {
             setBlueprintData(bpResp.blueprint);
             if (bpResp.blueprint.goal) setBlueprintGoal(bpResp.blueprint.goal);
+          }
+        }
+
+        // Swarms profiles initialization
+        if (swarmsRes.ok && isMounted) {
+          const sData = await swarmsRes.json();
+          if (sData.swarms) setSwarmsList(sData.swarms);
+          if (sData.active_swarm_id) setSelectedSwarmId(sData.active_swarm_id);
+          if (sData.orchestrator_engine) setOrchestratorModel(sData.orchestrator_engine);
+          if (sData.worker_models && sData.worker_models.length > 0) {
+            setWorkerModels(sData.worker_models);
+          }
+          if (sData.max_models_used) setMaxModelsUsed(sData.max_models_used);
+          if (sData.routing_strategy) setRoutingStrategy(sData.routing_strategy);
+          if (sData.preferred_key_id) setPreferredKeyId(sData.preferred_key_id);
+          if (sData.max_concurrency_workers) setMaxWorkers(sData.max_concurrency_workers);
+        }
+
+        // Keys initialization
+        if (keysRes.ok && isMounted) {
+          const kData = await keysRes.json();
+          if (kData.keys) setRegisteredKeys(kData.keys);
+        }
+
+        // Model Catalog initialization
+        if (catRes.ok && isMounted) {
+          const cData = await catRes.json();
+          if (cData.catalog) {
+            const flattened: CatalogModelItem[] = [];
+            Object.values(cData.catalog).forEach((providerObj: any) => {
+              Object.values(providerObj).forEach((tierObj: any) => {
+                if (tierObj?.models && Array.isArray(tierObj.models)) {
+                  flattened.push(...tierObj.models);
+                }
+              });
+            });
+            setCatalogModels(flattened);
           }
         }
       } catch (err) {
@@ -289,6 +398,83 @@ export const ExecutionStudio: React.FC = () => {
     };
   }, []);
 
+  // Handle Swarm Preset switch
+  const handleSwarmPresetChange = (swarmId: string) => {
+    setSelectedSwarmId(swarmId);
+    const found = swarmsList.find((s) => s.id === swarmId);
+    if (found) {
+      if (found.orchestrator) setOrchestratorModel(found.orchestrator);
+      if (found.worker_models && found.worker_models.length > 0) {
+        setWorkerModels(found.worker_models);
+      }
+      if (found.max_models_used) setMaxModelsUsed(found.max_models_used);
+      if (found.default_concurrency) setMaxWorkers(found.default_concurrency);
+      if (found.routing_strategy) setRoutingStrategy(found.routing_strategy);
+    }
+  };
+
+  // Toggle model inclusion in worker roster
+  const handleToggleWorkerModel = (mName: string) => {
+    setWorkerModels((prev) => {
+      if (prev.includes(mName)) {
+        if (prev.length <= 1) {
+          setErrorMessage('At least 1 worker model must remain active in the swarm roster.');
+          return prev;
+        }
+        const updated = prev.filter((m) => m !== mName);
+        if (maxModelsUsed > updated.length) setMaxModelsUsed(updated.length);
+        return updated;
+      } else {
+        return [...prev, mName];
+      }
+    });
+  };
+
+  // Save current roster as default swarm
+  const handleSaveSwarmRoster = async () => {
+    setSwarmSaving(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      const res = await fetch('/api/swarms/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          active_swarm_id: selectedSwarmId,
+          orchestrator_engine: orchestratorModel,
+          worker_models: workerModels,
+          max_models_used: maxModelsUsed,
+          routing_strategy: routingStrategy,
+          preferred_key_id: preferredKeyId,
+          max_concurrency_workers: maxWorkers
+        })
+      });
+      if (res.ok) {
+        setSuccessMessage(`Swarm roster persisted! Active: ${workerModels.length} models, Orchestrator: ${orchestratorModel}`);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMessage(errJson.detail || 'Failed to persist swarm profile.');
+      }
+    } catch (err: any) {
+      setErrorMessage(`Save error: ${err.message || String(err)}`);
+    } finally {
+      setSwarmSaving(false);
+    }
+  };
+
+  // Filter catalog models for picker
+  const filteredPickerModels = useMemo(() => {
+    if (!catalogModels || catalogModels.length === 0) return [];
+    return catalogModels.filter((m) => {
+      if (pickerFilter === 'ALL') return true;
+      if (pickerFilter === 'GOOGLE_FREE') return m.provider === 'GOOGLE' && m.tier === 'FREE';
+      if (pickerFilter === 'GOOGLE_PAID') return m.provider === 'GOOGLE' && m.tier === 'PAID';
+      if (pickerFilter === 'GROQ') return m.provider === 'GROQ';
+      if (pickerFilter === 'OLLAMA') return m.provider === 'OLLAMA';
+      return true;
+    });
+  }, [catalogModels, pickerFilter]);
+
   // Perform Workspace Scan API call
   const performWorkspaceScan = async (pathOverride?: string) => {
     const pathToScan = pathOverride || targetPath;
@@ -320,62 +506,45 @@ export const ExecutionStudio: React.FC = () => {
         `/api/workspace/file?workspace_dir=${encodeURIComponent(targetPath.trim())}&file_path=${encodeURIComponent(filePath.trim())}`
       );
       if (res.ok) {
-        const data: FileInspectResult = await res.json();
-        setInspectingFile(data);
+        const fileData: FileInspectResult = await res.json();
+        setInspectingFile(fileData);
       } else {
-        const errJson = await res.json().catch(() => ({}));
+        const err = await res.json().catch(() => ({}));
         setInspectingFile({
           status: 'error',
           file_path: filePath,
-          full_path: '',
+          full_path: `${targetPath}/${filePath}`,
           size_bytes: 0,
           line_count: 0,
-          language: 'plaintext',
-          last_modified: '',
-          content: `Error inspecting file: ${errJson.detail || res.statusText}`
+          language: 'text',
+          last_modified: 'N/A',
+          content: err.detail || 'Could not load file contents.'
         });
       }
-    } catch (err: any) {
+    } catch (err) {
       setInspectingFile({
         status: 'error',
         file_path: filePath,
-        full_path: '',
+        full_path: `${targetPath}/${filePath}`,
         size_bytes: 0,
         line_count: 0,
-        language: 'plaintext',
-        last_modified: '',
-        content: `Connection error: ${err.message || String(err)}`
+        language: 'text',
+        last_modified: 'N/A',
+        content: 'Network error reading file from workspace.'
       });
     } finally {
       setInspectLoading(false);
     }
   };
 
-  // Copy code to clipboard
-  const handleCopyCode = () => {
-    if (inspectingFile?.content) {
-      navigator.clipboard.writeText(inspectingFile.content);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
-  };
-
-  // Send a file to Tab 2 for targeted iterative modification
-  const handleSendFileToBlueprint = (filePath: string) => {
-    setInspectModalOpen(false);
-    setActiveTab('blueprint');
-    const updatePrompt = `Update and refactor ${filePath} to `;
-    setBlueprintGoal((prev) => (prev ? `${prev}\n- ${updatePrompt}` : updatePrompt));
-  };
-
-  // Generate Pre-Flight Blueprint Dry Run
+  // Generate Pre-Flight Blueprint via POST /api/blueprint/preview
   const handleGenerateBlueprint = async () => {
     if (!targetPath.trim()) {
-      setErrorMessage('Please specify a target workspace directory before generating a blueprint.');
+      setErrorMessage('Please specify a valid Target Workspace Path first.');
       return;
     }
     if (!blueprintGoal.trim() && !goal.trim()) {
-      setErrorMessage('Please enter an engineering goal or directive for the blueprint.');
+      setErrorMessage('Please provide an architectural goal for blueprint generation.');
       return;
     }
 
@@ -394,7 +563,12 @@ export const ExecutionStudio: React.FC = () => {
           target_dir: targetPath.trim(),
           project_name: projectName.trim(),
           execution_mode: mode,
-          use_existing_context: useExistingContext
+          use_existing_context: useExistingContext,
+          orchestrator_model: orchestratorModel,
+          worker_models: workerModels,
+          max_models_used: maxModelsUsed,
+          routing_strategy: routingStrategy,
+          preferred_key_id: preferredKeyId
         })
       });
 
@@ -464,7 +638,6 @@ export const ExecutionStudio: React.FC = () => {
   const handleAddCustomTask = () => {
     if (!customTaskFile.trim()) return;
     if (!blueprintData) {
-      // Create fresh blueprint data container
       setBlueprintData({
         blueprint_id: `bp_${Date.now()}`,
         project_name: projectName,
@@ -522,7 +695,12 @@ export const ExecutionStudio: React.FC = () => {
           max_workers: maxWorkers,
           execution_mode: mode,
           research_profile: researchProfile,
-          model_profile: constrainProfile
+          model_profile: constrainProfile,
+          orchestrator_model: orchestratorModel,
+          worker_models: workerModels,
+          max_models_used: maxModelsUsed,
+          routing_strategy: routingStrategy,
+          preferred_key_id: preferredKeyId
         })
       });
 
@@ -569,7 +747,12 @@ export const ExecutionStudio: React.FC = () => {
         max_workers: maxWorkers,
         isolate: isolate,
         clear_cache: clearCache,
-        auto_defrag: autoDefrag
+        auto_defrag: autoDefrag,
+        orchestrator_model: orchestratorModel,
+        worker_models: workerModels,
+        max_models_used: maxModelsUsed,
+        routing_strategy: routingStrategy,
+        preferred_key_id: preferredKeyId
       };
 
       const res = await fetch('/api/execute', {
@@ -580,102 +763,134 @@ export const ExecutionStudio: React.FC = () => {
 
       if (res.ok) {
         const data = await res.json();
-        setSuccessMessage(`Build initiated! Workspace: ${projectName}. You can track progress in Swarm Monitor or Log Center.`);
+        setSuccessMessage(`Build dispatched successfully! Swarm active for project: ${projectName}`);
       } else {
-        const errData = await res.json().catch(() => ({}));
-        setErrorMessage(errData.detail || 'Execution launch failed. Check server status.');
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMessage(errJson.detail || 'Failed to launch execution build.');
       }
     } catch (err: any) {
-      setErrorMessage(`Connection error: ${err.message || String(err)}`);
+      setErrorMessage(`Network error: ${err.message || String(err)}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Quick Preset Goals for Tab 1
-  const PRESET_GOALS = [
-    {
-      title: 'Full-Stack Web App',
-      project: 'task_manager_app',
-      text: 'Build a production full-stack Task Manager with FastAPI async SQLAlchemy SQLite backend, REST endpoints for tasks and tags, and a modern Vite React TypeScript frontend with dark mode.'
-    },
-    {
-      title: 'Microservice API',
-      project: 'metrics_api',
-      text: 'Implement an asynchronous Python microservice using FastAPI with rate limiting, Pydantic v2 schemas, automated health-check router, and comprehensive Pytest test fixtures.'
-    },
-    {
-      title: 'Automated Agent Bridge',
-      project: 'automation_bridge',
-      text: 'Create a local orchestration bridge connecting n8n webhook handlers with filesystem event listeners, structured JSON logging, and autonomous error recovery mechanisms.'
-    }
-  ];
-
-  // Quick Iterative Prompts for Tab 2
-  const ITERATIVE_PROMPTS = [
-    'Add JWT authentication middleware and update protected user endpoints',
-    'Refactor SQLite database models, add connection pooling, and write Pytest fixtures',
-    'Implement rate limiting and token bucket throttles on public API routes',
-    'Create production Dockerfile and multi-stage docker-compose configuration'
-  ];
-
-  const isBuildActive = Boolean(
-    executionState?.is_running ||
-    executionState?.status === 'PAUSED' ||
-    executionState?.is_paused
-  );
-
-  const isPaused = Boolean(
-    executionState?.is_paused ||
-    executionState?.status === 'PAUSED' ||
-    executionState?.current_phase === 'PAUSED'
-  );
-
-  // Filter scanned files for Tab 3
-  const filteredFiles = (scanResult?.files || []).filter((f) => {
-    const matchesExt = scanFilterExt === 'ALL' || f.ext.toLowerCase() === scanFilterExt.toLowerCase();
-    const matchesSearch = !fileSearchQuery.trim() || f.rel_path.toLowerCase().includes(fileSearchQuery.toLowerCase());
-    return matchesExt && matchesSearch;
-  });
+  // Live Swarm Status Bar data
+  const isRunning = executionState?.is_running || false;
+  const isPaused = executionState?.is_paused || false;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16">
       {/* -------------------------------------------------------------------- */}
-      {/* 1. TOP WORKSPACE SELECTOR & 3-TAB MODE SWITCHER                     */}
+      {/* TOP HEADER & LIVE SWARM STATUS BAR                                  */}
       {/* -------------------------------------------------------------------- */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-xl shadow-black/20">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-          {/* Target Workspace Directory Input & History Dropdown */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="workspace-target-input" className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                <FolderTree className="w-3.5 h-3.5 text-blue-400" />
-                <span>Target Workspace Directory</span>
-              </label>
-
-              {/* Scan Status Pill */}
-              {scanResult && (
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                      scanResult.exists && scanResult.file_count > 0
-                        ? 'bg-emerald-950/60 border-emerald-800/60 text-emerald-300'
-                        : 'bg-indigo-950/60 border-indigo-800/60 text-indigo-300'
-                    }`}
-                  >
-                    <span>📁 {scanResult.file_count} file{scanResult.file_count !== 1 ? 's' : ''} detected</span>
-                    {scanResult.has_existing_ledger && (
-                      <span className="text-[10px] bg-emerald-800/80 text-white px-1.5 py-0.2 rounded">Ledger Active</span>
-                    )}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-2xl backdrop-blur">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                <Rocket className="w-5 h-5" />
+              </span>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                  <span>Execution Studio & Swarm Workspace</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    v6.0 Stage 16.3
                   </span>
-                </div>
-              )}
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Launch direct autonomous builds, inspect live workspace code, or iterate on pre-flight blueprints
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Swarm Status Strip */}
+          <div className="flex flex-wrap items-center gap-3 bg-slate-950/80 border border-slate-800/80 px-4 py-2.5 rounded-xl text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  isRunning
+                    ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-500/50'
+                    : isPaused
+                    ? 'bg-amber-400'
+                    : 'bg-slate-500'
+                }`}
+              />
+              <span className="text-slate-300 font-bold">
+                {isRunning ? (isPaused ? 'SWARM PAUSED' : 'SWARM ACTIVE') : 'STANDBY READY'}
+              </span>
             </div>
 
+            {executionState?.project_name && (
+              <>
+                <span className="text-slate-600">|</span>
+                <span className="text-slate-400">
+                  Project: <strong className="text-white">{executionState.project_name}</strong>
+                </span>
+              </>
+            )}
+
+            {executionState?.current_phase && (
+              <>
+                <span className="text-slate-600">|</span>
+                <span className="text-indigo-400 font-semibold">
+                  Phase: {executionState.current_phase}
+                </span>
+              </>
+            )}
+
+            <button
+              onClick={() => navigate('/monitor')}
+              className="ml-auto text-blue-400 hover:text-blue-300 text-[11px] font-bold flex items-center gap-1 hover:underline"
+            >
+              <span>Telemetry Monitor &rarr;</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Global Feedback Notifications */}
+        {successMessage && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center justify-between gap-3 animate-fade-in">
             <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+              <span>{successMessage}</span>
+            </div>
+            <button onClick={() => setSuccessMessage(null)} className="text-emerald-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mt-4 p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span>{errorMessage}</span>
+            </div>
+            <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Workspace Path Picker & Scanner Bar */}
+        <div className="mt-5 pt-4 border-t border-slate-800/80">
+          <div className="space-y-1.5">
+            <label htmlFor="target-path-input" className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <FolderTree className="w-3.5 h-3.5 text-blue-400" />
+                <span>Target Workspace Directory</span>
+              </span>
+              <span className="text-[11px] text-slate-500 font-normal">
+                Absolute path inside container or host mount
+              </span>
+            </label>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div className="relative flex-1">
                 <input
-                  id="workspace-target-input"
+                  id="target-path-input"
                   type="text"
                   value={targetPath}
                   onChange={(e) => updatePathAndProject(e.target.value)}
@@ -724,6 +939,252 @@ export const ExecutionStudio: React.FC = () => {
                 <span>{scanning ? 'Scanning...' : 'Scan Workspace'}</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* -------------------------------------------------------------------- */}
+        {/* COMPACT ACTIVE SWARM & MODEL ROSTER BAR (VISIBLE ABOVE TAB 1 & TAB 2) */}
+        {/* -------------------------------------------------------------------- */}
+        <div className="mt-5 pt-4 border-t border-slate-800/80 space-y-3">
+          <div className="bg-slate-950/90 border border-indigo-900/40 rounded-xl p-3.5 shadow-lg space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              {/* Swarm Preset & Orchestrator Dropdowns */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Swarm Preset Dropdown */}
+                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
+                  <Users className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-slate-400 font-semibold text-[11px]">Swarm:</span>
+                  <select
+                    id="swarm-preset-select"
+                    value={selectedSwarmId}
+                    onChange={(e) => handleSwarmPresetChange(e.target.value)}
+                    className="bg-transparent text-indigo-300 font-bold focus:outline-none cursor-pointer text-xs"
+                  >
+                    <option value="GLOBAL_HYBRID_SWARM" className="bg-slate-900 text-slate-200">
+                      🌐 Global Hybrid Swarm
+                    </option>
+                    <option value="FULLSTACK_CLOUD_SWARM" className="bg-slate-900 text-slate-200">
+                      ☁️ Fullstack Cloud Swarm
+                    </option>
+                    <option value="AIR_GAPPED_LOCAL_SWARM" className="bg-slate-900 text-slate-200">
+                      💻 Air-Gapped Local Swarm
+                    </option>
+                    {swarmsList
+                      .filter(
+                        (s) =>
+                          !['GLOBAL_HYBRID_SWARM', 'FULLSTACK_CLOUD_SWARM', 'AIR_GAPPED_LOCAL_SWARM'].includes(s.id)
+                      )
+                      .map((s) => (
+                        <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
+                          ⚡ {s.name || s.id}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Orchestrator Model Dropdown */}
+                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
+                  <Cpu className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-slate-400 font-semibold text-[11px]">Orchestrator:</span>
+                  <select
+                    id="orchestrator-model-select"
+                    value={orchestratorModel}
+                    onChange={(e) => setOrchestratorModel(e.target.value)}
+                    className="bg-transparent text-blue-300 font-bold focus:outline-none cursor-pointer text-xs"
+                  >
+                    <optgroup label="☁️ Google Free (85% Cap)">
+                      <option value="gemini-2.5-flash">gemini-2.5-flash (Fast)</option>
+                      <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Lite)</option>
+                      <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+                      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+                      <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+                      <option value="gemini-3.7-flash">gemini-3.7-flash</option>
+                      <option value="gemini-3.8-flash">gemini-3.8-flash</option>
+                    </optgroup>
+                    <optgroup label="💎 Google Paid (85% Cap)">
+                      <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Coder)</option>
+                      <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
+                    </optgroup>
+                    <optgroup label="⚡ Groq LPU (85% Cap)">
+                      <option value="qwen-2.5-coder-32b">qwen-2.5-coder-32b (Ultra Fast)</option>
+                      <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+                      <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+                    </optgroup>
+                    <optgroup label="💻 Local Ollama (85% Cap)">
+                      <option value="qwen2.5-coder:32b">qwen2.5-coder:32b (Local Flagship)</option>
+                      <option value="qwen2.5-coder:14b">qwen2.5-coder:14b</option>
+                      <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (Compact)</option>
+                      <option value="codestral:22b">codestral:22b</option>
+                      <option value="deepseek-r1:8b">deepseek-r1:8b</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+
+              {/* Worker Roster Pill, Dedicated Key Dropdown & Customize Button */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Active Worker Roster Summary Pill */}
+                <span
+                  id="worker-roster-summary-pill"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-xs font-mono text-emerald-300 font-semibold"
+                >
+                  <span>🤖</span>
+                  <span>
+                    {Math.min(maxModelsUsed, workerModels.length)}/{workerModels.length} Worker Models Active
+                  </span>
+                </span>
+
+                {/* Dedicated Key Dropdown */}
+                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
+                  <Key className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-slate-400 font-semibold text-[11px]">Key:</span>
+                  <select
+                    id="swarm-key-select"
+                    value={preferredKeyId}
+                    onChange={(e) => setPreferredKeyId(e.target.value)}
+                    className="bg-transparent text-amber-300 font-bold focus:outline-none cursor-pointer text-xs"
+                  >
+                    <option value="AUTO" className="bg-slate-900 text-slate-200">
+                      🔑 AUTO Pool (Key Manager)
+                    </option>
+                    {registeredKeys.map((k) => (
+                      <option key={k.id} value={k.id} className="bg-slate-900 text-slate-200">
+                        [{k.provider || 'KEY'} {k.tier || 'FREE'}] {k.label || k.id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Customize Worker Models Drawer Toggle Button */}
+                <button
+                  id="toggle-worker-picker-btn"
+                  type="button"
+                  onClick={() => setShowWorkerPicker(!showWorkerPicker)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/50 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Customize Worker Models ({workerModels.length})</span>
+                  {showWorkerPicker ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible Multi-Model Picker Drawer */}
+            {showWorkerPicker && (
+              <div className="pt-3 border-t border-slate-800/80 space-y-3 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="text-slate-400 font-semibold text-[11px]">Catalog Filter:</span>
+                    {[
+                      { id: 'ALL', label: 'All Catalog' },
+                      { id: 'GOOGLE_FREE', label: '☁️ Google Free' },
+                      { id: 'GOOGLE_PAID', label: '💎 Google Paid' },
+                      { id: 'GROQ', label: '⚡ Groq LPU' },
+                      { id: 'OLLAMA', label: '💻 Local Ollama' }
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setPickerFilter(f.id as any)}
+                        className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                          pickerFilter === f.id
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Click model chip to add/remove from active roster
+                  </span>
+                </div>
+
+                {/* Model Chips Grid */}
+                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 bg-slate-900/60 rounded-lg border border-slate-800">
+                  {filteredPickerModels.map((m) => {
+                    const isSelected = workerModels.includes(m.model_name);
+                    const workingRpm = m.working_limits?.rpm || 12;
+                    const workingTpm = formatTokens(m.working_limits?.tpm || 212500);
+
+                    return (
+                      <button
+                        key={m.model_name}
+                        type="button"
+                        onClick={() => handleToggleWorkerModel(m.model_name)}
+                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all text-left ${
+                          isSelected
+                            ? 'bg-emerald-950/80 border-emerald-500/80 text-emerald-200 shadow-sm'
+                            : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                        }`}
+                      >
+                        {isSelected ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        ) : (
+                          <span className="w-3.5 h-3.5 rounded-full border border-slate-700 shrink-0" />
+                        )}
+                        <div>
+                          <div className="font-bold text-[11px]">{m.model_name}</div>
+                          <div className="text-[9px] text-slate-400">
+                            85% Cap: {workingRpm} RPM • {workingTpm} TPM
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Roster Controls & Save Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="max-models-slider" className="text-slate-300 font-semibold">
+                        Max Models Used:
+                      </label>
+                      <input
+                        id="max-models-slider"
+                        type="range"
+                        min={1}
+                        max={Math.max(1, workerModels.length)}
+                        value={maxModelsUsed}
+                        onChange={(e) => setMaxModelsUsed(Number(e.target.value))}
+                        className="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                      />
+                      <span className="font-bold text-indigo-300">
+                        {maxModelsUsed} of {workerModels.length}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="routing-strategy-select" className="text-slate-300 font-semibold">
+                        Strategy:
+                      </label>
+                      <select
+                        id="routing-strategy-select"
+                        value={routingStrategy}
+                        onChange={(e) => setRoutingStrategy(e.target.value as any)}
+                        className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs font-semibold focus:outline-none"
+                      >
+                        <option value="ROUND_ROBIN">ROUND_ROBIN (Balanced)</option>
+                        <option value="QUOTA_WEIGHTED">QUOTA_WEIGHTED (Quota Priority)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveSwarmRoster}
+                    disabled={swarmSaving}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shrink-0 cursor-pointer disabled:bg-slate-800 disabled:text-slate-500"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{swarmSaving ? 'Saving...' : '💾 Save as Default Swarm Roster'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -783,191 +1244,122 @@ export const ExecutionStudio: React.FC = () => {
         </div>
       </div>
 
-      {/* Global Alerts */}
-      {successMessage && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-200 text-xs shadow-md animate-fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-          <button onClick={() => setSuccessMessage(null)} className="text-emerald-400 hover:text-emerald-200">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {errorMessage && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/60 text-rose-200 text-xs shadow-md animate-fade-in">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-          <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-rose-200">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* -------------------------------------------------------------------- */}
-      {/* TAB 1: QUICK DIRECT LAUNCH (Minimalist by Default)                   */}
+      {/* TAB 1: QUICK DIRECT LAUNCH                                           */}
       {/* -------------------------------------------------------------------- */}
       {activeTab === 'direct' && (
-        <form onSubmit={handleDirectLaunch} className="space-y-5">
-          {/* Primary Directive Card */}
+        <form onSubmit={handleDirectLaunch} className="space-y-6">
           <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl shadow-black/20 space-y-4">
-            <div className="flex items-center justify-between">
-              <label htmlFor="direct-goal-input" className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-blue-400" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label htmlFor="goal-input" className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
                 <span>Engineering Goal & Directive</span>
               </label>
 
-              {/* Quick Preset Chips */}
-              <div className="hidden sm:flex items-center gap-1.5">
-                <span className="text-[11px] text-slate-400">Quick Presets:</span>
-                {PRESET_GOALS.map((p, idx) => (
+              {/* Prompt Inspirations Chips */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] text-slate-400">Inspirations:</span>
+                {PROMPT_INSPIRATIONS.map((p, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => {
-                      setGoal(p.text);
-                      setProjectName(p.project);
-                    }}
+                    onClick={() => setGoal(p)}
                     className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
                   >
-                    {p.title}
+                    {p.split(' ')[0]} {p.split(' ')[1]}...
                   </button>
                 ))}
               </div>
             </div>
 
             <textarea
-              id="direct-goal-input"
+              id="goal-input"
               rows={4}
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
-              placeholder="e.g. Build a production FastAPI backend with async SQLite, REST endpoints, and automated tests..."
+              placeholder="e.g. Architect and implement a high-throughput authentication and session token governor with full unit test coverage..."
               className="w-full bg-slate-950 border border-slate-700/80 rounded-lg p-3 text-sm text-slate-100 placeholder-slate-500 font-sans focus:border-blue-500 focus:outline-none transition-colors shadow-inner"
             />
 
-            {/* 3 Essential Controls in Single Clean Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              {/* 1. Execution Mode */}
-              <div className="space-y-1.5">
-                <label htmlFor="direct-mode-select" className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+            {/* Quick Settings Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div>
+                <label htmlFor="project-name-input" className="text-[11px] font-bold text-slate-400 uppercase">
+                  Project Name
+                </label>
+                <input
+                  id="project-name-input"
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="execution-mode-select" className="text-[11px] font-bold text-slate-400 uppercase">
                   Execution Mode
                 </label>
                 <select
-                  id="direct-mode-select"
+                  id="execution-mode-select"
                   value={mode}
                   onChange={(e) => setMode(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-medium focus:outline-none focus:border-blue-500"
+                  className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200"
                 >
-                  {(config?.execution_modes || [
-                    'AUTO_DETECT',
-                    'HYBRID_CLOUD',
-                    'OFFLINE_ONLY',
-                    'OFFLINE_AGENTIC',
-                    'HYBRID_AGENTIC'
-                  ]).map((m) => (
-                    <option key={m} value={m} className="bg-slate-900 text-slate-200">
-                      {m.replace('_', ' ')}
-                    </option>
-                  ))}
+                  <option value="AUTO_DETECT">AUTO_DETECT (Smart Engine)</option>
+                  <option value="SINGLE_AGENT">SINGLE_AGENT (Fast Fixes)</option>
+                  <option value="MULTI_AGENT">MULTI_AGENT (Swarm Orchestration)</option>
                 </select>
               </div>
 
-              {/* 2. Swarm Concurrency Slider */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="direct-workers-slider" className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                    Swarm Concurrency
-                  </label>
-                  <span className="text-xs font-mono font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-2 py-0.5 rounded">
-                    {maxWorkers} Worker{maxWorkers > 1 ? 's' : ''}
-                  </span>
-                </div>
+              <div>
+                <label htmlFor="max-workers-input" className="text-[11px] font-bold text-slate-400 uppercase">
+                  Max Swarm Workers ({maxWorkers})
+                </label>
                 <input
-                  id="direct-workers-slider"
-                  type="range"
+                  id="max-workers-input"
+                  type="number"
                   min={1}
                   max={16}
                   value={maxWorkers}
                   onChange={(e) => setMaxWorkers(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
                 />
               </div>
+            </div>
 
-              {/* 3. Launch Autonomous Build Button & Inline Stop/Pause */}
-              <div className="flex items-end gap-2">
+            {/* Launch Buttons Strip */}
+            <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setAdvancedOpen(!advancedOpen)}
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 font-mono"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{advancedOpen ? 'Hide Advanced Config ▴' : 'Show Advanced Execution Config ▾'}</span>
+              </button>
+
+              <div className="flex items-center gap-2">
                 <button
                   id="direct-launch-submit-btn"
                   type="submit"
                   disabled={submitting || !goal.trim() || !targetPath.trim()}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all duration-150 shadow-lg shadow-blue-600/30 cursor-pointer disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Rocket className="w-4 h-4 shrink-0" />
-                  <span>{submitting ? 'Initiating Build...' : 'Launch Autonomous Build'}</span>
+                  <Play className={`w-3.5 h-3.5 ${submitting ? 'animate-spin' : ''}`} />
+                  <span>{submitting ? 'Dispatching...' : '🚀 Launch Autonomous Build'}</span>
                 </button>
-
-                {/* Inline Pause/Resume & Stop if active */}
-                {isBuildActive && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await fetch('/api/execute/pause', { method: 'POST' });
-                      }}
-                      title={isPaused ? 'Resume Build' : 'Pause Build'}
-                      className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-                    >
-                      {isPaused ? <Play className="w-4 h-4 text-emerald-400" /> : <Pause className="w-4 h-4 text-amber-400" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await fetch('/api/execute/stop', { method: 'POST' });
-                      }}
-                      title="Stop Build Immediately"
-                      className="p-2.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 transition-colors"
-                    >
-                      <Square className="w-4 h-4 fill-rose-400 text-rose-400" />
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
 
-          {/* Collapsible Accordion: Advanced Routing, Research & Isolation Settings */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-            <button
-              id="toggle-advanced-accordion-btn"
-              type="button"
-              onClick={() => setAdvancedOpen(!advancedOpen)}
-              className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-800/40 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  Advanced Routing, Research & Isolation Settings
-                </span>
-                <span className="text-[11px] text-slate-500 font-mono">
-                  ({researchProfile} research • {constrainProfile} profile)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">{advancedOpen ? 'Hide' : 'Configure'}</span>
-                {advancedOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-              </div>
-            </button>
-
+            {/* Collapsible Advanced Config Section */}
             {advancedOpen && (
-              <div className="p-5 border-t border-slate-800/80 bg-slate-950/50 space-y-4 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Research Depth Profile */}
+              <div className="pt-4 border-t border-slate-800/80 space-y-4 animate-fade-in">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Research Profile */}
                   <div className="space-y-1.5">
                     <label htmlFor="adv-research-profile" className="text-xs font-bold text-slate-300">
-                      Research Depth Profile
+                      Research Profile
                     </label>
                     <select
                       id="adv-research-profile"
@@ -975,17 +1367,16 @@ export const ExecutionStudio: React.FC = () => {
                       onChange={(e) => setResearchProfile(e.target.value)}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                     >
-                      <option value="BASIC">BASIC (Offline/Deterministic)</option>
-                      <option value="MEDIUM">MEDIUM (Focused Web Grounding)</option>
-                      <option value="HIGH">HIGH (Comprehensive Research)</option>
-                      <option value="MAX">MAX (Deep Web & Topic Synthesis)</option>
+                      <option value="BASIC">BASIC (Local Code Only)</option>
+                      <option value="WEB_ENABLED">WEB_ENABLED (Perplexity / Search)</option>
+                      <option value="DEEP_AUDIT">DEEP_AUDIT (Telemetry + Web)</option>
                     </select>
                   </div>
 
-                  {/* Model Constraining Profile */}
+                  {/* Constraining Profile */}
                   <div className="space-y-1.5">
                     <label htmlFor="adv-constrain-profile" className="text-xs font-bold text-slate-300">
-                      Model Constraining Profile
+                      Model Constraining
                     </label>
                     <select
                       id="adv-constrain-profile"
@@ -993,10 +1384,8 @@ export const ExecutionStudio: React.FC = () => {
                       onChange={(e) => setConstrainProfile(e.target.value)}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                     >
-                      <option value="HIGH_RPM_TPM">HIGH_RPM_TPM (3.6-Flash / Qwen 32B)</option>
-                      <option value="HIGHEST_RPM_TPM">HIGHEST_RPM_TPM (Flash-Lite Maximum Throughput)</option>
-                      <option value="PRO_PLAN">PRO_PLAN (Gemini 2.5/3.1 Pro Cloud)</option>
-                      <option value="OFFLINE_PURE">OFFLINE_PURE (Local Ollama Only)</option>
+                      <option value="HIGH_RPM_TPM">HIGH_RPM_TPM (Optimal Cloud Free/Flash)</option>
+                      <option value="LOCAL_ONLY">LOCAL_ONLY (Local Ollama Cluster)</option>
                       <option value="BALANCED">BALANCED (Multi-Provider Hybrid)</option>
                     </select>
                   </div>
@@ -1103,9 +1492,9 @@ export const ExecutionStudio: React.FC = () => {
                   type="checkbox"
                   checked={useExistingContext}
                   onChange={(e) => setUseExistingContext(e.target.checked)}
-                  className="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0"
+                  className="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0"
                 />
-                <span>Include existing workspace files in blueprint context (scans `{targetPath || 'workspace'}`)</span>
+                <span>Ground Blueprint with Existing Workspace Files & Structure</span>
               </label>
 
               <button
@@ -1113,109 +1502,112 @@ export const ExecutionStudio: React.FC = () => {
                 type="button"
                 onClick={handleGenerateBlueprint}
                 disabled={blueprintGenerating || (!blueprintGoal.trim() && !goal.trim())}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all duration-150 shadow-lg shadow-indigo-600/30 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-indigo-600/30 cursor-pointer disabled:cursor-not-allowed"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${blueprintGenerating ? 'animate-spin' : ''}`} />
-                <span>{blueprintGenerating ? 'Decomposing Tasks...' : '🔍 Generate Pre-Flight Blueprint'}</span>
+                <span>{blueprintGenerating ? 'Scoping Blueprint...' : '🧭 Generate Pre-Flight Blueprint'}</span>
               </button>
             </div>
           </div>
 
-          {/* Step 2: Compact Task Table with Click-to-Expand Details */}
+          {/* Step 2: Interactive Blueprint Table / Cards */}
           {blueprintData && (
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-xl shadow-black/20 space-y-0">
-              {/* Summary Header */}
-              <div className="p-4 sm:p-5 bg-slate-800/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-xl shadow-black/20 animate-fade-in">
+              {/* Blueprint Summary Bar */}
+              <div className="p-4 sm:p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/40">
                 <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span>Blueprint Task List</span>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-indigo-400">
                       ID: {blueprintData.blueprint_id}
                     </span>
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-400">
-                    <span>Project: <strong className="text-slate-200">{blueprintData.project_name}</strong></span>
-                    <span>•</span>
-                    <span>Existing Files: <strong className="text-slate-200">{blueprintData.existing_files_detected}</strong></span>
-                    <span>•</span>
-                    <span>
-                      Selected:{' '}
-                      <strong className="text-indigo-400">
-                        {blueprintData.tasks.filter((t) => t.selected !== false).length} / {blueprintData.tasks.length}
-                      </strong>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-xs text-slate-300">
+                      Est. Total Tokens: <strong>~{formatTokens(blueprintData.estimated_total_tokens)}</strong>
                     </span>
-                    <span>•</span>
-                    <span>Estimated Tokens: <strong className="text-emerald-400">~{formatTokens(blueprintData.estimated_total_tokens)} tok</strong></span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-xs text-slate-400">
+                      Existing Files Detected: {blueprintData.existing_files_detected}
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-300 mt-1 line-clamp-1">
+                    Goal: <em>"{blueprintData.goal}"</em>
+                  </p>
                 </div>
 
+                {/* Bulk Actions */}
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleToggleSelectAll(true)}
-                    className="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
                   >
                     Select All
                   </button>
                   <button
                     type="button"
                     onClick={() => handleToggleSelectAll(false)}
-                    className="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
                   >
                     Deselect All
                   </button>
                   <button
-                    id="add-custom-task-btn"
                     type="button"
                     onClick={() => setShowAddCustomTask(true)}
-                    className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors shadow-sm"
+                    className="flex items-center gap-1 px-3 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 text-xs font-semibold"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add File Task</span>
+                    <span>+ Add Custom File Task</span>
                   </button>
                 </div>
               </div>
 
               {/* Task Rows List */}
-              <div className="divide-y divide-slate-800/80">
+              <div className="divide-y divide-slate-800">
                 {blueprintData.tasks.map((task) => {
                   const isExpanded = Boolean(expandedTasks[task.task_id]);
                   const isModify = task.action === 'MODIFY';
 
                   return (
-                    <div key={task.task_id} className="transition-colors hover:bg-slate-800/30">
-                      {/* Compact Task Row Header */}
-                      <div className="p-3.5 sm:px-5 flex items-center justify-between gap-3">
-                        {/* Checkbox & File info */}
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      key={task.task_id}
+                      className={`transition-colors ${task.selected !== false ? 'bg-slate-900/60' : 'bg-slate-950/40 opacity-70'}`}
+                    >
+                      <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Selection Checkbox */}
                           <input
                             type="checkbox"
                             checked={task.selected !== false}
                             onChange={() => handleToggleTaskSelect(task.task_id)}
-                            className="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer h-4 w-4"
+                            className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
                           />
 
                           {/* Action Badge */}
                           <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider border shrink-0 ${
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono border ${
                               isModify
-                                ? 'bg-amber-950/70 border-amber-700/60 text-amber-300'
-                                : 'bg-emerald-950/70 border-emerald-700/60 text-emerald-300'
+                                ? 'bg-amber-950/80 text-amber-300 border-amber-800'
+                                : 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
                             }`}
                           >
                             {task.action}
                           </span>
 
-                          {/* Target File */}
-                          <span className="font-mono text-xs text-slate-200 font-semibold truncate" title={task.target_file}>
-                            {task.target_file}
-                          </span>
+                          {/* File Path */}
+                          <div className="min-w-0">
+                            <span className="font-mono text-xs font-bold text-white truncate block">
+                              {task.target_file}
+                            </span>
+                            <span className="text-[11px] text-slate-400 line-clamp-1 hidden sm:block">
+                              {task.directive}
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Model & Token metadata */}
+                        {/* Right: Agent, Model, Tokens & Actions */}
                         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                          {/* Agent Badge */}
-                          <span className="hidden md:inline-block px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[11px] text-slate-300 font-medium">
+                          {/* Assigned Agent */}
+                          <span className="hidden md:inline-block px-2 py-0.5 rounded bg-slate-800 text-[11px] text-slate-300">
                             {task.assigned_agent}
                           </span>
 
@@ -1274,11 +1666,21 @@ export const ExecutionStudio: React.FC = () => {
                                 onChange={(e) => handleUpdateTask(task.task_id, 'assigned_model', e.target.value)}
                                 className="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200"
                               >
-                                <option value="gemini-3.6-flash">gemini-3.6-flash (Fast)</option>
-                                <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Coder)</option>
-                                <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra Fast)</option>
-                                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Groq)</option>
-                                <option value="qwen2.5-coder:32b">qwen2.5-coder:32b (Local)</option>
+                                {catalogModels && catalogModels.length > 0 ? (
+                                  catalogModels.map((m) => (
+                                    <option key={m.model_name} value={m.model_name}>
+                                      {m.model_name} ({m.provider} {m.tier})
+                                    </option>
+                                  ))
+                                ) : (
+                                  <>
+                                    <option value="gemini-3.6-flash">gemini-3.6-flash (Fast)</option>
+                                    <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Coder)</option>
+                                    <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra Fast)</option>
+                                    <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Groq)</option>
+                                    <option value="qwen2.5-coder:32b">qwen2.5-coder:32b (Local)</option>
+                                  </>
+                                )}
                               </select>
                             </div>
                             <div>
@@ -1338,36 +1740,27 @@ export const ExecutionStudio: React.FC = () => {
 
                 <div className="flex items-center gap-3">
                   <button
-                    id="approve-dispatch-blueprint-btn"
+                    id="dispatch-blueprint-btn"
                     type="button"
                     onClick={handleDispatchApprovedBlueprint}
                     disabled={blueprintExecuting || blueprintData.tasks.filter((t) => t.selected !== false).length === 0}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all duration-150 shadow-lg shadow-emerald-600/30 cursor-pointer disabled:cursor-not-allowed"
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/30 cursor-pointer disabled:cursor-not-allowed"
                   >
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>{blueprintExecuting ? 'Dispatching Swarm...' : `Approve & Dispatch (${blueprintData.tasks.filter((t) => t.selected !== false).length} Files)`}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate('/swarm')}
-                    title="Jump to Swarm Monitor"
-                    className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
+                    <Play className={`w-3.5 h-3.5 ${blueprintExecuting ? 'animate-spin' : ''}`} />
+                    <span>{blueprintExecuting ? 'Dispatching Swarm...' : '🚀 Approve & Dispatch to Swarm'}</span>
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Modal / Panel: Add Custom File Task */}
+          {/* Add Custom Task Modal */}
           {showAddCustomTask && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
               <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-lg w-full space-y-4 shadow-2xl">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-indigo-400" />
+                    <Plus className="w-4 h-4 text-emerald-400" />
                     <span>Add Custom File Task to Blueprint</span>
                   </h4>
                   <button onClick={() => setShowAddCustomTask(false)} className="text-slate-400 hover:text-white">
@@ -1377,7 +1770,7 @@ export const ExecutionStudio: React.FC = () => {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-300">Target File Path (Relative)</label>
+                    <label className="text-xs font-bold text-slate-300">Target File Path</label>
                     <input
                       type="text"
                       value={customTaskFile}
@@ -1389,14 +1782,14 @@ export const ExecutionStudio: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-slate-300">Action</label>
+                      <label className="text-xs font-bold text-slate-300">Action Type</label>
                       <select
                         value={customTaskAction}
                         onChange={(e) => setCustomTaskAction(e.target.value)}
                         className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
                       >
-                        <option value="CREATE">CREATE</option>
-                        <option value="MODIFY">MODIFY</option>
+                        <option value="CREATE">CREATE (New File)</option>
+                        <option value="MODIFY">MODIFY (Existing)</option>
                       </select>
                     </div>
 
@@ -1407,10 +1800,19 @@ export const ExecutionStudio: React.FC = () => {
                         onChange={(e) => setCustomTaskModel(e.target.value)}
                         className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
                       >
-                        <option value="gemini-3.6-flash">gemini-3.6-flash</option>
-                        <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-                        <option value="qwen2.5-coder:32b">qwen2.5-coder:32b</option>
-                        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+                        {catalogModels && catalogModels.length > 0 ? (
+                          catalogModels.map((m) => (
+                            <option key={m.model_name} value={m.model_name}>
+                              {m.model_name}
+                            </option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+                            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                            <option value="qwen2.5-coder:32b">qwen2.5-coder:32b</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -1421,7 +1823,7 @@ export const ExecutionStudio: React.FC = () => {
                       rows={3}
                       value={customTaskDirective}
                       onChange={(e) => setCustomTaskDirective(e.target.value)}
-                      placeholder="Detailed directives for the autonomous worker..."
+                      placeholder="Specific implementation requirements for this file..."
                       className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100"
                     />
                   </div>
@@ -1438,10 +1840,9 @@ export const ExecutionStudio: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddCustomTask}
-                    disabled={!customTaskFile.trim()}
-                    className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-xs font-bold text-white"
+                    className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white"
                   >
-                    Add Task
+                    Append Task
                   </button>
                 </div>
               </div>
@@ -1454,131 +1855,117 @@ export const ExecutionStudio: React.FC = () => {
       {/* TAB 3: WORKSPACE FILES & CODE INSPECTOR                              */}
       {/* -------------------------------------------------------------------- */}
       {activeTab === 'files' && (
-        <div className="space-y-5">
-          {/* Workspace Browser Header Card */}
+        <div className="space-y-6">
           <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl shadow-black/20 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <FolderTree className="w-4 h-4 text-emerald-400" />
-                  <span>Workspace File Browser & Inspector</span>
+                  <span>Workspace File Scanner & Tree</span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Path: <code className="text-slate-200">{scanResult?.resolved_path || targetPath}</code>
+                <p className="text-xs text-slate-400">
+                  Real-time code ledger of the target workspace for fast file inspection
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => performWorkspaceScan()}
-                disabled={scanning}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition-colors shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
-                <span>Refresh Scan</span>
-              </button>
-            </div>
-
-            {/* Language Breakdown Badges */}
-            {scanResult?.language_breakdown && (
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold">Filter:</span>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setScanFilterExt('ALL')}
-                  className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors ${
-                    scanFilterExt === 'ALL'
-                      ? 'bg-blue-600 text-white font-bold'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  onClick={() => performWorkspaceScan()}
+                  disabled={scanning}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700"
                 >
-                  All ({scanResult.file_count})
+                  <RefreshCw className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
+                  <span>Re-Scan</span>
                 </button>
-                {Object.entries(scanResult.language_breakdown).map(([ext, count]) => (
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-slate-800/80">
+              <div className="relative flex-1">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Filter files by path or extension..."
+                  value={fileSearchQuery}
+                  onChange={(e) => setFileSearchQuery(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none"
+                />
+              </div>
+
+              {/* Extension filter chips */}
+              {scanResult?.language_breakdown && (
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
                   <button
-                    key={ext}
                     type="button"
-                    onClick={() => setScanFilterExt(ext)}
-                    className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors ${
-                      scanFilterExt === ext
-                        ? 'bg-emerald-600 text-white font-bold'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    onClick={() => setScanFilterExt('ALL')}
+                    className={`px-2 py-1 rounded text-[11px] font-mono whitespace-nowrap ${
+                      scanFilterExt === 'ALL'
+                        ? 'bg-blue-600 text-white font-bold'
+                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                     }`}
                   >
-                    {ext}: {count}
+                    All ({scanResult.file_count})
                   </button>
-                ))}
-              </div>
-            )}
-
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                value={fileSearchQuery}
-                onChange={(e) => setFileSearchQuery(e.target.value)}
-                placeholder="Search files by path or extension..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-              />
+                  {Object.entries(scanResult.language_breakdown).map(([ext, count]) => (
+                    <button
+                      key={ext}
+                      type="button"
+                      onClick={() => setScanFilterExt(ext)}
+                      className={`px-2 py-1 rounded text-[11px] font-mono whitespace-nowrap ${
+                        scanFilterExt === ext
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                      }`}
+                    >
+                      {ext} ({count})
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Files List Table */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-xl shadow-black/20">
-            {filteredFiles.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
-                {scanning
-                  ? 'Scanning workspace files...'
-                  : 'No files found in workspace matching current filter.'}
+            {/* Scanned Files List */}
+            {scanResult ? (
+              <div className="border border-slate-800 rounded-lg divide-y divide-slate-800 max-h-96 overflow-y-auto">
+                {scanResult.files
+                  .filter((f) => {
+                    const matchesExt = scanFilterExt === 'ALL' || f.ext === scanFilterExt;
+                    const matchesSearch =
+                      !fileSearchQuery || f.rel_path.toLowerCase().includes(fileSearchQuery.toLowerCase());
+                    return matchesExt && matchesSearch;
+                  })
+                  .map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 sm:px-4 sm:py-2.5 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileCode className="w-4 h-4 text-blue-400 shrink-0" />
+                        <span className="font-mono text-xs text-slate-200 truncate">{file.rel_path}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-[11px] font-mono text-slate-500">
+                          {(file.size_bytes / 1024).toFixed(1)} KB
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleInspectFile(file.rel_path)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-300 text-[11px] font-mono border border-slate-700"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>Inspect</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             ) : (
-              <div className="divide-y divide-slate-800">
-                {filteredFiles.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 sm:px-5 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1 flex items-center gap-2.5">
-                      <FileCode className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="font-mono text-xs text-slate-200 font-semibold truncate" title={file.rel_path}>
-                        {file.rel_path}
-                      </span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono shrink-0">
-                        {file.ext}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-                        {(file.size_bytes / 1024).toFixed(1)} KB
-                      </span>
-                      <span className="text-[11px] text-slate-500 hidden md:inline">
-                        {file.last_modified}
-                      </span>
-
-                      {/* Action 1: Inspect Code */}
-                      <button
-                        type="button"
-                        onClick={() => handleInspectFile(file.rel_path)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-blue-400" />
-                        <span>Inspect</span>
-                      </button>
-
-                      {/* Action 2: Modify in Blueprint */}
-                      <button
-                        type="button"
-                        onClick={() => handleSendFileToBlueprint(file.rel_path)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-800/60 text-xs text-indigo-300 transition-colors"
-                      >
-                        <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
-                        <span className="hidden sm:inline">Modify in Blueprint</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-10 text-xs text-slate-500 font-mono">
+                Click "Scan Workspace" above to load repository file hierarchy
               </div>
             )}
           </div>
@@ -1586,71 +1973,65 @@ export const ExecutionStudio: React.FC = () => {
       )}
 
       {/* -------------------------------------------------------------------- */}
-      {/* CODE INSPECTOR MODAL                                                 */}
+      {/* FILE INSPECTOR MODAL                                                 */}
       {/* -------------------------------------------------------------------- */}
       {inspectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-4 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between gap-3">
-              <div className="min-w-0 flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-blue-400 shrink-0" />
-                <h4 className="text-sm font-bold text-white font-mono truncate">
-                  {inspectingFile?.file_path || 'Inspecting File'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-white font-mono truncate flex items-center gap-2">
+                  <FileCode className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>{inspectingFile?.file_path || 'Loading code...'}</span>
                 </h4>
                 {inspectingFile && (
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-mono">
-                    {inspectingFile.language}
-                  </span>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono mt-0.5">
+                    <span>Lines: {inspectingFile.line_count}</span>
+                    <span>•</span>
+                    <span>Size: {(inspectingFile.size_bytes / 1024).toFixed(1)} KB</span>
+                    <span>•</span>
+                    <span>Lang: {inspectingFile.language}</span>
+                  </div>
                 )}
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                {inspectingFile && (
-                  <>
-                    <span className="text-xs text-slate-400 font-mono hidden sm:inline">
-                      {inspectingFile.line_count} lines • {(inspectingFile.size_bytes / 1024).toFixed(1)} KB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyCode}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition-colors"
-                    >
-                      {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedCode ? 'Copied!' : 'Copy Code'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSendFileToBlueprint(inspectingFile.file_path)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-colors"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Modify in Blueprint</span>
-                    </button>
-                  </>
-                )}
                 <button
-                  onClick={() => setInspectModalOpen(false)}
-                  className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white"
+                  type="button"
+                  onClick={() => {
+                    if (inspectingFile?.content) {
+                      navigator.clipboard.writeText(inspectingFile.content);
+                      setCopiedCode(true);
+                      setTimeout(() => setCopiedCode(false), 2000);
+                    }
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700"
                 >
-                  <X className="w-5 h-5" />
+                  {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInspectModalOpen(false)}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body / Code View */}
-            <div className="flex-1 overflow-auto p-4 bg-slate-950 font-mono text-xs text-slate-200 leading-relaxed">
+            {/* Code Content Container */}
+            <div className="flex-1 overflow-auto rounded-lg bg-slate-950 border border-slate-800 p-3 font-mono text-xs text-slate-200">
               {inspectLoading ? (
-                <div className="flex items-center justify-center p-12 text-slate-400 gap-2">
-                  <RefreshCw className="w-5 h-5 animate-spin text-blue-400" />
-                  <span>Loading file content...</span>
+                <div className="flex items-center justify-center py-16 text-slate-500">
+                  <RefreshCw className="w-6 h-6 animate-spin text-blue-400 mr-2" />
+                  <span>Loading source file...</span>
                 </div>
-              ) : inspectingFile ? (
-                <pre className="whitespace-pre overflow-x-auto select-text">
-                  {inspectingFile.content}
-                </pre>
               ) : (
-                <div className="text-slate-500">No content available.</div>
+                <pre className="whitespace-pre overflow-x-auto leading-relaxed">
+                  {inspectingFile?.content || 'No file content available.'}
+                </pre>
               )}
             </div>
           </div>

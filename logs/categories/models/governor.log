@@ -135,3 +135,20 @@
 [2026-10-18 17:25:34.514 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
 [2026-10-18 17:25:34.824 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
 [2026-10-18 17:25:34.849 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_0668d793:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-18 17:50:35.556 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-18 17:50:36.043 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-18 17:50:36.463 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-18 17:50:49.685 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-18 17:50:49.827 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-18 17:50:50.172 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-18 18:06:12.962 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-18 18:06:12.966 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-18 18:06:14.490 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-18 18:06:14.493 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-18 18:06:14.494 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-18 18:06:14.494 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-18 18:06:18.947 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-18 18:06:24.031 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-18 18:06:24.227 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-18 18:06:24.596 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-18 18:06:24.621 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_1ed14da7:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}

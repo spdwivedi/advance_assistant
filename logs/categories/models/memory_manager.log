@@ -173,3 +173,6 @@
 [2026-10-18 17:25:33.148 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
 [2026-10-18 17:25:33.154 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
 [2026-10-18 17:25:33.157 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-18 18:06:22.741 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-18 18:06:22.746 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-18 18:06:22.750 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}

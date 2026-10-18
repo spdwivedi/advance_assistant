@@ -1251,3 +1251,61 @@ This document tracks all prompt executions, file additions, architecture extensi
 - **Zero Test Pollution Audit**:
   - All test suites executed inside `preserve_agent_memory()` with complete state restoration.
 - **Stage Status**: COMPLETED.
+
+### STAGE 16.3: FRONTEND EXPLICIT MULTI-MODEL SWARM SELECTOR (/ & /agents), LIVE MODEL SYNC & DEDICATED PER-KEY 85% QUOTA INSPECTOR (/governor & /keys)
+- **Date**: 2026-10-18
+- **Scope & Objectives**:
+  - Deliverable 1: Upgrade `frontend/src/pages/ExecutionStudio.tsx` (`/`) with an explicit Swarm, Orchestrator, Multi-Model Worker Roster, and Key Selector bar:
+    * Fetch unified model catalog (`GET /api/models/catalog`), active swarm profile (`GET /api/swarms/profiles`), and registered keys (`GET /api/keys`).
+    * Render compact "Active Swarm & Model Roster Bar" visible above Quick Launch (Tab 1) and Iterative Blueprint (Tab 2) with Swarm Preset dropdown, Orchestrator dropdown grouped by provider/tier with 85% working limits, Active Worker Roster pill (`X/Y Active`), Dedicated Key Dropdown (`AUTO Pool` or registered keys), and collapsible multi-model worker drawer.
+    * Provide interactive multi-model picker with provider/tier filters (`GOOGLE FREE`, `GOOGLE PAID`, `GROQ FREE/PAID`, `OLLAMA LOCAL`), model chips toggleable into active roster (1 to N), Max Models Used slider, Routing Strategy (`ROUND_ROBIN` vs `QUOTA_WEIGHTED`), and `Save as Default Swarm Roster` persistence.
+    * Wire all model and key selections into `POST /api/execute`, `POST /api/blueprint/preview`, and `POST /api/blueprint/execute`. In Tab 2, allow individual task `assigned_model` modification from the model catalog.
+  - Deliverable 2: Upgrade `frontend/src/pages/AgentHub.tsx` (`/agents` — Tab 3 Swarm & Role Builder):
+    * Display active and preset swarm cards with orchestrator, explicit `worker_models` chips, `max_models_used`, `routing_strategy`, and `default_concurrency`.
+    * Add interactive "Multi-Model Worker Roster Builder" allowing users to filter synced catalog models by provider/tier, inspect 100% strict vs 85% working limits (`RPM / TPM / RPD`), toggle models, configure concurrency and routing strategy, select preferred keys, and persist to `POST /api/swarms/profiles`.
+  - Deliverable 3: Upgrade `frontend/src/pages/TokenGovernor.tsx` (`/governor`) and `frontend/src/pages/ApiKeyManager.tsx` (`/keys`):
+    * `TokenGovernor.tsx`: Add Dedicated Key Scope Dropdown switching between Global Quotas and Dedicated Per-Key Quotas (`/api/keys/quotas`), `Sync Live & DB Models` button (`POST /api/governor/sync-models`), `Apply 85% Working Limits` button (`POST /api/governor/recalculate-85`), model cards displaying both 85% working and 100% strict limits, per-key metrics & custom overrides display, and limit editor modal supporting dedicated key overrides (`POST /api/keys/{key_id}/limits`) with "⚡ Auto-Fill 85% of Strict" button.
+    * `ApiKeyManager.tsx`: Add `🛡️ 85% Working Cap` badge and daily request count to key rows; add "Dedicated Per-Key Model Quotas & 85% Working Limits" section inside the expandable key drawer with live rolling RPM/TPM, daily RPD, input/output/thinking token metrics, key margin % editor (`POST /api/keys/{key_id}/limits`), and dedicated model limit customization modal with "⚡ Auto-Fill 85%" action.
+  - Deliverable 4: Strict TypeScript, Vite production build, and master test suite certification:
+    * Verify `tsc --noEmit` and `vite build` complete with 0 errors.
+    * Execute master test harness (`run_all_tests.py`) across all 7 test suites (70/70 checks passing).
+    * Verify `src/main.py` is 100% untouched and `.agent_memory/` remains completely clean.
+- **Key Modifications**:
+  - `frontend/src/pages/ExecutionStudio.tsx`:
+    * Added catalog, swarm profile, and key state variables and API fetches.
+    * Implemented active swarm and model roster bar with orchestrator grouping, key pool selector, and inline multi-model drawer.
+    * Updated execute and blueprint request payloads with `orchestrator_model`, `worker_models`, `max_models_used`, `routing_strategy`, and `preferred_key_id`.
+    * Added assigned model selection dropdown per blueprint task.
+  - `frontend/src/pages/AgentHub.tsx`:
+    * Added catalog model synchronization and key data loading in Tab 3.
+    * Updated swarm profile cards to render `orchestrator`, `worker_models` tags, and routing metadata.
+    * Added multi-model roster builder with provider/tier filter chips, 85% limits inspection, model toggling, and swarm profile save handler.
+  - `frontend/src/pages/TokenGovernor.tsx`:
+    * Added key scope selector (`GLOBAL` vs specific key ID) powered by `GET /api/keys/quotas`.
+    * Added `handleSyncLiveModels` (`POST /api/governor/sync-models`) and `handleRecalculate85` (`POST /api/governor/recalculate-85`).
+    * Updated model cards to badge both 85% working limits and 100% strict API limits, plus per-key custom override indicators.
+    * Updated limit edit modal with auto-fill 85% button and per-key persistence routing.
+  - `frontend/src/pages/ApiKeyManager.tsx`:
+    * Added `KeyQuotaInfo` and `KeyModelQuotaNode` interfaces and fetch integration for `/api/keys/quotas`.
+    * Added 85% working cap and requests today badges to collapsed key rows.
+    * Added dedicated per-key model quotas drawer section displaying active models, working vs strict limits, rolling metrics, and token breakdowns.
+    * Implemented key safety margin % updater and dedicated model limit modal with 85% auto-fill button (`POST /api/keys/{key_id}/limits`).
+- **Verification Results**:
+  - `frontend/src/pages/ExecutionStudio.tsx`: **Verified (0 TS errors, Vite bundle built)**
+  - `frontend/src/pages/AgentHub.tsx`: **Verified (0 TS errors, Vite bundle built)**
+  - `frontend/src/pages/TokenGovernor.tsx`: **Verified (0 TS errors, Vite bundle built)**
+  - `frontend/src/pages/ApiKeyManager.tsx`: **Verified (0 TS errors, Vite bundle built)**
+  - `tsc --noEmit && vite build`: **100% SUCCESS (0 errors, 2.08s build time)**
+  - `run_all_tests.py`: **7/7 suites passed (100% OK, 70/70 checks in 13.16s)**
+    * `test_hierarchical_governor.py`: 8/8 checks ✅ PASS
+    * `test_stage14_2_pipeline.py`: 6/6 checks ✅ PASS
+    * `test_stage14_3_server.py`: 8/8 checks ✅ PASS
+    * `test_stage15_2_backend.py`: 6/6 checks ✅ PASS
+    * `test_v6_full_suite.py`: 34/34 checks ✅ PASS
+    * `test_stage16_1_quotas.py`: 4/4 checks ✅ PASS
+    * `test_stage16_2_swarm_roster.py`: 4/4 checks ✅ PASS
+- **Core CLI Preservation Audit**:
+  - `src/main.py`: **100% UNTOUCHED (0 lines changed)**
+- **Zero Test Pollution Audit**:
+  - `.agent_memory/` remains completely clean; all tests ran in isolated sandbox environments.
+- **Stage Status**: COMPLETED.

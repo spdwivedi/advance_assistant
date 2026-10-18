@@ -33,7 +33,9 @@ import {
   ExternalLink,
   Filter,
   Search,
-  Building2
+  Building2,
+  Key,
+  Database
 } from 'lucide-react';
 
 // ==========================================
@@ -71,6 +73,18 @@ export interface ModelHierarchyNode {
   output_tokens_today?: number;
   thinking_tokens_today?: number;
   total_tokens_today?: number;
+  has_custom_override?: boolean;
+}
+
+export interface KeyQuotaEntry {
+  key_id: string;
+  provider: string;
+  tier: string;
+  label: string;
+  masked_key: string;
+  safety_margin_percent?: number;
+  total_requests_today?: number;
+  models: Record<string, ModelHierarchyNode>;
 }
 
 export interface FinancialShieldData {
@@ -159,6 +173,13 @@ export const TokenGovernor: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Key Scope & Stage 16.3 Sync states
+  const [selectedKeyScope, setSelectedKeyScope] = useState<string>('GLOBAL');
+  const [keyQuotas, setKeyQuotas] = useState<Record<string, KeyQuotaEntry>>({});
+  const [syncingModels, setSyncingModels] = useState<boolean>(false);
+  const [recalculating85, setRecalculating85] = useState<boolean>(false);
+  const [recalcMarginPct, setRecalcMarginPct] = useState<number>(85);
+
   // Top Dropdown Filters
   const [providerFilter, setProviderFilter] = useState<string>('ALL');
   const [tierFilter, setTierFilter] = useState<'ALL' | 'FREE' | 'PAID' | 'LOCAL'>('ALL');
@@ -222,10 +243,18 @@ export const TokenGovernor: React.FC = () => {
   const fetchHierarchyData = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
     try {
-      const [hierRes, costRes] = await Promise.all([
+      const [hierRes, costRes, kqRes] = await Promise.all([
         fetch('/api/governor/hierarchy'),
-        fetch('/api/governor/cost-estimate').catch(() => null)
+        fetch('/api/governor/cost-estimate').catch(() => null),
+        fetch('/api/keys/quotas').catch(() => null)
       ]);
+
+      if (kqRes && kqRes.ok) {
+        const kqData = await kqRes.json();
+        if (kqData.keys) {
+          setKeyQuotas(kqData.keys);
+        }
+      }
 
       if (hierRes.ok) {
         const data = await hierRes.json();
@@ -384,29 +413,100 @@ export const TokenGovernor: React.FC = () => {
     }
   };
 
-  // Save Model Limits
+  // Stage 16.3: Sync Live & DB Models
+  const handleSyncLiveModels = async () => {
+    setSyncingModels(true);
+    try {
+      const res = await fetch('/api/governor/sync-models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: true })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(
+          `✅ Synced Models! ${data.google_free_count} Google Free, ${data.google_paid_count} Google Paid, ${data.groq_count} Groq, ${data.ollama_count} Local (85% Applied)`,
+          'success'
+        );
+        fetchHierarchyData(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Sync failed: ${err.detail || 'Server error'}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`Sync error: ${err.message || String(err)}`, 'error');
+    } finally {
+      setSyncingModels(false);
+    }
+  };
+
+  // Stage 16.3: Recalculate 85% Working Limits
+  const handleRecalculate85 = async () => {
+    setRecalculating85(true);
+    try {
+      const res = await fetch('/api/governor/recalculate-85', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ safety_margin_percent: recalcMarginPct })
+      });
+      if (res.ok) {
+        showToast(`✅ Applied ${recalcMarginPct}% working limits across all models & keys!`, 'success');
+        fetchHierarchyData(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Recalculation failed: ${err.detail || 'Server error'}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`Recalculation error: ${err.message || String(err)}`, 'error');
+    } finally {
+      setRecalculating85(false);
+    }
+  };
+
+  // Save Model Limits (Global vs Per-Key)
   const handleSaveModelLimits = async () => {
     if (!editingModel) return;
     setModelSaving(true);
     try {
-      const res = await fetch('/api/governor/limits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: editingModel.provider,
-          tier: editingModel.tier,
-          model_name: editingModel.model_name,
-          working_limits: editingModel.working_limits,
-          strict_limits: editingModel.strict_limits
-        })
-      });
-      if (res.ok) {
-        showToast(`Limits for '${editingModel.model_name}' persisted successfully.`, 'success');
-        setEditingModel(null);
-        fetchHierarchyData(true);
+      if (selectedKeyScope !== 'GLOBAL') {
+        // Dedicated Per-Key Limit Save
+        const res = await fetch(`/api/keys/${selectedKeyScope}/limits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model_name: editingModel.model_name,
+            working_limits: editingModel.working_limits
+          })
+        });
+        if (res.ok) {
+          showToast(`Dedicated key limits for '${editingModel.model_name}' saved to key '${selectedKeyScope}'.`, 'success');
+          setEditingModel(null);
+          fetchHierarchyData(true);
+        } else {
+          const err = await res.json();
+          showToast(`Key limit update failed: ${err.detail || 'Unknown error'}`, 'error');
+        }
       } else {
-        const err = await res.json();
-        showToast(`Update failed: ${err.detail || 'Unknown error'}`, 'error');
+        // Global Limit Save
+        const res = await fetch('/api/governor/limits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: editingModel.provider,
+            tier: editingModel.tier,
+            model_name: editingModel.model_name,
+            working_limits: editingModel.working_limits,
+            strict_limits: editingModel.strict_limits
+          })
+        });
+        if (res.ok) {
+          showToast(`Global limits for '${editingModel.model_name}' persisted successfully.`, 'success');
+          setEditingModel(null);
+          fetchHierarchyData(true);
+        } else {
+          const err = await res.json();
+          showToast(`Update failed: ${err.detail || 'Unknown error'}`, 'error');
+        }
       }
     } catch (err) {
       showToast('Error saving model limits.', 'error');
@@ -518,21 +618,37 @@ export const TokenGovernor: React.FC = () => {
 
   const flatModels = useMemo(() => {
     const list: FlatModelItem[] = [];
-    if (!hierarchy?.providers) return list;
 
-    Object.entries(hierarchy.providers).forEach(([prov, tiers]) => {
-      Object.entries(tiers).forEach(([tier, models]) => {
-        Object.entries(models).forEach(([mName, node]) => {
+    if (selectedKeyScope !== 'GLOBAL') {
+      const keyEntry = keyQuotas[selectedKeyScope];
+      if (keyEntry && keyEntry.models) {
+        Object.entries(keyEntry.models).forEach(([mName, node]) => {
           list.push({
-            id: `${prov}-${tier}-${mName}`,
+            id: `${keyEntry.provider}-${keyEntry.tier}-${mName}`,
             model_name: mName,
-            provider: prov,
-            tier: tier.toUpperCase(),
+            provider: keyEntry.provider,
+            tier: keyEntry.tier.toUpperCase(),
             node
           });
         });
-      });
-    });
+      }
+    } else {
+      if (hierarchy?.providers) {
+        Object.entries(hierarchy.providers).forEach(([prov, tiers]) => {
+          Object.entries(tiers).forEach(([tier, models]) => {
+            Object.entries(models).forEach(([mName, node]) => {
+              list.push({
+                id: `${prov}-${tier}-${mName}`,
+                model_name: mName,
+                provider: prov,
+                tier: tier.toUpperCase(),
+                node
+              });
+            });
+          });
+        });
+      }
+    }
 
     return list.filter((m) => {
       if (providerFilter !== 'ALL' && m.provider !== providerFilter) return false;
@@ -545,7 +661,7 @@ export const TokenGovernor: React.FC = () => {
       }
       return true;
     });
-  }, [hierarchy, providerFilter, tierFilter, modelSearchQuery]);
+  }, [hierarchy, keyQuotas, selectedKeyScope, providerFilter, tierFilter, modelSearchQuery]);
 
   // Filtered Sub-Agents for Tab 2
   const filteredSubAgents = useMemo(() => {
@@ -713,6 +829,50 @@ export const TokenGovernor: React.FC = () => {
 
           {/* Right: Quick Controls Dropdowns & Navigation */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Dedicated Key Scope Dropdown */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-indigo-500/40 rounded-xl px-2.5 py-1 text-xs font-mono shadow-sm">
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-slate-400 text-[11px] hidden sm:inline">Scope:</span>
+              <select
+                id="governor-key-scope-select"
+                aria-label="Quota Scope"
+                value={selectedKeyScope}
+                onChange={(e) => setSelectedKeyScope(e.target.value)}
+                className="bg-transparent text-amber-300 font-bold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="GLOBAL" className="bg-slate-900 text-slate-200">🌐 Global Provider/Tier Quotas</option>
+                {Object.values(keyQuotas).map((k) => (
+                  <option key={k.key_id} value={k.key_id} className="bg-slate-900 text-slate-200">
+                    🔑 [{k.provider} {k.tier}] {k.label || k.key_id} ({k.masked_key})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sync Live & DB Models Button */}
+            <button
+              id="governor-sync-models-btn"
+              onClick={handleSyncLiveModels}
+              disabled={syncingModels}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/50 text-xs font-mono font-semibold transition-all shadow-sm"
+              title="Sync latest live models from Google AI Studio, Groq, Ollama and Ollama_Models_Testing"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncingModels ? 'animate-spin' : ''}`} />
+              <span>{syncingModels ? 'Syncing...' : 'Sync Models'}</span>
+            </button>
+
+            {/* Recalculate 85% Limits Button */}
+            <button
+              id="governor-recalculate-85-btn"
+              onClick={handleRecalculate85}
+              disabled={recalculating85}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/50 text-xs font-mono font-semibold transition-all shadow-sm"
+              title="Reset all working limits to exact 85% of strict API limits"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>{recalculating85 ? 'Calculating...' : '📐 Apply 85%'}</span>
+            </button>
+
             {/* Provider Filter Dropdown */}
             <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 rounded-xl px-2.5 py-1 text-xs font-mono">
               <Filter className="w-3.5 h-3.5 text-slate-400" />
@@ -1029,6 +1189,12 @@ export const TokenGovernor: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {item.node.has_custom_override && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 flex items-center gap-1">
+                          <Key className="w-2.5 h-2.5 text-amber-400" /> KEY OVERRIDE
+                        </span>
+                      )}
+
                       {item.node.in_flight_requests && item.node.in_flight_requests > 0 ? (
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
                           <Zap className="w-2.5 h-2.5" /> {item.node.in_flight_requests} In-Flight
@@ -1047,6 +1213,22 @@ export const TokenGovernor: React.FC = () => {
                         }`}
                       >
                         {item.provider} &bull; {item.tier}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 85% Working Limit vs 100% Strict API Cap Banner */}
+                  <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-1 text-[10px] font-mono">
+                    <div className="flex justify-between text-emerald-400 font-semibold">
+                      <span>🛡️ 85% Working Limit:</span>
+                      <span>
+                        {item.node.working_limits?.rpm || 12} RPM • {((item.node.working_limits?.tpm || 212500)/1000).toFixed(0)}K TPM • {item.node.working_limits?.rpd || 425} RPD
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>⚡ 100% Strict API Limit:</span>
+                      <span>
+                        {item.node.strict_limits?.rpm || 15} RPM • {((item.node.strict_limits?.tpm || 250000)/1000).toFixed(0)}K TPM • {item.node.strict_limits?.rpd || 500} RPD
                       </span>
                     </div>
                   </div>
@@ -1610,17 +1792,48 @@ export const TokenGovernor: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 font-mono text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">{editingModel.model_name}</h3>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>{editingModel.model_name}</span>
+                  {selectedKeyScope !== 'GLOBAL' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800">
+                      Dedicated Key: {selectedKeyScope}
+                    </span>
+                  )}
+                </h3>
                 <p className="text-[11px] text-slate-400">
                   {editingModel.provider} &bull; {editingModel.tier}
                 </p>
               </div>
-              <button
-                onClick={() => setEditingModel(null)}
-                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editingModel.strict_limits) {
+                      setEditingModel({
+                        ...editingModel,
+                        working_limits: {
+                          ...editingModel.working_limits,
+                          rpm: Math.max(1, Math.round((editingModel.strict_limits.rpm || 15) * 0.85)),
+                          tpm: Math.max(1000, Math.round((editingModel.strict_limits.tpm || 250000) * 0.85)),
+                          rpd: Math.max(1, Math.round((editingModel.strict_limits.rpd || 500) * 0.85)),
+                          max_input_tokens: Math.round(((editingModel.strict_limits.max_input_tokens || 32768) * 0.85)),
+                          max_output_tokens: Math.round(((editingModel.strict_limits.max_output_tokens || 8192) * 0.85))
+                        }
+                      });
+                      showToast('Auto-filled 85% of strict limits.', 'info');
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/50 text-[11px] font-semibold transition-colors"
+                >
+                  ⚡ Auto-Fill 85% of Strict
+                </button>
+                <button
+                  onClick={() => setEditingModel(null)}
+                  className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">

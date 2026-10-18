@@ -28,7 +28,11 @@ import {
   Clock,
   FileText,
   Search,
-  Filter
+  Filter,
+  Key,
+  Users,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 // ============================================================================
@@ -101,6 +105,26 @@ export interface OllamaTagModel {
   };
 }
 
+export interface CatalogModelItem {
+  model_name: string;
+  provider: string;
+  tier: string;
+  strict_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number };
+  working_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number; thinking_budget?: number };
+  safety_margin_percent?: number;
+  keys_available?: boolean;
+  active_key_count?: number;
+}
+
+export interface RegisteredKeyOption {
+  id: string;
+  key?: string;
+  label?: string;
+  provider?: string;
+  tier?: string;
+  safety_margin_percent?: number;
+}
+
 export interface SwarmProfile {
   id: string;
   name: string;
@@ -108,6 +132,10 @@ export interface SwarmProfile {
   orchestrator: string;
   worker_tier: string;
   default_concurrency: number;
+  worker_models?: string[];
+  max_models_used?: number;
+  routing_strategy?: 'ROUND_ROBIN' | 'QUOTA_WEIGHTED';
+  preferred_key_id?: string;
 }
 
 export interface SwarmProfilesConfig {
@@ -115,6 +143,11 @@ export interface SwarmProfilesConfig {
   max_concurrency_workers: number;
   swarms: SwarmProfile[];
   primary_orchestrator?: string;
+  orchestrator_engine?: string;
+  worker_models?: string[];
+  max_models_used?: number;
+  routing_strategy?: 'ROUND_ROBIN' | 'QUOTA_WEIGHTED';
+  preferred_key_id?: string;
 }
 
 // Default Swarm Profiles Matching v6.0 Production Config
@@ -125,6 +158,9 @@ const DEFAULT_SWARMS: SwarmProfile[] = [
     description: 'Cloud Pro/Ollama 32B for Architecture; Cloud Flash & Local 7B for Parallel Workers.',
     orchestrator: 'qwen2.5-coder:32b',
     worker_tier: 'HIGH_RPM_TPM',
+    worker_models: ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'qwen2.5-coder:7b'],
+    max_models_used: 2,
+    routing_strategy: 'ROUND_ROBIN',
     default_concurrency: 8
   },
   {
@@ -133,6 +169,9 @@ const DEFAULT_SWARMS: SwarmProfile[] = [
     description: 'Gemini Pro Orchestrator paired with 4,000 RPM Flash/Lite Workers.',
     orchestrator: 'gemini-2.5-pro',
     worker_tier: 'HIGHEST_RPM_TPM',
+    worker_models: ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-3.5-flash'],
+    max_models_used: 3,
+    routing_strategy: 'ROUND_ROBIN',
     default_concurrency: 12
   },
   {
@@ -141,6 +180,9 @@ const DEFAULT_SWARMS: SwarmProfile[] = [
     description: 'Zero external API calls. Runs exclusively on Ollama local weights.',
     orchestrator: 'qwen2.5-coder:32b',
     worker_tier: 'OFFLINE_PURE',
+    worker_models: ['qwen2.5-coder:7b', 'codestral:22b'],
+    max_models_used: 2,
+    routing_strategy: 'ROUND_ROBIN',
     default_concurrency: 4
   }
 ];
@@ -592,6 +634,17 @@ export const AgentHub: React.FC = () => {
   const [activeSwarmId, setActiveSwarmId] = useState<string>('GLOBAL_HYBRID_SWARM');
   const [orchestratorEngine, setOrchestratorEngine] = useState<string>('qwen2.5-coder:32b');
   const [maxConcurrency, setMaxConcurrency] = useState<number>(8);
+  const [activeWorkerModels, setActiveWorkerModels] = useState<string[]>([
+    'gemini-2.5-flash',
+    'gemini-2.0-flash-lite',
+    'qwen2.5-coder:7b'
+  ]);
+  const [activeMaxModelsUsed, setActiveMaxModelsUsed] = useState<number>(2);
+  const [activeRoutingStrategy, setActiveRoutingStrategy] = useState<'ROUND_ROBIN' | 'QUOTA_WEIGHTED'>('ROUND_ROBIN');
+  const [activePreferredKeyId, setActivePreferredKeyId] = useState<string>('AUTO');
+  const [catalogModels, setCatalogModels] = useState<CatalogModelItem[]>([]);
+  const [registeredKeys, setRegisteredKeys] = useState<RegisteredKeyOption[]>([]);
+  const [rosterFilter, setRosterFilter] = useState<'ALL' | 'GOOGLE_FREE' | 'GOOGLE_PAID' | 'GROQ_FREE' | 'GROQ_PAID' | 'OLLAMA_LOCAL'>('ALL');
   const [customSwarms, setCustomSwarms] = useState<SwarmProfile[]>(DEFAULT_SWARMS);
   const [swarmSaving, setSwarmSaving] = useState<boolean>(false);
   const [swarmSaveMsg, setSwarmSaveMsg] = useState<{ text: string; success: boolean } | null>(null);
@@ -713,19 +766,51 @@ export const AgentHub: React.FC = () => {
         console.warn('Ollama tags fetch error:', e);
       }
 
-      // 5. Fetch Dynamic Swarm Profiles
+      // 5. Fetch Dynamic Swarm Profiles, Model Catalog & Keys
       try {
-        const swarmsRes = await fetch('/api/swarms/profiles');
+        const [swarmsRes, catRes, keysRes] = await Promise.all([
+          fetch('/api/swarms/profiles'),
+          fetch('/api/models/catalog'),
+          fetch('/api/keys')
+        ]);
+
         if (swarmsRes.ok) {
           const swData = await swarmsRes.json();
           setSwarmConfig(swData);
           if (swData.active_swarm_id) setActiveSwarmId(swData.active_swarm_id);
           if (swData.primary_orchestrator) setOrchestratorEngine(swData.primary_orchestrator);
+          if (swData.orchestrator_engine) setOrchestratorEngine(swData.orchestrator_engine);
+          if (swData.worker_models && swData.worker_models.length > 0) {
+            setActiveWorkerModels(swData.worker_models);
+          }
+          if (swData.max_models_used) setActiveMaxModelsUsed(swData.max_models_used);
+          if (swData.routing_strategy) setActiveRoutingStrategy(swData.routing_strategy);
+          if (swData.preferred_key_id) setActivePreferredKeyId(swData.preferred_key_id);
           if (swData.max_concurrency_workers) setMaxConcurrency(swData.max_concurrency_workers);
           if (swData.swarms && Array.isArray(swData.swarms)) setCustomSwarms(swData.swarms);
         }
+
+        if (catRes.ok) {
+          const cData = await catRes.json();
+          if (cData.catalog) {
+            const flattened: CatalogModelItem[] = [];
+            Object.values(cData.catalog).forEach((provObj: any) => {
+              Object.values(provObj).forEach((tierObj: any) => {
+                if (tierObj?.models && Array.isArray(tierObj.models)) {
+                  flattened.push(...tierObj.models);
+                }
+              });
+            });
+            setCatalogModels(flattened);
+          }
+        }
+
+        if (keysRes.ok) {
+          const kData = await keysRes.json();
+          if (kData.keys) setRegisteredKeys(kData.keys);
+        }
       } catch (e) {
-        console.warn('Swarm profiles fetch error:', e);
+        console.warn('Swarm profiles or catalog fetch error:', e);
       }
     } catch (err) {
       console.error('Failed to load Agent Hub bridge data:', err);
@@ -842,15 +927,46 @@ export const AgentHub: React.FC = () => {
   // ----------------------------------------------------------------------------
   // TAB 3: SWARM PROFILES & ORCHESTRATOR ACTIONS
   // ----------------------------------------------------------------------------
-  const handleSaveSwarmConfig = async (overrideActiveId?: string, overrideOrch?: string) => {
+  const handleSaveSwarmConfig = async (
+    overrideActiveId?: string,
+    overrideOrch?: string,
+    overrideWorkerModels?: string[],
+    overrideMaxModels?: number,
+    overrideRouting?: 'ROUND_ROBIN' | 'QUOTA_WEIGHTED',
+    overrideKeyId?: string
+  ) => {
     setSwarmSaving(true);
     setSwarmSaveMsg(null);
 
+    const activeId = overrideActiveId || activeSwarmId;
+    const orch = overrideOrch || orchestratorEngine;
+    const workers = overrideWorkerModels || activeWorkerModels;
+    const maxMod = overrideMaxModels || activeMaxModelsUsed;
+    const routing = overrideRouting || activeRoutingStrategy;
+    const keyId = overrideKeyId || activePreferredKeyId;
+
     const payload: SwarmProfilesConfig = {
-      active_swarm_id: overrideActiveId || activeSwarmId,
+      active_swarm_id: activeId,
       max_concurrency_workers: maxConcurrency,
-      primary_orchestrator: overrideOrch || orchestratorEngine,
-      swarms: customSwarms
+      primary_orchestrator: orch,
+      orchestrator_engine: orch,
+      worker_models: workers,
+      max_models_used: maxMod,
+      routing_strategy: routing,
+      preferred_key_id: keyId,
+      swarms: customSwarms.map((s) => {
+        if (s.id === activeId) {
+          return {
+            ...s,
+            orchestrator: orch,
+            worker_models: workers,
+            max_models_used: maxMod,
+            routing_strategy: routing,
+            default_concurrency: maxConcurrency
+          };
+        }
+        return s;
+      })
     };
 
     try {
@@ -863,7 +979,7 @@ export const AgentHub: React.FC = () => {
         setSwarmConfig(payload);
         if (overrideActiveId) setActiveSwarmId(overrideActiveId);
         if (overrideOrch) setOrchestratorEngine(overrideOrch);
-        setSwarmSaveMsg({ text: 'Swarm profile and orchestrator saved & activated successfully!', success: true });
+        setSwarmSaveMsg({ text: 'Swarm profile, multi-model roster & 85% limits saved & activated successfully!', success: true });
       } else {
         setSwarmSaveMsg({ text: 'Failed to persist swarm configuration.', success: false });
       }
@@ -874,6 +990,32 @@ export const AgentHub: React.FC = () => {
       setTimeout(() => setSwarmSaveMsg(null), 4000);
     }
   };
+
+  const handleToggleActiveWorker = (mName: string) => {
+    setActiveWorkerModels((prev) => {
+      if (prev.includes(mName)) {
+        if (prev.length <= 1) return prev;
+        const updated = prev.filter((m) => m !== mName);
+        if (activeMaxModelsUsed > updated.length) setActiveMaxModelsUsed(updated.length);
+        return updated;
+      } else {
+        return [...prev, mName];
+      }
+    });
+  };
+
+  const filteredCatalogModels = useMemo(() => {
+    if (!catalogModels || catalogModels.length === 0) return [];
+    return catalogModels.filter((m) => {
+      if (rosterFilter === 'ALL') return true;
+      if (rosterFilter === 'GOOGLE_FREE') return m.provider === 'GOOGLE' && m.tier === 'FREE';
+      if (rosterFilter === 'GOOGLE_PAID') return m.provider === 'GOOGLE' && m.tier === 'PAID';
+      if (rosterFilter === 'GROQ_FREE') return m.provider === 'GROQ' && m.tier === 'FREE';
+      if (rosterFilter === 'GROQ_PAID') return m.provider === 'GROQ' && m.tier === 'PAID';
+      if (rosterFilter === 'OLLAMA_LOCAL') return m.provider === 'OLLAMA';
+      return true;
+    });
+  }, [catalogModels, rosterFilter]);
 
   const handleSetAsOrchestrator = (modelId: string) => {
     setOrchestratorEngine(modelId);
@@ -1747,10 +1889,23 @@ export const AgentHub: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="space-y-1 text-xs text-slate-300 font-mono">
+                      <div className="space-y-1.5 text-xs text-slate-300 font-mono">
                         <div><span className="text-slate-500">Orchestrator:</span> <strong className="text-white">{swarm.orchestrator}</strong></div>
                         <div><span className="text-slate-500">Concurrency:</span> <strong className="text-emerald-400">{swarm.default_concurrency} Workers</strong></div>
-                        <div><span className="text-slate-500">Worker Tier:</span> <strong className="text-blue-300">{swarm.worker_tier}</strong></div>
+                        {swarm.worker_models && swarm.worker_models.length > 0 && (
+                          <div>
+                            <span className="text-slate-500 block text-[11px] mb-1">
+                              Worker Roster ({Math.min(swarm.max_models_used || swarm.worker_models.length, swarm.worker_models.length)}/{swarm.worker_models.length} active • {swarm.routing_strategy || 'ROUND_ROBIN'}):
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {swarm.worker_models.map((wm, wIdx) => (
+                                <span key={wIdx} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-indigo-300">
+                                  {wm}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {showNotes && (
@@ -1889,6 +2044,175 @@ export const AgentHub: React.FC = () => {
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{swarmSaving ? 'Persisting Config...' : 'Save & Activate Swarm'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section 3: Interactive Multi-Model Worker Roster Builder */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl shadow-black/20 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-emerald-400" />
+                  <span>Multi-Model Worker Roster Builder & 85% Quota Engine</span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Select 1 to N models for parallel sub-agent task execution with strict vs 85% working limits enforcement
+                </p>
+              </div>
+
+              {/* Roster Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                {[
+                  { id: 'ALL', label: 'All Providers' },
+                  { id: 'GOOGLE_FREE', label: '☁️ Google • Free' },
+                  { id: 'GOOGLE_PAID', label: '💎 Google • Paid' },
+                  { id: 'GROQ_FREE', label: '⚡ Groq • Free' },
+                  { id: 'GROQ_PAID', label: '⚡ Groq • Paid' },
+                  { id: 'OLLAMA_LOCAL', label: '💻 Ollama • Local' }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setRosterFilter(f.id as any)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors ${
+                      rosterFilter === f.id
+                        ? 'bg-emerald-600 text-white font-bold'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Catalog Models Grid with Strict vs 85% Limits */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto p-1">
+              {filteredCatalogModels.map((m) => {
+                const isSelected = activeWorkerModels.includes(m.model_name);
+                const sRpm = m.strict_limits?.rpm || 15;
+                const sTpm = (m.strict_limits?.tpm || 250000) >= 1000 ? `${((m.strict_limits?.tpm || 250000)/1000).toFixed(0)}k` : m.strict_limits?.tpm;
+                const sRpd = m.strict_limits?.rpd || 500;
+                const wRpm = m.working_limits?.rpm || 12;
+                const wTpm = (m.working_limits?.tpm || 212500) >= 1000 ? `${((m.working_limits?.tpm || 212500)/1000).toFixed(0)}k` : m.working_limits?.tpm;
+                const wRpd = m.working_limits?.rpd || 425;
+
+                return (
+                  <div
+                    key={m.model_name}
+                    onClick={() => handleToggleActiveWorker(m.model_name)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer space-y-2 flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-emerald-950/40 border-emerald-500 shadow-md ring-1 ring-emerald-500/40'
+                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-xs text-white truncate" title={m.model_name}>
+                          {m.model_name}
+                        </span>
+                        {isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                        ) : (
+                          <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                          {m.provider}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-indigo-300">
+                          {m.tier}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800/80 space-y-1 text-[11px] font-mono">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>Strict Cap (100%):</span>
+                        <span className="text-slate-300">{sRpm} RPM • {sTpm} TPM • {sRpd} RPD</span>
+                      </div>
+                      <div className="flex items-center justify-between text-emerald-400 font-semibold">
+                        <span>Working Cap (85%):</span>
+                        <span>{wRpm} RPM • {wTpm} TPM • {wRpd} RPD</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Active Roster Summary Bar & Controls */}
+            <div className="pt-4 border-t border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 font-bold">
+                  🤖 {Math.min(activeMaxModelsUsed, activeWorkerModels.length)}/{activeWorkerModels.length} Models Selected
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <label htmlFor="roster-max-models-slider" className="text-slate-300 font-semibold">
+                    Max Models Used:
+                  </label>
+                  <input
+                    id="roster-max-models-slider"
+                    type="range"
+                    min={1}
+                    max={Math.max(1, activeWorkerModels.length)}
+                    value={activeMaxModelsUsed}
+                    onChange={(e) => setActiveMaxModelsUsed(Number(e.target.value))}
+                    className="w-24 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                  <span className="font-bold text-emerald-400">
+                    {activeMaxModelsUsed} of {activeWorkerModels.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label htmlFor="roster-routing-strategy-select" className="text-slate-300 font-semibold">
+                    Routing:
+                  </label>
+                  <select
+                    id="roster-routing-strategy-select"
+                    value={activeRoutingStrategy}
+                    onChange={(e) => setActiveRoutingStrategy(e.target.value as any)}
+                    className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold focus:outline-none"
+                  >
+                    <option value="ROUND_ROBIN">ROUND_ROBIN (Balanced)</option>
+                    <option value="QUOTA_WEIGHTED">QUOTA_WEIGHTED (Quota Priority)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label htmlFor="roster-key-select" className="text-slate-300 font-semibold">
+                    Preferred Key:
+                  </label>
+                  <select
+                    id="roster-key-select"
+                    value={activePreferredKeyId}
+                    onChange={(e) => setActivePreferredKeyId(e.target.value)}
+                    className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold focus:outline-none"
+                  >
+                    <option value="AUTO">AUTO (Key Pool Dispatcher)</option>
+                    {registeredKeys.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        [{k.provider} {k.tier}] {k.label || k.id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleSaveSwarmConfig()}
+                disabled={swarmSaving || activeWorkerModels.length === 0}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/30 cursor-pointer disabled:cursor-not-allowed shrink-0"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{swarmSaving ? 'Saving Roster...' : 'Save & Activate Swarm Roster'}</span>
               </button>
             </div>
           </div>

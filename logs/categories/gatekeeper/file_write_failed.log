@@ -93,3 +93,4 @@
 [2026-10-18 17:22:20.884 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}
 [2026-10-18 17:22:50.771 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}
 [2026-10-18 17:25:36.074 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}
+[2026-10-18 18:06:25.948 IST] [MODEL:HIGH] [CAT:GATEKEEPER] [FILE_WRITE_FAILED] [ENV:LOCAL] {"error": "[Errno 2] No such file or directory: ''", "project_name": "test_explicit_dispatch", "test_name": null}

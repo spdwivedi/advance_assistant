@@ -27,8 +27,35 @@ import {
   Eye,
   EyeOff,
   Terminal,
-  Filter
+  Filter,
+  SlidersHorizontal,
+  Edit3
 } from 'lucide-react';
+
+export interface KeyModelQuotaNode {
+  strict_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number };
+  working_limits: { rpm: number; tpm: number; rpd: number; max_input_tokens?: number; max_output_tokens?: number; thinking_budget?: number };
+  rolling_rpm?: number;
+  rolling_tpm?: number;
+  requests_today?: number;
+  input_tokens_today?: number;
+  output_tokens_today?: number;
+  thinking_tokens_today?: number;
+  total_tokens_today?: number;
+  in_flight_requests?: number;
+  has_custom_override?: boolean;
+}
+
+export interface KeyQuotaInfo {
+  key_id: string;
+  provider: string;
+  tier: string;
+  label: string;
+  masked_key: string;
+  safety_margin_percent?: number;
+  total_requests_today?: number;
+  models: Record<string, KeyModelQuotaNode>;
+}
 
 export interface KeyItem {
   id: string;
@@ -42,6 +69,8 @@ export interface KeyItem {
   error_count: number;
   cooldown_remaining_sec: number;
   requests_today?: number;
+  safety_margin_percent?: number;
+  custom_model_limits?: Record<string, any>;
 }
 
 export interface PolicyStatus {
@@ -86,6 +115,16 @@ export const ApiKeyManager: React.FC = () => {
   const [providerFilter, setProviderFilter] = useState<'ALL' | 'GOOGLE' | 'GROQ'>('ALL');
   const [tierFilter, setTierFilter] = useState<'ALL' | 'FREE' | 'PAID'>('ALL');
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  const [keyQuotas, setKeyQuotas] = useState<Record<string, KeyQuotaInfo>>({});
+  const [editingKeyModel, setEditingKeyModel] = useState<{
+    keyId: string;
+    modelName: string;
+    strict_limits: any;
+    working_limits: any;
+  } | null>(null);
+  const [keyModelSaving, setKeyModelSaving] = useState<boolean>(false);
+  const [editingMarginKeyId, setEditingMarginKeyId] = useState<string | null>(null);
+  const [newMarginPct, setNewMarginPct] = useState<number>(85);
 
   // Add Key Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -111,11 +150,17 @@ export const ApiKeyManager: React.FC = () => {
   const fetchKeyData = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
     try {
-      const [keysRes, policyRes, hierRes] = await Promise.all([
+      const [keysRes, policyRes, hierRes, kqRes] = await Promise.all([
         fetch('/api/keys'),
         fetch('/api/keys/policy'),
-        fetch('/api/governor/hierarchy').catch(() => null)
+        fetch('/api/governor/hierarchy').catch(() => null),
+        fetch('/api/keys/quotas').catch(() => null)
       ]);
+
+      if (kqRes && kqRes.ok) {
+        const kqData = await kqRes.json();
+        if (kqData.keys) setKeyQuotas(kqData.keys);
+      }
 
       if (keysRes.ok) {
         const kData = await keysRes.json();
@@ -276,6 +321,55 @@ export const ApiKeyManager: React.FC = () => {
       }));
     } finally {
       setTestingKeyId(null);
+    }
+  };
+
+  // Stage 16.3: Update Key Safety Margin %
+  const handleUpdateKeyMargin = async (keyId: string, marginPct: number) => {
+    try {
+      const res = await fetch(`/api/keys/${keyId}/limits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ safety_margin_percent: marginPct })
+      });
+      if (res.ok) {
+        showToast(`Updated safety margin to ${marginPct}% for key ${keyId}.`, 'success');
+        setEditingMarginKeyId(null);
+        fetchKeyData(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Margin update failed: ${err.detail || 'Server error'}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`Error: ${err.message || String(err)}`, 'error');
+    }
+  };
+
+  // Stage 16.3: Save Dedicated Key Model Limit
+  const handleSaveKeyModelLimit = async () => {
+    if (!editingKeyModel) return;
+    setKeyModelSaving(true);
+    try {
+      const res = await fetch(`/api/keys/${editingKeyModel.keyId}/limits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model_name: editingKeyModel.modelName,
+          working_limits: editingKeyModel.working_limits
+        })
+      });
+      if (res.ok) {
+        showToast(`Saved dedicated limit for ${editingKeyModel.modelName} on key ${editingKeyModel.keyId}!`, 'success');
+        setEditingKeyModel(null);
+        fetchKeyData(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Limit update failed: ${err.detail || 'Server error'}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`Error: ${err.message || String(err)}`, 'error');
+    } finally {
+      setKeyModelSaving(false);
     }
   };
 
@@ -702,6 +796,16 @@ export const ApiKeyManager: React.FC = () => {
                         {key.tier}
                       </span>
 
+                      {/* 85% Working Cap Badge */}
+                      <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-700">
+                        🛡️ {key.safety_margin_percent || 85}% Cap
+                      </span>
+
+                      {/* Total Requests Today Badge */}
+                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-300 border border-slate-700">
+                        📊 {key.requests_today || 0} reqs
+                      </span>
+
                       {/* Status Pill */}
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -751,6 +855,129 @@ export const ApiKeyManager: React.FC = () => {
                             {key.last_used ? new Date(key.last_used).toLocaleTimeString() : 'Never'}
                           </span>
                         </div>
+                      </div>
+
+                      {/* Section: Dedicated Per-Key Model Quotas & 85% Working Limits */}
+                      <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs text-indigo-300 flex items-center gap-1.5">
+                              <Shield className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>Dedicated Per-Key Model Quotas & 85% Working Limits</span>
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
+                              Margin: {key.safety_margin_percent || 85}%
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs">
+                            {editingMarginKeyId === key.id ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] text-slate-400">Margin %:</span>
+                                <input
+                                  type="number"
+                                  min={50}
+                                  max={100}
+                                  value={newMarginPct}
+                                  onChange={(e) => setNewMarginPct(Number(e.target.value))}
+                                  className="w-16 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-slate-100 font-mono"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateKeyMargin(key.id, newMarginPct)}
+                                  className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMarginKeyId(null)}
+                                  className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingMarginKeyId(key.id);
+                                  setNewMarginPct(key.safety_margin_percent || 85);
+                                }}
+                                className="flex items-center gap-1 text-[11px] text-indigo-300 hover:text-indigo-200"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                                <span>Change Margin %</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* List of Models for this Key from keyQuotas */}
+                        {keyQuotas[key.id]?.models && Object.keys(keyQuotas[key.id].models).length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1">
+                            {Object.entries(keyQuotas[key.id].models).map(([mName, node]) => {
+                              const sRpm = node.strict_limits?.rpm || 15;
+                              const sTpm = ((node.strict_limits?.tpm || 250000)/1000).toFixed(0);
+                              const sRpd = node.strict_limits?.rpd || 500;
+                              const wRpm = node.working_limits?.rpm || 12;
+                              const wTpm = ((node.working_limits?.tpm || 212500)/1000).toFixed(0);
+                              const wRpd = node.working_limits?.rpd || 425;
+
+                              return (
+                                <div
+                                  key={mName}
+                                  className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1.5"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-xs text-white truncate" title={mName}>
+                                      {mName}
+                                    </span>
+                                    {node.has_custom_override && (
+                                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold shrink-0">
+                                        CUSTOM OVERRIDE
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-400">
+                                    <div>
+                                      Strict: <span className="text-slate-300">{sRpm} RPM • {sTpm}K TPM • {sRpd} RPD</span>
+                                    </div>
+                                    <div className="text-emerald-400 font-semibold">
+                                      85% Cap: <span>{wRpm} RPM • {wTpm}K TPM • {wRpd} RPD</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-850 text-slate-400">
+                                    <span>
+                                      Today: In {(node.input_tokens_today || 0).toLocaleString()} • Out {(node.output_tokens_today || 0).toLocaleString()} • Think {(node.thinking_tokens_today || 0).toLocaleString()}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditingKeyModel({
+                                          keyId: key.id,
+                                          modelName: mName,
+                                          strict_limits: { ...node.strict_limits },
+                                          working_limits: { ...node.working_limits }
+                                        })
+                                      }
+                                      className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 shrink-0"
+                                    >
+                                      <Edit3 className="w-2.5 h-2.5" />
+                                      <span>Customize</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center py-3 text-slate-500 text-xs font-mono">
+                            Loading dedicated model quotas for key {key.id}...
+                          </div>
+                        )}
                       </div>
 
                       {/* Test Result Feedback if triggered */}
@@ -812,6 +1039,169 @@ export const ApiKeyManager: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal: Customize Dedicated Key Model Limit */}
+      {editingKeyModel && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 font-mono text-xs animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>{editingKeyModel.modelName}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                    Key: {editingKeyModel.keyId}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  Dedicated Working Limit Overrides on this Specific Key
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editingKeyModel.strict_limits) {
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: {
+                          ...editingKeyModel.working_limits,
+                          rpm: Math.max(1, Math.round((editingKeyModel.strict_limits.rpm || 15) * 0.85)),
+                          tpm: Math.max(1000, Math.round((editingKeyModel.strict_limits.tpm || 250000) * 0.85)),
+                          rpd: Math.max(1, Math.round((editingKeyModel.strict_limits.rpd || 500) * 0.85)),
+                          max_input_tokens: Math.round(((editingKeyModel.strict_limits.max_input_tokens || 32768) * 0.85)),
+                          max_output_tokens: Math.round(((editingKeyModel.strict_limits.max_output_tokens || 8192) * 0.85))
+                        }
+                      });
+                      showToast('Auto-filled 85% of strict limits for this key.', 'info');
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/50 text-[11px] font-semibold transition-colors"
+                >
+                  ⚡ Auto-Fill 85%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingKeyModel(null)}
+                  className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <span className="font-bold text-indigo-300 block text-[11px]">Working Limits (Active Pacing Ceilings)</span>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working RPM</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.rpm || 12}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, rpm: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working TPM</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.tpm || 212500}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, tpm: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Working RPD</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.rpd || 425}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, rpd: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Input Toks</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.max_input_tokens || 27852}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, max_input_tokens: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Max Output Toks</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.max_output_tokens || 6963}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, max_output_tokens: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[10px] mb-0.5">Thinking Budget</label>
+                  <input
+                    type="number"
+                    value={editingKeyModel.working_limits?.thinking_budget ?? 0}
+                    onChange={(e) =>
+                      setEditingKeyModel({
+                        ...editingKeyModel,
+                        working_limits: { ...editingKeyModel.working_limits, thinking_budget: Number(e.target.value) }
+                      })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-indigo-300"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEditingKeyModel(null)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveKeyModelLimit}
+                disabled={keyModelSaving}
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all disabled:opacity-50"
+              >
+                {keyModelSaving ? 'Saving...' : 'Save Dedicated Limit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------- */}
       {/* 4. MODAL: ADD API KEY CREDENTIALS                             */}
