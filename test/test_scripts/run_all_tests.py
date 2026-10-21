@@ -67,6 +67,11 @@ TEST_SUITES = [
         "file": "test_stage16_2_swarm_roster.py",
         "name": "Stage 16.2 Swarm Roster Engine & Dispatcher",
         "expected_checks": 4
+    },
+    {
+        "file": "test_stage18_discovery_and_hardware.py",
+        "name": "Stage 18 Discovery, Sub-8GB Profile & Sleek Roles",
+        "expected_checks": 6
     }
 ]
 

@@ -9,89 +9,38 @@
     "providers": {
         "GOOGLE": {
             "FREE": {
-                "gemini-3.1-pro-preview": {
-                    "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 25,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 21,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-2.5-pro": {
-                    "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 50,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 42,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-3.6-flash": {
-                    "strict_limits": {
-                        "rpm": 15,
-                        "tpm": 250000,
-                        "rpd": 500,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 12,
-                        "tpm": 212500,
-                        "rpd": 425,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
                 "gemini-3.5-flash": {
                     "strict_limits": {
                         "rpm": 15,
-                        "tpm": 250000,
-                        "rpd": 500,
+                        "tpm": 2000000,
+                        "rpd": 1000,
                         "max_input_tokens": 32768,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
                         "rpm": 12,
-                        "tpm": 212500,
-                        "rpd": 425,
+                        "tpm": 1700000,
+                        "rpd": 850,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
                         "thinking_budget": 512
                     }
                 },
-                "gemini-2.5-flash": {
+                "gemini-2.5-flash-lite": {
                     "strict_limits": {
                         "rpm": 15,
                         "tpm": 250000,
-                        "rpd": 500,
+                        "rpd": 1000,
                         "max_input_tokens": 32768,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
                         "rpm": 12,
                         "tpm": 212500,
-                        "rpd": 425,
+                        "rpd": 850,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
-                        "thinking_budget": 512
+                        "thinking_budget": 0
                     }
                 },
                 "gemini-3-flash-preview": {
@@ -108,21 +57,106 @@
                         "rpd": 425,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
+                        "thinking_budget": 256
+                    }
+                },
+                "gemini-3.1-pro-preview": {
+                    "strict_limits": {
+                        "rpm": 5,
+                        "tpm": 250000,
+                        "rpd": 50,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 4,
+                        "tpm": 212500,
+                        "rpd": 42,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-4-argon": {
+                    "strict_limits": {
+                        "rpm": 1000,
+                        "tpm": 2000000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 1700000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-3.8-flash": {
+                    "strict_limits": {
+                        "rpm": 1000,
+                        "tpm": 2000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 1700000,
+                        "rpd": 8500,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 512
+                    }
+                },
+                "gemini-3.7-flash": {
+                    "strict_limits": {
+                        "rpm": 1000,
+                        "tpm": 2000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 1700000,
+                        "rpd": 8500,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 512
+                    }
+                },
+                "gemini-3.6-flash": {
+                    "strict_limits": {
+                        "rpm": 1000,
+                        "tpm": 2000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 1700000,
+                        "rpd": 8500,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 512
                     }
                 },
                 "gemini-3.5-flash-lite": {
                     "strict_limits": {
-                        "rpm": 30,
-                        "tpm": 250000,
-                        "rpd": 1500,
+                        "rpm": 4000,
+                        "tpm": 4000000,
+                        "rpd": 150000,
                         "max_input_tokens": 32768,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 25,
-                        "tpm": 212500,
-                        "rpd": 1275,
+                        "rpm": 3400,
+                        "tpm": 3400000,
+                        "rpd": 127500,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
                         "thinking_budget": 0
@@ -130,35 +164,154 @@
                 },
                 "gemini-3.1-flash-lite": {
                     "strict_limits": {
-                        "rpm": 30,
-                        "tpm": 250000,
-                        "rpd": 1500,
+                        "rpm": 4000,
+                        "tpm": 4000000,
+                        "rpd": 150000,
                         "max_input_tokens": 32768,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 25,
-                        "tpm": 212500,
-                        "rpd": 1275,
+                        "rpm": 3400,
+                        "tpm": 3400000,
+                        "rpd": 127500,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 },
-                "gemini-2.5-flash-lite": {
+                "gemini-2.5-flash": {
                     "strict_limits": {
-                        "rpm": 30,
+                        "rpm": 10,
                         "tpm": 250000,
-                        "rpd": 1500,
+                        "rpd": 250,
                         "max_input_tokens": 32768,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 25,
+                        "rpm": 8,
                         "tpm": 212500,
-                        "rpd": 1275,
+                        "rpd": 212,
                         "max_input_tokens": 27852,
                         "max_output_tokens": 6963,
+                        "thinking_budget": 512
+                    }
+                },
+                "gemini-2.5-pro": {
+                    "strict_limits": {
+                        "rpm": 5,
+                        "tpm": 250000,
+                        "rpd": 100,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 4,
+                        "tpm": 212500,
+                        "rpd": 85,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-omni-1.1-flash": {
+                    "strict_limits": {
+                        "rpm": 4,
+                        "tpm": "Unlimited",
+                        "rpd": 20,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 3,
+                        "tpm": "Unlimited",
+                        "rpd": 17,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-omni-flash": {
+                    "strict_limits": {
+                        "rpm": 4,
+                        "tpm": "Unlimited",
+                        "rpd": 20,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 3,
+                        "tpm": "Unlimited",
+                        "rpd": 17,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 0
+                    }
+                },
+                "nano-banana-2": {
+                    "strict_limits": {
+                        "rpm": 100,
+                        "tpm": 200000,
+                        "rpd": 1000,
+                        "max_input_tokens": 16384,
+                        "max_output_tokens": 4096
+                    },
+                    "working_limits": {
+                        "rpm": 85,
+                        "tpm": 170000,
+                        "rpd": 850,
+                        "max_input_tokens": 13926,
+                        "max_output_tokens": 3481,
+                        "thinking_budget": 0
+                    }
+                },
+                "nano-banana-2-lite": {
+                    "strict_limits": {
+                        "rpm": 150,
+                        "tpm": 100000,
+                        "rpd": 1000,
+                        "max_input_tokens": 16384,
+                        "max_output_tokens": 4096
+                    },
+                    "working_limits": {
+                        "rpm": 127,
+                        "tpm": 85000,
+                        "rpd": 850,
+                        "max_input_tokens": 13926,
+                        "max_output_tokens": 3481,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-embedding-1": {
+                    "strict_limits": {
+                        "rpm": 3000,
+                        "tpm": 1000000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 8192,
+                        "max_output_tokens": 2048
+                    },
+                    "working_limits": {
+                        "rpm": 2550,
+                        "tpm": 850000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 6963,
+                        "max_output_tokens": 1740,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-embedding-2": {
+                    "strict_limits": {
+                        "rpm": 3000,
+                        "tpm": 1000000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 8192,
+                        "max_output_tokens": 2048
+                    },
+                    "working_limits": {
+                        "rpm": 2550,
+                        "tpm": 850000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 6963,
+                        "max_output_tokens": 1740,
                         "thinking_budget": 0
                     }
                 },
@@ -212,225 +365,106 @@
                         "max_output_tokens": 3481,
                         "thinking_budget": 0
                     }
-                },
-                "gemini-3-flash": {
+                }
+            },
+            "PAID": {
+                "gemini-3.1-pro": {
                     "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 20,
-                        "max_input_tokens": 32768,
+                        "rpm": 25,
+                        "tpm": 2000000,
+                        "rpd": 250,
+                        "max_input_tokens": 128000,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 17,
-                        "max_input_tokens": 27852,
+                        "rpm": 21,
+                        "tpm": 1700000,
+                        "rpd": 212,
+                        "max_input_tokens": 108800,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-3.1-pro-preview": {
+                    "strict_limits": {
+                        "rpm": 25,
+                        "tpm": 2000000,
+                        "rpd": 250,
+                        "max_input_tokens": 128000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 21,
+                        "tpm": 1700000,
+                        "rpd": 212,
+                        "max_input_tokens": 108800,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-4-argon": {
+                    "strict_limits": {
+                        "rpm": 2000,
+                        "tpm": 4000000,
+                        "rpd": 100000,
+                        "max_input_tokens": 128000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 1700,
+                        "tpm": 3400000,
+                        "rpd": 85000,
+                        "max_input_tokens": 108800,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-3.8-flash": {
+                    "strict_limits": {
+                        "rpm": 2000,
+                        "tpm": 4000000,
+                        "rpd": 100000,
+                        "max_input_tokens": 128000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 1700,
+                        "tpm": 3400000,
+                        "rpd": 85000,
+                        "max_input_tokens": 108800,
                         "max_output_tokens": 6963,
                         "thinking_budget": 512
                     }
                 },
                 "gemini-3.7-flash": {
                     "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 20,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 17,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-3.8-flash": {
-                    "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 20,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 17,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-embedding-1": {
-                    "strict_limits": {
-                        "rpm": 100,
-                        "tpm": 30000,
-                        "rpd": 1000,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 85,
-                        "tpm": 25500,
-                        "rpd": 850,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-embedding-2": {
-                    "strict_limits": {
-                        "rpm": 100,
-                        "tpm": 30000,
-                        "rpd": 1000,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 85,
-                        "tpm": 25500,
-                        "rpd": 850,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-4-26b": {
-                    "strict_limits": {
-                        "rpm": 30,
-                        "tpm": 16000,
-                        "rpd": 14400,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 25,
-                        "tpm": 13600,
-                        "rpd": 12240,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-4-31b": {
-                    "strict_limits": {
-                        "rpm": 30,
-                        "tpm": 16000,
-                        "rpd": 14400,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 25,
-                        "tpm": 13600,
-                        "rpd": 12240,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                }
-            },
-            "PAID": {
-                "gemini-3.1-pro-preview": {
-                    "strict_limits": {
-                        "rpm": 150,
-                        "tpm": 2000000,
-                        "rpd": 1000,
+                        "rpm": 2000,
+                        "tpm": 4000000,
+                        "rpd": 100000,
                         "max_input_tokens": 128000,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 127,
-                        "tpm": 1700000,
-                        "rpd": 850,
+                        "rpm": 1700,
+                        "tpm": 3400000,
+                        "rpd": 85000,
                         "max_input_tokens": 108800,
                         "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-2.5-pro": {
-                    "strict_limits": {
-                        "rpm": 150,
-                        "tpm": 2000000,
-                        "rpd": 1000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 127,
-                        "tpm": 1700000,
-                        "rpd": 850,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
+                        "thinking_budget": 512
                     }
                 },
                 "gemini-3.6-flash": {
                     "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 2000000,
-                        "rpd": 10000,
+                        "rpm": 2000,
+                        "tpm": 4000000,
+                        "rpd": 100000,
                         "max_input_tokens": 128000,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 850,
-                        "tpm": 1700000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-3.5-flash": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 2000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 1700000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.5-flash": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 2000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 1700000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-3-flash-preview": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 2000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 1700000,
-                        "rpd": 8500,
+                        "rpm": 1700,
+                        "tpm": 3400000,
+                        "rpd": 85000,
                         "max_input_tokens": 108800,
                         "max_output_tokens": 6963,
                         "thinking_budget": 512
@@ -470,20 +504,139 @@
                         "thinking_budget": 0
                     }
                 },
-                "gemini-2.5-flash-lite": {
+                "gemini-2.5-flash": {
                     "strict_limits": {
-                        "rpm": 4000,
-                        "tpm": 4000000,
-                        "rpd": 150000,
+                        "rpm": 1000,
+                        "tpm": 1000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 128000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 850000,
+                        "rpd": 8500,
+                        "max_input_tokens": 108800,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 512
+                    }
+                },
+                "gemini-2.5-pro": {
+                    "strict_limits": {
+                        "rpm": 150,
+                        "tpm": 2000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 128000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 127,
+                        "tpm": 1700000,
+                        "rpd": 8500,
+                        "max_input_tokens": 108800,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 2048
+                    }
+                },
+                "gemini-omni-1.1-flash": {
+                    "strict_limits": {
+                        "rpm": 50,
+                        "tpm": 500000,
+                        "rpd": 1000,
                         "max_input_tokens": 64000,
                         "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 3400,
-                        "tpm": 3400000,
-                        "rpd": 127500,
+                        "rpm": 42,
+                        "tpm": 425000,
+                        "rpd": 850,
                         "max_input_tokens": 54400,
                         "max_output_tokens": 6963,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-omni-flash": {
+                    "strict_limits": {
+                        "rpm": 50,
+                        "tpm": 500000,
+                        "rpd": 1000,
+                        "max_input_tokens": 64000,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 42,
+                        "tpm": 425000,
+                        "rpd": 850,
+                        "max_input_tokens": 54400,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 0
+                    }
+                },
+                "nano-banana-2": {
+                    "strict_limits": {
+                        "rpm": 500,
+                        "tpm": 1000000,
+                        "rpd": 10000,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 4096
+                    },
+                    "working_limits": {
+                        "rpm": 425,
+                        "tpm": 850000,
+                        "rpd": 8500,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 3481,
+                        "thinking_budget": 0
+                    }
+                },
+                "nano-banana-2-lite": {
+                    "strict_limits": {
+                        "rpm": 1000,
+                        "tpm": 1000000,
+                        "rpd": 20000,
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 4096
+                    },
+                    "working_limits": {
+                        "rpm": 850,
+                        "tpm": 850000,
+                        "rpd": 17000,
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 3481,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-embedding-1": {
+                    "strict_limits": {
+                        "rpm": 5000,
+                        "tpm": 2000000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 8192,
+                        "max_output_tokens": 2048
+                    },
+                    "working_limits": {
+                        "rpm": 4250,
+                        "tpm": 1700000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 6963,
+                        "max_output_tokens": 1740,
+                        "thinking_budget": 0
+                    }
+                },
+                "gemini-embedding-2": {
+                    "strict_limits": {
+                        "rpm": 5000,
+                        "tpm": 2000000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 8192,
+                        "max_output_tokens": 2048
+                    },
+                    "working_limits": {
+                        "rpm": 4250,
+                        "tpm": 1700000,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 6963,
+                        "max_output_tokens": 1740,
                         "thinking_budget": 0
                     }
                 },
@@ -517,652 +670,6 @@
                         "tpm": 3400000,
                         "rpd": 127500,
                         "max_input_tokens": 54400,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-3.1-pro": {
-                    "strict_limits": {
-                        "rpm": 25,
-                        "tpm": 2000000,
-                        "rpd": 250,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 21,
-                        "tpm": 1700000,
-                        "rpd": 212,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-3.8-flash": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 2000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 1700000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.0-pro-exp-02-05": {
-                    "strict_limits": {
-                        "rpm": 50,
-                        "tpm": 1000000,
-                        "rpd": 500,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 42,
-                        "tpm": 850000,
-                        "rpd": 425,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-2.0-flash-thinking-exp-01-21": {
-                    "strict_limits": {
-                        "rpm": 10,
-                        "tpm": 500000,
-                        "rpd": 100,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 8,
-                        "tpm": 425000,
-                        "rpd": 85,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-1.5-pro": {
-                    "strict_limits": {
-                        "rpm": 150,
-                        "tpm": 2000000,
-                        "rpd": 1000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 127,
-                        "tpm": 1700000,
-                        "rpd": 850,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-1.5-flash": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 1000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 850000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-1.5-flash-8b": {
-                    "strict_limits": {
-                        "rpm": 2000,
-                        "tpm": 1000000,
-                        "rpd": 20000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 1700,
-                        "tpm": 850000,
-                        "rpd": 17000,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.5-flash-antigravity": {
-                    "strict_limits": {
-                        "rpm": 500,
-                        "tpm": 1000000,
-                        "rpd": 5000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 425,
-                        "tpm": 850000,
-                        "rpd": 4250,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.5-pro-antigravity": {
-                    "strict_limits": {
-                        "rpm": 100,
-                        "tpm": 1500000,
-                        "rpd": 800,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 85,
-                        "tpm": 1275000,
-                        "rpd": 680,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-3.1-pro-antigravity": {
-                    "strict_limits": {
-                        "rpm": 20,
-                        "tpm": 1500000,
-                        "rpd": 200,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 17,
-                        "tpm": 1275000,
-                        "rpd": 170,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-antigravity-agent-v1": {
-                    "strict_limits": {
-                        "rpm": 300,
-                        "tpm": 800000,
-                        "rpd": 3000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 255,
-                        "tpm": 680000,
-                        "rpd": 2550,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-antigravity-code-v1": {
-                    "strict_limits": {
-                        "rpm": 300,
-                        "tpm": 800000,
-                        "rpd": 3000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 255,
-                        "tpm": 680000,
-                        "rpd": 2550,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-2.5-pro-deep-research": {
-                    "strict_limits": {
-                        "rpm": 30,
-                        "tpm": 1000000,
-                        "rpd": 300,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 25,
-                        "tpm": 850000,
-                        "rpd": 255,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-deep-research-preview": {
-                    "strict_limits": {
-                        "rpm": 20,
-                        "tpm": 1000000,
-                        "rpd": 200,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 17,
-                        "tpm": 850000,
-                        "rpd": 170,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-2.0-flash-deep-research": {
-                    "strict_limits": {
-                        "rpm": 150,
-                        "tpm": 800000,
-                        "rpd": 1500,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 127,
-                        "tpm": 680000,
-                        "rpd": 1275,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-3.1-pro-deep-research": {
-                    "strict_limits": {
-                        "rpm": 15,
-                        "tpm": 1000000,
-                        "rpd": 150,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 12,
-                        "tpm": 850000,
-                        "rpd": 127,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "gemini-nano-banana": {
-                    "strict_limits": {
-                        "rpm": 3000,
-                        "tpm": 1000000,
-                        "rpd": 30000,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 2550,
-                        "tpm": 850000,
-                        "rpd": 25500,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-nano-banana-vision": {
-                    "strict_limits": {
-                        "rpm": 2000,
-                        "tpm": 1000000,
-                        "rpd": 20000,
-                        "max_input_tokens": 32768,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 1700,
-                        "tpm": 850000,
-                        "rpd": 17000,
-                        "max_input_tokens": 27852,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-nano-banana-edge": {
-                    "strict_limits": {
-                        "rpm": 3000,
-                        "tpm": 1000000,
-                        "rpd": 30000,
-                        "max_input_tokens": 16384,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 2550,
-                        "tpm": 850000,
-                        "rpd": 25500,
-                        "max_input_tokens": 13926,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-nano-banana-pro": {
-                    "strict_limits": {
-                        "rpm": 1500,
-                        "tpm": 1000000,
-                        "rpd": 15000,
-                        "max_input_tokens": 65536,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 1275,
-                        "tpm": 850000,
-                        "rpd": 12750,
-                        "max_input_tokens": 55705,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 2048
-                    }
-                },
-                "veo-3.0-generate-001": {
-                    "strict_limits": {
-                        "rpm": 10,
-                        "tpm": 500000,
-                        "rpd": 100,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 8,
-                        "tpm": 425000,
-                        "rpd": 85,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "veo-3.0-preview": {
-                    "strict_limits": {
-                        "rpm": 5,
-                        "tpm": 250000,
-                        "rpd": 50,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 4,
-                        "tpm": 212500,
-                        "rpd": 42,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "veo-3.0-fast": {
-                    "strict_limits": {
-                        "rpm": 20,
-                        "tpm": 500000,
-                        "rpd": 200,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 17,
-                        "tpm": 425000,
-                        "rpd": 170,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "veo-2.0-generate-001": {
-                    "strict_limits": {
-                        "rpm": 15,
-                        "tpm": 500000,
-                        "rpd": 150,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 12,
-                        "tpm": 425000,
-                        "rpd": 127,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "imagen-3.0-generate-002": {
-                    "strict_limits": {
-                        "rpm": 60,
-                        "tpm": 600000,
-                        "rpd": 600,
-                        "max_input_tokens": 4096,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 51,
-                        "tpm": 510000,
-                        "rpd": 510,
-                        "max_input_tokens": 3481,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "imagen-3.0-fast": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 600000,
-                        "rpd": 1200,
-                        "max_input_tokens": 4096,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 510000,
-                        "rpd": 1020,
-                        "max_input_tokens": 3481,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "imagen-3.0-capability-001": {
-                    "strict_limits": {
-                        "rpm": 60,
-                        "tpm": 600000,
-                        "rpd": 600,
-                        "max_input_tokens": 4096,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 51,
-                        "tpm": 510000,
-                        "rpd": 510,
-                        "max_input_tokens": 3481,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-4-27b-it": {
-                    "strict_limits": {
-                        "rpm": 500,
-                        "tpm": 1000000,
-                        "rpd": 5000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 425,
-                        "tpm": 850000,
-                        "rpd": 4250,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-4-9b-it": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 1000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 850000,
-                        "rpd": 8500,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-4-2b-it": {
-                    "strict_limits": {
-                        "rpm": 2000,
-                        "tpm": 1000000,
-                        "rpd": 20000,
-                        "max_input_tokens": 65536,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 1700,
-                        "tpm": 850000,
-                        "rpd": 17000,
-                        "max_input_tokens": 55705,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-2-27b-it": {
-                    "strict_limits": {
-                        "rpm": 500,
-                        "tpm": 1000000,
-                        "rpd": 5000,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 425,
-                        "tpm": 850000,
-                        "rpd": 4250,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-2-9b-it": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 1000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 850000,
-                        "rpd": 8500,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma-2-2b-it": {
-                    "strict_limits": {
-                        "rpm": 2000,
-                        "tpm": 1000000,
-                        "rpd": 20000,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 1700,
-                        "tpm": 850000,
-                        "rpd": 17000,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "codegemma-7b-it": {
-                    "strict_limits": {
-                        "rpm": 1000,
-                        "tpm": 1000000,
-                        "rpd": 10000,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 850,
-                        "tpm": 850000,
-                        "rpd": 8500,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemini-2.0-flash-realtime-exp": {
-                    "strict_limits": {
-                        "rpm": 100,
-                        "tpm": 500000,
-                        "rpd": 1000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 85,
-                        "tpm": 425000,
-                        "rpd": 850,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.5-flash-live": {
-                    "strict_limits": {
-                        "rpm": 200,
-                        "tpm": 800000,
-                        "rpd": 2000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 170,
-                        "tpm": 680000,
-                        "rpd": 1700,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-2.0-flash-live": {
-                    "strict_limits": {
-                        "rpm": 150,
-                        "tpm": 600000,
-                        "rpd": 1500,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 127,
-                        "tpm": 510000,
-                        "rpd": 1275,
-                        "max_input_tokens": 108800,
-                        "max_output_tokens": 6963,
-                        "thinking_budget": 512
-                    }
-                },
-                "gemini-live-multimodal-v1": {
-                    "strict_limits": {
-                        "rpm": 100,
-                        "tpm": 500000,
-                        "rpd": 1000,
-                        "max_input_tokens": 128000,
-                        "max_output_tokens": 8192
-                    },
-                    "working_limits": {
-                        "rpm": 85,
-                        "tpm": 425000,
-                        "rpd": 850,
-                        "max_input_tokens": 108800,
                         "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
@@ -1313,1295 +820,105 @@
         },
         "OLLAMA": {
             "LOCAL": {
-                "qwen2.5-coder:32b": {
-                    "strict_limits": {
-                        "rpm": 60,
-                        "tpm": 500000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 51,
-                        "tpm": 425000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
                 "qwen2.5-coder:7b": {
                     "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5-coder:14b": {
-                    "strict_limits": {
-                        "rpm": 90,
-                        "tpm": 750000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 76,
-                        "tpm": 637500,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5-coder:1.5b": {
-                    "strict_limits": {
-                        "rpm": 180,
-                        "tpm": 1500000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 153,
-                        "tpm": 1275000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "codestral:22b": {
-                    "strict_limits": {
-                        "rpm": 60,
-                        "tpm": 500000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 51,
-                        "tpm": 425000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 },
                 "deepseek-r1:8b": {
                     "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
+                        "thinking_budget": 0
+                    }
+                },
+                "qwen2.5-coder:1.5b": {
+                    "strict_limits": {
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
+                    },
+                    "working_limits": {
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 },
                 "sqlcoder:7b": {
                     "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 },
-                "llama3-groq-tool-use:8b": {
+                "qwen2.5-coder:14b": {
                     "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 },
-                "vaxispraxis/heretic8b:latest": {
+                "qwen2.5-coder:32b": {
                     "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
+                        "rpm": 999,
+                        "tpm": 9999999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 32768,
+                        "max_output_tokens": 8192
                     },
                     "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qllama/bge-reranker-large:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "stable-code:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "granite-code:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qllama/bge-reranker-v2-m3:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5vl:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "smollm2:1.7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "granite4:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "tinyllama:1.1b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "tinydolphin:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "all-minilm:l6-v2": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "snowflake-arctic-embed:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "bge-m3:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "nemotron-mini:4b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "granite3-guardian:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "bespoke-minicheck:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "reader-lm:1.5b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "nexusraven:13b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen3.5:4b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma4:e2b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma4:e4b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "llava:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "bakllava:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "deepseek-ocr:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "minicpm-v:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5-coder:0.5b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "starcoder2:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "starcoder2:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "phind-codellama:34b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "medgemma1.5:4b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "medllama2:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2-math:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "mathstral:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "gpt-oss:20b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "orca-mini:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen3:4b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwq:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "deepseek-r1:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "llama2-uncensored:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "wizard-vicuna-uncensored:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "dolphin-phi:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "dolphincoder:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "dolphin-mistral:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "dolphin-mixtral:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "dolphin3:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "moondream:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5-coder:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "wizardlm2:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "aya-expanse:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "granite3.1-dense:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "command-r7b:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "nomic-embed-text:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "mxbai-embed-large:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma2:2b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "llama3.2:3b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "glm-ocr:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "hermes3:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen3:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "mistral-nemo:12b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "llama3.2-vision:11b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "deepseek-coder-v2:16b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "deepseek-r1:14b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "phi4:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "phi4-mini:latest": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "llama3.1:8b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "gemma2:9b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5:1.5b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
-                        "thinking_budget": 0
-                    }
-                },
-                "qwen2.5:7b": {
-                    "strict_limits": {
-                        "rpm": 120,
-                        "tpm": 1000000,
-                        "rpd": 999999,
-                        "max_input_tokens": 8192,
-                        "max_output_tokens": 4096
-                    },
-                    "working_limits": {
-                        "rpm": 102,
-                        "tpm": 850000,
-                        "rpd": 849999,
-                        "max_input_tokens": 6963,
-                        "max_output_tokens": 3481,
+                        "rpm": 849,
+                        "tpm": 8499999,
+                        "rpd": "Unlimited",
+                        "max_input_tokens": 27852,
+                        "max_output_tokens": 6963,
                         "thinking_budget": 0
                     }
                 }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ImportAiStudioModal } from '../components/ImportAiStudioModal';
 import {
+  ClipboardList,
   Key,
   Shield,
   Check,
@@ -128,6 +130,7 @@ export const ApiKeyManager: React.FC = () => {
 
   // Add Key Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [newKeyString, setNewKeyString] = useState<string>('');
   const [newKeyProvider, setNewKeyProvider] = useState<'GOOGLE' | 'GROQ'>('GOOGLE');
   const [newKeyTier, setNewKeyTier] = useState<'FREE' | 'PAID'>('FREE');
@@ -599,6 +602,17 @@ export const ApiKeyManager: React.FC = () => {
             </div>
 
             {/* + Add API Key Button */}
+            {/* 📋 Import AI Studio Limits Button */}
+            <button
+              id="import-aistudio-limits-btn"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-semibold transition-all shadow-sm"
+              title="Import limits from Google AI Studio rate-limit table"
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span>📋 Import AI Studio Limits</span>
+            </button>
+
             <button
               id="add-api-key-btn"
               onClick={() => setIsAddModalOpen(true)}
@@ -1345,6 +1359,14 @@ export const ApiKeyManager: React.FC = () => {
           </div>
         </div>
       )}
+      {/* 1-Click AI Studio Limits Importer Modal */}
+      <ImportAiStudioModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportSuccess={() => {
+          fetchKeyData();
+        }}
+      />
     </div>
   );
 };

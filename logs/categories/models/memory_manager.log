@@ -185,3 +185,12 @@
 [2026-10-18 19:40:20.662 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
 [2026-10-18 19:40:20.667 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
 [2026-10-18 19:40:20.671 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 14:24:09.316 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 14:24:09.323 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-21 14:24:09.326 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 14:50:07.050 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 14:50:07.055 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-21 14:50:07.059 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 15:09:46.924 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_SAVED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}
+[2026-10-21 15:09:46.930 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [RECIPE_APPENDED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md", "title": "E2E Automated Verification Recipe"}
+[2026-10-21 15:09:46.934 IST] [MODEL:MEMORY_MANAGER] [CAT:GENERAL] [BOOK_DELETED] [ENV:LOCAL] {"category": "coding", "book_name": "cert_test_suite_book.md"}

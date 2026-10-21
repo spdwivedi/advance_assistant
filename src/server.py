@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
+from src.logger import log_action
 from src.token_governor import TokenGovernor, token_governor
 from src.supervisor import (ProjectSupervisor, request_build_stop, toggle_build_pause, reset_build_lifecycle, check_build_lifecycle, generate_preflight_blueprint, execute_approved_blueprint)
 from src.memory_manager import (
@@ -137,6 +138,12 @@ class FinancialShieldUpdateRequest(BaseModel):
     per_build_paid_token_cap: Optional[int] = None
     enforce_working_limits: Optional[bool] = None
     safety_margin_percent: Optional[int] = None
+
+
+class ImportAiStudioLimitsRequest(BaseModel):
+    raw_text: str
+    target_tier: str = "FREE"  # "FREE" | "PAID"
+    project_id: Optional[str] = None
 
 
 class RecalculateWorkingLimitsRequest(BaseModel):
@@ -778,6 +785,191 @@ def recalculate_governor_limits(req: Optional[RecalculateWorkingLimitsRequest] =
         }
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+def parse_rate_limit_value(val_str: str):
+    """Parses numeric or unlimited rate limit values handling k, m, commas, and unlimited."""
+    if not val_str:
+        return "Unlimited"
+    cleaned = str(val_str).strip()
+    if cleaned.lower() in ("unlimited", "inf", "infinity", "-", "none", ""):
+        return "Unlimited"
+    cleaned = cleaned.replace(",", "")
+    mM = re.search(r'([\d.]+)\s*[mM]', cleaned)
+    if mM:
+        return int(float(mM.group(1)) * 1000000)
+    kK = re.search(r'([\d.]+)\s*[kK]', cleaned)
+    if kK:
+        return int(float(kK.group(1)) * 1000)
+    d = re.search(r'(\d+)', cleaned)
+    if d:
+        return int(d.group(1))
+    return "Unlimited"
+
+
+def parse_aistudio_rate_limits(raw_text: str, target_tier: str = "FREE") -> list:
+    """
+    Parses table text or HTML copied directly from aistudio.google.com/rate-limit.
+    Extracts Model Name, Category, RPM, TPM, RPD.
+    Normalizes units: K -> * 1,000, M -> * 1,000,000, Unlimited -> 'Unlimited'.
+    Calculates exact 85% working limits for numeric values.
+    """
+    tier_upper = target_tier.upper() if target_tier else "FREE"
+    
+    # If HTML table is detected, extract cells
+    if "<tr" in raw_text.lower() or "<td" in raw_text.lower():
+        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', raw_text, re.DOTALL | re.IGNORECASE)
+        lines_from_html = []
+        for r in rows:
+            cells = re.findall(r'<td[^>]*>(.*?)</td>', r, re.DOTALL | re.IGNORECASE)
+            if not cells:
+                cells = re.findall(r'<th[^>]*>(.*?)</th>', r, re.DOTALL | re.IGNORECASE)
+            clean_cells = [re.sub(r'<[^>]+>', '', c).strip() for c in cells]
+            if clean_cells:
+                lines_from_html.append("\t".join(clean_cells))
+        raw_text = "\n".join(lines_from_html)
+
+    lines = raw_text.splitlines()
+    parsed_models = []
+
+    for line in lines:
+        line_clean = line.strip()
+        if not line_clean or line_clean.startswith("#"):
+            continue
+
+        if "\t" in line_clean:
+            parts = [p.strip() for p in line_clean.split("\t") if p.strip()]
+        elif "|" in line_clean:
+            parts = [p.strip() for p in line_clean.split("|") if p.strip()]
+        else:
+            parts = [p.strip() for p in re.split(r'\s{2,}', line_clean) if p.strip()]
+
+        if len(parts) >= 2:
+            m_raw = parts[0]
+            if any(h in m_raw.lower() for h in ["model", "rate limit", "feature"]):
+                continue
+
+            slug = re.sub(r'<[^>]+>', '', m_raw).strip()
+            slug = re.sub(r'[\s_]+', '-', slug.lower())
+            slug = re.sub(r'[^a-z0-9\-.]', '', slug).strip('-')
+            if not slug or len(slug) < 3:
+                continue
+
+            numeric_parts = parts[1:]
+            rpm = None
+            tpm = None
+            rpd = None
+
+            labeled = False
+            for p in numeric_parts:
+                p_lower = p.lower()
+                if "rpm" in p_lower:
+                    rpm = parse_rate_limit_value(p)
+                    labeled = True
+                elif "tpm" in p_lower:
+                    tpm = parse_rate_limit_value(p)
+                    labeled = True
+                elif "rpd" in p_lower:
+                    rpd = parse_rate_limit_value(p)
+                    labeled = True
+
+            if not labeled:
+                val_parts = [p for p in numeric_parts if not any(w in p.lower() for w in ["text", "modal", "multimodal", "embed", "audio", "video"])]
+                if len(val_parts) >= 3:
+                    rpm = parse_rate_limit_value(val_parts[0])
+                    tpm = parse_rate_limit_value(val_parts[1])
+                    rpd = parse_rate_limit_value(val_parts[2])
+                elif len(val_parts) == 2:
+                    rpm = parse_rate_limit_value(val_parts[0])
+                    tpm = parse_rate_limit_value(val_parts[1])
+                    rpd = "Unlimited"
+                elif len(val_parts) == 1:
+                    rpm = parse_rate_limit_value(val_parts[0])
+                    tpm = 250000
+                    rpd = 500
+
+            if rpm is not None or tpm is not None or rpd is not None:
+                rpm = rpm if rpm is not None else 15
+                tpm = tpm if tpm is not None else 250000
+                rpd = rpd if rpd is not None else "Unlimited"
+
+                w_rpm = "Unlimited" if rpm == "Unlimited" else max(1, int(rpm * 0.85))
+                w_tpm = "Unlimited" if tpm == "Unlimited" else max(1000, int(tpm * 0.85))
+                w_rpd = "Unlimited" if rpd == "Unlimited" else max(1, int(rpd * 0.85))
+
+                max_in = 128000 if "pro" in slug else (64000 if "argon" in slug else 32768)
+                max_out = 8192
+                think = 2048 if "pro" in slug else (512 if "flash" in slug else 0)
+
+                parsed_models.append({
+                    "model_name": slug,
+                    "display_name": m_raw,
+                    "target_tier": tier_upper,
+                    "strict_limits": {
+                        "rpm": rpm,
+                        "tpm": tpm,
+                        "rpd": rpd,
+                        "max_input_tokens": max_in,
+                        "max_output_tokens": max_out
+                    },
+                    "working_limits": {
+                        "rpm": w_rpm,
+                        "tpm": w_tpm,
+                        "rpd": w_rpd,
+                        "max_input_tokens": max_in,
+                        "max_output_tokens": max_out,
+                        "thinking_budget": think
+                    }
+                })
+
+    return parsed_models
+
+
+@app.post("/api/governor/import-aistudio-limits")
+def import_aistudio_limits(req: ImportAiStudioLimitsRequest) -> Dict[str, Any]:
+    """
+    Stage 18: 1-Click 'Paste from AI Studio Rate-Limit Page' Importer:
+    Parses copied table text or HTML from aistudio.google.com/rate-limit,
+    handles K/M/Unlimited units, applies 85% working limits, and persists
+    into .agent_memory/provider_quotas.json under GOOGLE -> target_tier.
+    """
+    try:
+        from src.token_governor import token_governor
+        target_tier = req.target_tier.upper() if req.target_tier in ("FREE", "PAID") else "FREE"
+        parsed = parse_aistudio_rate_limits(req.raw_text, target_tier=target_tier)
+        if not parsed:
+            raise HTTPException(status_code=400, detail="No valid model rows detected in input text")
+
+        with token_governor.lock:
+            quotas = token_governor.quotas
+            prov_google = quotas.setdefault("providers", {}).setdefault("GOOGLE", {})
+            tier_dict = prov_google.setdefault(target_tier, {})
+
+            for m in parsed:
+                m_name = m["model_name"]
+                tier_dict[m_name] = {
+                    "strict_limits": m["strict_limits"],
+                    "working_limits": m["working_limits"]
+                }
+            token_governor._save_quotas_internal()
+            token_governor.reload_state()
+
+        log_action("GOVERNOR", "AISTUDIO_LIMITS_IMPORTED", {
+            "target_tier": target_tier,
+            "models_count": len(parsed),
+            "models": [m["model_name"] for m in parsed]
+        })
+
+        return {
+            "status": "success",
+            "target_tier": target_tier,
+            "parsed_count": len(parsed),
+            "models": parsed
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.get("/api/governor/sub-agents")

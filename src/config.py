@@ -133,14 +133,14 @@ MODEL_CONSTRAINING_PROFILES = {
         "allowed_models": [
             "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite",
             "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash",
-            "qwen2.5-coder:32b", "qwen2.5-coder:7b"
+            "qwen2.5-coder:7b", "deepseek-r1:8b", "qwen2.5-coder:1.5b", "sqlcoder:7b", "qwen2.5-coder:32b"
         ],
         "description": "Default High-Throughput profile using Flash and Lite models (1K-4K RPM)."
     },
     "HIGHEST_RPM_TPM": {
         "allowed_models": [
             "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite",
-            "qwen2.5-coder:32b", "qwen2.5-coder:7b"
+            "qwen2.5-coder:7b", "deepseek-r1:8b", "qwen2.5-coder:1.5b", "sqlcoder:7b", "qwen2.5-coder:32b"
         ],
         "description": "Ultra high concurrency profile using exclusively 4K RPM Lite models."
     },
@@ -148,7 +148,7 @@ MODEL_CONSTRAINING_PROFILES = {
         "allowed_models": [
             "gemini-3.1-pro-preview", "gemini-2.5-pro",
             "gemini-3.6-flash", "gemini-3.5-flash",
-            "qwen2.5-coder:32b", "qwen2.5-coder:7b"
+            "qwen2.5-coder:7b", "deepseek-r1:8b", "qwen2.5-coder:1.5b", "sqlcoder:7b", "qwen2.5-coder:32b"
         ],
         "description": "Complex engineering profile using Pro models under strict project caps."
     },
@@ -175,7 +175,7 @@ MODEL_CONSTRAINING_PROFILES = {
     },
     "OFFLINE_PURE": {
         "allowed_models": [
-            "qwen2.5-coder:32b", "qwen2.5-coder:7b"
+            "qwen2.5-coder:7b", "deepseek-r1:8b", "qwen2.5-coder:1.5b", "sqlcoder:7b", "qwen2.5-coder:32b"
         ],
         "description": "Pure local execution using local Qwen weights only."
     }
@@ -206,62 +206,147 @@ TIER_POOLS = {
     ]
 }
 
-def compute_working_limits(strict_limits: Dict[str, int], margin_pct: int = 85, thinking_budget: int = 0) -> Dict[str, int]:
+def is_unlimited(val: Any) -> bool:
+    """Safely determines if a rate limit or token value represents unlimited quota."""
+    if val is None:
+        return True
+    if isinstance(val, str):
+        cleaned = val.strip().lower()
+        if cleaned in ("unlimited", "none", "inf", "infinity", "-1", ""):
+            return True
+        try:
+            num = float(cleaned)
+            return num <= 0
+        except (ValueError, TypeError):
+            return False
+    try:
+        num = float(val)
+        return num <= 0
+    except (ValueError, TypeError):
+        return False
+
+def compute_working_limits(strict_limits: Dict[str, Any], margin_pct: int = 85, thinking_budget: int = 0) -> Dict[str, Any]:
     """
     Computes safe working limits at exactly `margin_pct`% (default 85%) of the real strict limits
     for both FREE and PAID tiers so execution never hits 100% RPM/TPM/RPD ceilings.
+    Safely handles None, "Unlimited", -1, or <= 0 across all quota metrics.
     """
     ratio = max(0.1, min(1.0, margin_pct / 100.0))
-    return {
-        "rpm": max(1, int(strict_limits.get("rpm", 5) * ratio)),
-        "tpm": max(1000, int(strict_limits.get("tpm", 250000) * ratio)),
-        "rpd": max(1, int(strict_limits.get("rpd", 50) * ratio)),
-        "max_input_tokens": max(1024, int(strict_limits.get("max_input_tokens", 32768) * ratio)),
-        "max_output_tokens": max(512, int(strict_limits.get("max_output_tokens", 8192) * ratio)),
-        "thinking_budget": thinking_budget
+    metrics = ["rpm", "tpm", "rpd", "max_input_tokens", "max_output_tokens"]
+    defaults = {
+        "rpm": 5,
+        "tpm": 250000,
+        "rpd": 50,
+        "max_input_tokens": 32768,
+        "max_output_tokens": 8192
+    }
+    min_floors = {
+        "rpm": 1,
+        "tpm": 1000,
+        "rpd": 1,
+        "max_input_tokens": 1024,
+        "max_output_tokens": 512
     }
 
+    working_limits: Dict[str, Any] = {}
+    for k in metrics:
+        if isinstance(strict_limits, dict) and k in strict_limits:
+            val = strict_limits[k]
+            if val is None or is_unlimited(val):
+                working_limits[k] = "Unlimited"
+                continue
+            try:
+                num_val = float(val)
+                if num_val <= 0:
+                    working_limits[k] = "Unlimited"
+                else:
+                    working_limits[k] = max(min_floors.get(k, 1), int(num_val * ratio))
+            except (ValueError, TypeError):
+                working_limits[k] = "Unlimited"
+        else:
+            val = defaults[k]
+            working_limits[k] = max(min_floors.get(k, 1), int(val * ratio))
+
+    working_limits["thinking_budget"] = thinking_budget
+    return working_limits
+
 # ------------------------------------------------------------------------------
-# HIERARCHICAL PROVIDER-TIER-MODEL QUOTA DEFINITIONS
+# HIERARCHICAL PROVIDER-TIER-MODEL QUOTA DEFINITIONS (AI STUDIO 2026 MATRIX)
 # ------------------------------------------------------------------------------
 DEFAULT_PROVIDER_QUOTAS = {
     "GOOGLE": {
         "FREE": {
-            "gemini-2.5-pro": {
-                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 100, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 5, "tpm": 250000, "rpd": 100, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 2048)
-            },
-            "gemini-3.1-pro-preview": {
-                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 50, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 5, "tpm": 250000, "rpd": 50, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 2048)
-            },
-            "gemini-2.5-flash": {
-                "strict_limits": {"rpm": 10, "tpm": 250000, "rpd": 250, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 10, "tpm": 250000, "rpd": 250, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
-            },
-            "gemini-3.6-flash": {
-                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
-            },
             "gemini-3.5-flash": {
-                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
-            },
-            "gemini-3-flash-preview": {
-                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
+                "strict_limits": {"rpm": 15, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 15, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
             },
             "gemini-2.5-flash-lite": {
                 "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192},
                 "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
             },
-            "gemini-3.1-flash-lite": {
-                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            "gemini-3-flash-preview": {
+                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 256)
+            },
+            "gemini-3.1-pro-preview": {
+                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 50, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 5, "tpm": 250000, "rpd": 50, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 2048)
+            },
+            "gemini-4-argon": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 2048)
+            },
+            "gemini-3.8-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
+            },
+            "gemini-3.7-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
+            },
+            "gemini-3.6-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
             },
             "gemini-3.5-flash-lite": {
-                "strict_limits": {"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 15, "tpm": 250000, "rpd": 1000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "gemini-3.1-flash-lite": {
+                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "gemini-2.5-flash": {
+                "strict_limits": {"rpm": 10, "tpm": 250000, "rpd": 250, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 10, "tpm": 250000, "rpd": 250, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 512)
+            },
+            "gemini-2.5-pro": {
+                "strict_limits": {"rpm": 5, "tpm": 250000, "rpd": 100, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 5, "tpm": 250000, "rpd": 100, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 2048)
+            },
+            "gemini-omni-1.1-flash": {
+                "strict_limits": {"rpm": 4, "tpm": "Unlimited", "rpd": 20, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 4, "tpm": "Unlimited", "rpd": 20, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "gemini-omni-flash": {
+                "strict_limits": {"rpm": 4, "tpm": "Unlimited", "rpd": 20, "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 4, "tpm": "Unlimited", "rpd": 20, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "nano-banana-2": {
+                "strict_limits": {"rpm": 100, "tpm": 200000, "rpd": 1000, "max_input_tokens": 16384, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 100, "tpm": 200000, "rpd": 1000, "max_input_tokens": 16384, "max_output_tokens": 4096}, 85, 0)
+            },
+            "nano-banana-2-lite": {
+                "strict_limits": {"rpm": 150, "tpm": 100000, "rpd": 1000, "max_input_tokens": 16384, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 150, "tpm": 100000, "rpd": 1000, "max_input_tokens": 16384, "max_output_tokens": 4096}, 85, 0)
+            },
+            "gemini-embedding-1": {
+                "strict_limits": {"rpm": 3000, "tpm": 1000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048},
+                "working_limits": compute_working_limits({"rpm": 3000, "tpm": 1000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048}, 85, 0)
+            },
+            "gemini-embedding-2": {
+                "strict_limits": {"rpm": 3000, "tpm": 1000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048},
+                "working_limits": compute_working_limits({"rpm": 3000, "tpm": 1000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048}, 85, 0)
             },
             "gemini-2.0-flash": {
                 "strict_limits": {"rpm": 15, "tpm": 1000000, "rpd": 1500, "max_input_tokens": 32768, "max_output_tokens": 8192},
@@ -277,31 +362,31 @@ DEFAULT_PROVIDER_QUOTAS = {
             }
         },
         "PAID": {
-            "gemini-2.5-pro": {
-                "strict_limits": {"rpm": 150, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 150, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
+            "gemini-3.1-pro": {
+                "strict_limits": {"rpm": 25, "tpm": 2000000, "rpd": 250, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 25, "tpm": 2000000, "rpd": 250, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
             },
             "gemini-3.1-pro-preview": {
-                "strict_limits": {"rpm": 150, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 150, "tpm": 2000000, "rpd": 1000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
+                "strict_limits": {"rpm": 25, "tpm": 2000000, "rpd": 250, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 25, "tpm": 2000000, "rpd": 250, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
             },
-            "gemini-2.5-flash": {
-                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
+            "gemini-4-argon": {
+                "strict_limits": {"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
+            },
+            "gemini-3.8-flash": {
+                "strict_limits": {"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
+            },
+            "gemini-3.7-flash": {
+                "strict_limits": {"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
             },
             "gemini-3.6-flash": {
-                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
+                "strict_limits": {"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
             },
-            "gemini-3.5-flash": {
-                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
-            },
-            "gemini-3-flash-preview": {
-                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
-            },
-            "gemini-2.5-flash-lite": {
+            "gemini-3.5-flash-lite": {
                 "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
                 "working_limits": compute_working_limits({"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192}, 85, 0)
             },
@@ -309,9 +394,37 @@ DEFAULT_PROVIDER_QUOTAS = {
                 "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
                 "working_limits": compute_working_limits({"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192}, 85, 0)
             },
-            "gemini-3.5-flash-lite": {
-                "strict_limits": {"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 4000, "tpm": 4000000, "rpd": 150000, "max_input_tokens": 64000, "max_output_tokens": 8192}, 85, 0)
+            "gemini-2.5-flash": {
+                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 512)
+            },
+            "gemini-2.5-pro": {
+                "strict_limits": {"rpm": 150, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 150, "tpm": 2000000, "rpd": 10000, "max_input_tokens": 128000, "max_output_tokens": 8192}, 85, 2048)
+            },
+            "gemini-omni-1.1-flash": {
+                "strict_limits": {"rpm": 50, "tpm": 500000, "rpd": 1000, "max_input_tokens": 64000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 50, "tpm": 500000, "rpd": 1000, "max_input_tokens": 64000, "max_output_tokens": 8192}, 85, 0)
+            },
+            "gemini-omni-flash": {
+                "strict_limits": {"rpm": 50, "tpm": 500000, "rpd": 1000, "max_input_tokens": 64000, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 50, "tpm": 500000, "rpd": 1000, "max_input_tokens": 64000, "max_output_tokens": 8192}, 85, 0)
+            },
+            "nano-banana-2": {
+                "strict_limits": {"rpm": 500, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 500, "tpm": 1000000, "rpd": 10000, "max_input_tokens": 32768, "max_output_tokens": 4096}, 85, 0)
+            },
+            "nano-banana-2-lite": {
+                "strict_limits": {"rpm": 1000, "tpm": 1000000, "rpd": 20000, "max_input_tokens": 32768, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 1000, "tpm": 1000000, "rpd": 20000, "max_input_tokens": 32768, "max_output_tokens": 4096}, 85, 0)
+            },
+            "gemini-embedding-1": {
+                "strict_limits": {"rpm": 5000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048},
+                "working_limits": compute_working_limits({"rpm": 5000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048}, 85, 0)
+            },
+            "gemini-embedding-2": {
+                "strict_limits": {"rpm": 5000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048},
+                "working_limits": compute_working_limits({"rpm": 5000, "tpm": 2000000, "rpd": "Unlimited", "max_input_tokens": 8192, "max_output_tokens": 2048}, 85, 0)
             },
             "gemini-2.0-flash": {
                 "strict_limits": {"rpm": 2000, "tpm": 4000000, "rpd": 100000, "max_input_tokens": 128000, "max_output_tokens": 8192},
@@ -344,60 +457,143 @@ DEFAULT_PROVIDER_QUOTAS = {
         },
         "PAID": {
             "llama-3.3-70b-versatile": {
-                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
-            },
-            "llama-3.1-8b-instant": {
-                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+                "strict_limits": {"rpm": 60, "tpm": 100000, "rpd": 50000, "max_input_tokens": 16384, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 60, "tpm": 100000, "rpd": 50000, "max_input_tokens": 16384, "max_output_tokens": 4096}, 85, 0)
             },
             "qwen-2.5-coder-32b": {
-                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
-            },
-            "deepseek-r1-distill-llama-70b": {
-                "strict_limits": {"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192},
-                "working_limits": compute_working_limits({"rpm": 300, "tpm": 300000, "rpd": 50000, "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+                "strict_limits": {"rpm": 60, "tpm": 100000, "rpd": 50000, "max_input_tokens": 16384, "max_output_tokens": 4096},
+                "working_limits": compute_working_limits({"rpm": 60, "tpm": 100000, "rpd": 50000, "max_input_tokens": 16384, "max_output_tokens": 4096}, 85, 0)
             }
         }
     },
     "OLLAMA": {
         "LOCAL": {
-            "qwen2.5-coder:32b": {
-                "strict_limits": {"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
-            },
-            "qwen2.5-coder:14b": {
-                "strict_limits": {"rpm": 90, "tpm": 750000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 90, "tpm": 750000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
-            },
             "qwen2.5-coder:7b": {
-                "strict_limits": {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
-            },
-            "qwen2.5-coder:1.5b": {
-                "strict_limits": {"rpm": 180, "tpm": 1500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 180, "tpm": 1500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
-            },
-            "codestral:22b": {
-                "strict_limits": {"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 60, "tpm": 500000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
             },
             "deepseek-r1:8b": {
-                "strict_limits": {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "qwen2.5-coder:1.5b": {
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
             },
             "sqlcoder:7b": {
-                "strict_limits": {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
             },
-            "llama3-groq-tool-use:8b": {
-                "strict_limits": {"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096},
-                "working_limits": compute_working_limits({"rpm": 120, "tpm": 1000000, "rpd": 999999, "max_input_tokens": 8192, "max_output_tokens": 4096}, 85, 0)
+            "qwen2.5-coder:14b": {
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
+            },
+            "qwen2.5-coder:32b": {
+                "strict_limits": {"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192},
+                "working_limits": compute_working_limits({"rpm": 999, "tpm": 9999999, "rpd": "Unlimited", "max_input_tokens": 32768, "max_output_tokens": 8192}, 85, 0)
             }
         }
     }
 }
+
+# ------------------------------------------------------------------------------
+# 6 SLEEK SWARM ROLES DEFINITION (<8GB LOCAL OPTIMIZATION & ZERO CLOUD COST)
+# ------------------------------------------------------------------------------
+SLEEK_SWARM_ROLES = {
+    "Architect": {
+        "role": "Architect",
+        "description": "High-level system design & Phase 0 decomposition",
+        "target_tier": "HIGH",
+        "complexity_level": "CRITICAL",
+        "cost_type": "Cloud Pro/Argon",
+        "preferred_models": ["gemini-4-argon", "gemini-2.5-flash", "qwen2.5-coder:7b"]
+    },
+    "Scaffolder": {
+        "role": "Scaffolder",
+        "description": "File trees, configs, dirs, boilerplate, package setup",
+        "target_tier": "LOCAL",
+        "complexity_level": "LOCAL",
+        "cost_type": "Local ($0)",
+        "preferred_models": ["qwen2.5-coder:7b", "qwen2.5-coder:1.5b"]
+    },
+    "Coder": {
+        "role": "Coder",
+        "description": "Core feature logic, complex algorithms & routes",
+        "target_tier": "AUTO",
+        "complexity_level": "HIGH",
+        "cost_type": "Cloud Free / Auto",
+        "preferred_models": ["gemini-3.6-flash", "gemini-2.5-flash", "qwen-2.5-coder-32b", "qwen2.5-coder:7b"]
+    },
+    "Database": {
+        "role": "Database",
+        "description": "SQL schemas, migrations, ORM models",
+        "target_tier": "AUTO",
+        "complexity_level": "HIGH",
+        "cost_type": "Local / Auto ($0)",
+        "preferred_models": ["sqlcoder:7b", "qwen2.5-coder:7b", "gemini-2.5-flash"]
+    },
+    "Healer": {
+        "role": "Healer",
+        "description": "Phase 3 syntax fixes, test retry loops, bug fixing",
+        "target_tier": "LOCAL",
+        "complexity_level": "LOCAL",
+        "cost_type": "Local ($0)",
+        "preferred_models": ["deepseek-r1:8b", "qwen2.5-coder:7b"]
+    },
+    "Velocity": {
+        "role": "Velocity",
+        "description": "High-throughput batch generation & documentation",
+        "target_tier": "FAST",
+        "complexity_level": "MEDIUM",
+        "cost_type": "Cloud Free / Fast",
+        "preferred_models": ["gemini-4-argon", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "qwen2.5-coder:1.5b"]
+    }
+}
+
+# Sub-8GB Hardware Champions (Pure GPU Execution on RTX 4060 8GB)
+SUB_8GB_LOCAL_MODELS = {
+    "flagship": "qwen2.5-coder:7b",    # Pure GPU safe, 60+ TPS
+    "reasoning": "deepseek-r1:8b",     # Pure GPU safe, 55+ TPS
+    "fast": "qwen2.5-coder:1.5b",      # Pure GPU safe, 90+ TPS
+    "sql": "sqlcoder:7b"               # Pure GPU safe, 65+ TPS
+}
+
+def classify_task_to_sleek_role(task_directive: str, file_path: str = "") -> dict:
+    """
+    Stage 18 Sleek Role Classifier:
+    Deterministically maps file directives and paths to one of the 6 sleek roles.
+    Delegates high-volume scaffolding, testing, and DB tasks to 100% free local models.
+    """
+    target = f"{file_path} {task_directive}".lower()
+    
+    # 1. Tests & Self-Healing -> Healer (Local 0-cloud cost)
+    if any(k in target for k in ["test", "unittest", "pytest", "spec", "heal", "syntax", "retry", "lint", "debug", "bug", "assert", "fix"]):
+        return SLEEK_SWARM_ROLES["Healer"]
+
+    # 2. Database & SQL -> Database
+    if any(k in target for k in ["database", "schema", "sql", "migration", "orm", "postgres", "mysql", "sqlite", "table", "relational", "query", "models.py", "alembic"]):
+        return SLEEK_SWARM_ROLES["Database"]
+
+    # 3. Configs, Dirs, Boilerplate, Environment -> Scaffolder (Local 0-cloud cost)
+    if any(k in target for k in [
+        "package.json", "requirements.txt", "dockerfile", "docker", ".env", "env",
+        "tsconfig", "gitignore", "setup.py", "pyproject.toml", "init", "boilerplate",
+        "scaffold", "dirs", "directory", "folder", "manifest"
+    ]):
+        return SLEEK_SWARM_ROLES["Scaffolder"]
+
+    # 4. Documentation & Utilities -> Velocity
+    if any(k in target for k in ["readme", "doc", "docs", "documentation", "util", "utils", "helper", "batch", "markdown", "logging"]):
+        return SLEEK_SWARM_ROLES["Velocity"]
+
+    # 5. Architecture & High-Level System Design -> Architect
+    if any(k in target for k in ["architect", "system design", "decomposition", "security", "auth", "rbac", "phase 0", "blueprint"]):
+        return SLEEK_SWARM_ROLES["Architect"]
+
+    # 6. Default Core Feature Logic / API / UI -> Coder
+    return SLEEK_SWARM_ROLES["Coder"]
+
+
 
 # ------------------------------------------------------------------------------
 # DYNAMIC MODEL REGISTRY & LIMITS (Derived dynamically from DEFAULT_PROVIDER_QUOTAS)

@@ -595,7 +595,7 @@ def generate_preflight_blueprint(
     and token cost estimates WITHOUT executing or modifying any project files.
     """
     from src.agent import auto_detect_execution_plan, run_agent_pipeline, governor
-    from src.config import normalize_wsl_path
+    from src.config import normalize_wsl_path, classify_task_to_sleek_role
 
     norm_target_dir = normalize_wsl_path(target_dir)
     proj_name = project_name or os.path.basename(norm_target_dir.rstrip("/")) or "default_project"
@@ -674,6 +674,8 @@ Goal: {goal}"""
 
         action = "MODIFY" if rel_file_path in existing_set else "CREATE"
         plan = auto_detect_execution_plan(line, project_name=proj_name)
+        role_info = classify_task_to_sleek_role(line, rel_file_path)
+        sleek_role = role_info["role"]
         assigned_model = active_roster[idx % len(active_roster)]
         provider_name = governor.resolve_provider(assigned_model)
         est_in = 800 + (len(line) * 2)
@@ -684,10 +686,12 @@ Goal: {goal}"""
             "task_id": f"task_{idx+1}",
             "target_file": rel_file_path,
             "action": action,
-            "assigned_agent": plan["selected_agent"],
+            "assigned_agent": sleek_role,
+            "sleek_role": sleek_role,
+            "role_cost_type": role_info.get("cost_type", "Cloud Free"),
             "assigned_model": assigned_model,
             "provider": provider_name,
-            "target_tier": plan["target_tier"],
+            "target_tier": role_info.get("target_tier", plan["target_tier"]),
             "directive": line,
             "estimated_input_tokens": est_in,
             "estimated_output_tokens": est_out,
@@ -744,7 +748,7 @@ def execute_approved_blueprint(
     For MODIFY actions on existing files, injects existing code into directives.
     Continuously monitors lifecycle stop/pause signals and updates swarm registry.
     """
-    from src.config import normalize_wsl_path
+    from src.config import normalize_wsl_path, classify_task_to_sleek_role
     from src.token_governor import token_governor
 
     norm_dest = normalize_wsl_path(target_destination)

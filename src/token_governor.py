@@ -15,7 +15,9 @@ from src.config import (
     TOKEN_LEDGER_FILE,
     PROVIDER_QUOTAS_FILE,
     DEFAULT_PROVIDER_QUOTAS,
-    MAX_SWARM_WORKERS
+    MAX_SWARM_WORKERS,
+    compute_working_limits,
+    is_unlimited
 )
 
 # Indian Standard Time (IST: UTC + 5:30)
@@ -280,19 +282,38 @@ class HierarchicalTokenGovernor:
             est_input = max(1, int(len(prompt_text) / 3.5)) if prompt_text else 250
             max_input_limit = active_limits.get("max_input_tokens", 32768)
             input_truncated_needed = False
-            if est_input > max_input_limit:
-                input_truncated_needed = True
-                est_input = max_input_limit
+            if not is_unlimited(max_input_limit):
+                try:
+                    num_in_lim = int(max_input_limit)
+                    if est_input > num_in_lim:
+                        input_truncated_needed = True
+                        est_input = num_in_lim
+                except (ValueError, TypeError):
+                    pass
 
             # 4. Determine max output tokens and thinking budget
             max_out_limit = active_limits.get("max_output_tokens", 4096)
-            max_out = min(requested_output_tokens or max_out_limit, max_out_limit)
+            if is_unlimited(max_out_limit):
+                max_out = requested_output_tokens or 4096
+            else:
+                try:
+                    num_out_lim = int(max_out_limit)
+                    max_out = min(requested_output_tokens or num_out_lim, num_out_lim)
+                except (ValueError, TypeError):
+                    max_out = requested_output_tokens or 4096
             
             allowed_thinking = active_limits.get("thinking_budget", 0)
-            if requested_thinking_budget is not None:
-                think_budget = min(requested_thinking_budget, allowed_thinking)
+            if is_unlimited(allowed_thinking):
+                think_budget = requested_thinking_budget or 0
             else:
-                think_budget = allowed_thinking
+                try:
+                    num_think = int(allowed_thinking)
+                    if requested_thinking_budget is not None:
+                        think_budget = min(requested_thinking_budget, num_think)
+                    else:
+                        think_budget = num_think
+                except (ValueError, TypeError):
+                    think_budget = 0
 
             reserved_total = est_input + max_out + think_budget
             bucket_key = f"{resolved_provider}:{tier_upper}:{key_id}:{model_name}"
@@ -353,48 +374,73 @@ class HierarchicalTokenGovernor:
 
             # 7. RPM Check (Using Working Limits or Strict Limits)
             limit_rpm = active_limits.get("rpm", 15)
-            if effective_rpm >= limit_rpm:
-                base_interval = round(60.0 / max(1, limit_rpm), 2)
-                log_action("GOVERNOR", "RPM_LIMIT_EXCEEDED", {
-                    "bucket": bucket_key, "effective_rpm": effective_rpm, "limit": limit_rpm
-                })
-                return {
-                    "allowed": False,
-                    "reason": "RPM_LIMIT_EXCEEDED",
-                    "retry_after_s": base_interval,
-                    "limits": active_limits
-                }
+            if not is_unlimited(limit_rpm):
+                try:
+                    num_rpm = int(limit_rpm)
+                    if effective_rpm >= num_rpm:
+                        base_interval = round(60.0 / max(1, num_rpm), 2)
+                        log_action("GOVERNOR", "RPM_LIMIT_EXCEEDED", {
+                            "bucket": bucket_key, "effective_rpm": effective_rpm, "limit": num_rpm
+                        })
+                        return {
+                            "allowed": False,
+                            "reason": "RPM_LIMIT_EXCEEDED",
+                            "retry_after_s": base_interval,
+                            "limits": active_limits
+                        }
+                except (ValueError, TypeError):
+                    pass
 
             # 8. TPM Check
             limit_tpm = active_limits.get("tpm", 250000)
-            if (effective_tpm + reserved_total) > limit_tpm:
-                log_action("GOVERNOR", "TPM_LIMIT_EXCEEDED", {
-                    "bucket": bucket_key, "effective_tpm": effective_tpm, "reserved": reserved_total, "limit": limit_tpm
-                })
-                return {
-                    "allowed": False,
-                    "reason": "TPM_LIMIT_EXCEEDED",
-                    "retry_after_s": 15,
-                    "limits": active_limits
-                }
+            if not is_unlimited(limit_tpm):
+                try:
+                    num_tpm = int(limit_tpm)
+                    if (effective_tpm + reserved_total) > num_tpm:
+                        log_action("GOVERNOR", "TPM_LIMIT_EXCEEDED", {
+                            "bucket": bucket_key, "effective_tpm": effective_tpm, "reserved": reserved_total, "limit": num_tpm
+                        })
+                        return {
+                            "allowed": False,
+                            "reason": "TPM_LIMIT_EXCEEDED",
+                            "retry_after_s": 15,
+                            "limits": active_limits
+                        }
+                except (ValueError, TypeError):
+                    pass
 
             # 9. RPD Check
             limit_rpd = active_limits.get("rpd", 500)
-            if effective_rpd >= limit_rpd:
-                log_action("GOVERNOR", "RPD_LIMIT_EXCEEDED", {
-                    "bucket": bucket_key, "effective_rpd": effective_rpd, "limit": limit_rpd
-                })
-                return {
-                    "allowed": False,
-                    "reason": "RPD_LIMIT_EXCEEDED",
-                    "retry_after_s": 86400,
-                    "limits": active_limits
-                }
+            if not is_unlimited(limit_rpd):
+                try:
+                    num_rpd = int(limit_rpd)
+                    if effective_rpd >= num_rpd:
+                        log_action("GOVERNOR", "RPD_LIMIT_EXCEEDED", {
+                            "bucket": bucket_key, "effective_rpd": effective_rpd, "limit": num_rpd
+                        })
+                        return {
+                            "allowed": False,
+                            "reason": "RPD_LIMIT_EXCEEDED",
+                            "retry_after_s": 86400,
+                            "limits": active_limits
+                        }
+                except (ValueError, TypeError):
+                    pass
 
             # 10. Calculate Staggered Pacing Delay
-            base_pacing = round(60.0 / max(1, limit_rpm), 2)
+            if is_unlimited(limit_rpm):
+                base_pacing = 0.0
+            else:
+                try:
+                    num_rpm = max(1, int(limit_rpm))
+                    base_pacing = round(60.0 / num_rpm, 2)
+                except (ValueError, TypeError):
+                    base_pacing = 0.0
+
             last_ts = self._last_bucket_request_time.get(bucket_key, 0)
-            if in_flight_count > 0:
+            if base_pacing <= 0.0:
+                pacing_delay_s = 0.0
+            elif in_flight_count > 0:
                 pacing_delay_s = round(base_pacing * in_flight_count, 2)
             elif (now_ts - last_ts) < base_pacing:
                 pacing_delay_s = round(base_pacing - (now_ts - last_ts), 2)
@@ -784,7 +830,7 @@ class HierarchicalTokenGovernor:
             shield = self.quotas.setdefault("financial_shield", {})
             shield["safety_margin_percent"] = margin
 
-            from src.config import compute_working_limits
+            from src.config import compute_working_limits, is_unlimited
             providers = self.quotas.setdefault("providers", {})
             for p_name, tiers in providers.items():
                 for t_name, models in tiers.items():
@@ -816,7 +862,7 @@ class HierarchicalTokenGovernor:
         and applies exact 85% working limits.
         """
         with self.lock:
-            from src.config import compute_working_limits, DEFAULT_PROVIDER_QUOTAS
+            from src.config import compute_working_limits, is_unlimited, DEFAULT_PROVIDER_QUOTAS
             margin_pct = self.quotas.get("financial_shield", {}).get("safety_margin_percent", 85)
 
             providers = self.quotas.setdefault("providers", {})
@@ -910,31 +956,48 @@ class HierarchicalTokenGovernor:
 
                 if raw_google_key:
                     import urllib.request
+                    import urllib.error
                     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={raw_google_key}"
                     req = urllib.request.Request(url, headers={"User-Agent": "AdvanceAssistant-OS/6.0"})
-                    with urllib.request.urlopen(req, timeout=5) as resp:
-                        if resp.status == 200:
-                            g_data = json.loads(resp.read().decode("utf-8"))
-                            for gm in g_data.get("models", []):
-                                if "generateContent" in gm.get("supportedGenerationMethods", []):
-                                    g_name = gm.get("name", "").replace("models/", "")
-                                    in_tokens = gm.get("inputTokenLimit", 32768)
-                                    out_tokens = gm.get("outputTokenLimit", 8192)
-                                    think = 2048 if "pro" in g_name.lower() else (512 if "flash" in g_name.lower() else 0)
+                    try:
+                        with urllib.request.urlopen(req, timeout=5) as resp:
+                            if resp.status == 200:
+                                g_data = json.loads(resp.read().decode("utf-8"))
+                                for gm in g_data.get("models", []):
+                                    if "generateContent" in gm.get("supportedGenerationMethods", []):
+                                        g_name = gm.get("name", "").replace("models/", "")
+                                        in_tokens = gm.get("inputTokenLimit", 32768)
+                                        out_tokens = gm.get("outputTokenLimit", 8192)
+                                        think = 2048 if "pro" in g_name.lower() else (512 if "flash" in g_name.lower() else 0)
 
-                                    if g_name not in google_paid:
-                                        strict_p = {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": min(in_tokens, 128000), "max_output_tokens": min(out_tokens, 8192)}
-                                        google_paid[g_name] = {
-                                            "strict_limits": strict_p,
-                                            "working_limits": compute_working_limits(strict_p, margin_pct, think)
-                                        }
+                                        # Update existing model records without overwriting custom rate ceilings
+                                        if g_name in google_paid:
+                                            google_paid[g_name]["strict_limits"]["max_input_tokens"] = in_tokens
+                                            google_paid[g_name]["strict_limits"]["max_output_tokens"] = min(out_tokens, 8192)
+                                            google_paid[g_name]["working_limits"] = compute_working_limits(google_paid[g_name]["strict_limits"], margin_pct, think)
+                                        else:
+                                            strict_p = {"rpm": 1000, "tpm": 1000000, "rpd": 10000, "max_input_tokens": min(in_tokens, 128000), "max_output_tokens": min(out_tokens, 8192)}
+                                            google_paid[g_name] = {
+                                                "strict_limits": strict_p,
+                                                "working_limits": compute_working_limits(strict_p, margin_pct, think)
+                                            }
 
-                                    if ("flash" in g_name.lower() or "pro" in g_name.lower() or "gemma" in g_name.lower()) and g_name not in google_free:
-                                        strict_f = {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": min(in_tokens, 32768), "max_output_tokens": min(out_tokens, 8192)}
-                                        google_free[g_name] = {
-                                            "strict_limits": strict_f,
-                                            "working_limits": compute_working_limits(strict_f, margin_pct, think)
-                                        }
+                                        if ("flash" in g_name.lower() or "pro" in g_name.lower() or "gemma" in g_name.lower()):
+                                            if g_name in google_free:
+                                                google_free[g_name]["strict_limits"]["max_input_tokens"] = in_tokens
+                                                google_free[g_name]["strict_limits"]["max_output_tokens"] = min(out_tokens, 8192)
+                                                google_free[g_name]["working_limits"] = compute_working_limits(google_free[g_name]["strict_limits"], margin_pct, think)
+                                            else:
+                                                strict_f = {"rpm": 15, "tpm": 250000, "rpd": 500, "max_input_tokens": min(in_tokens, 32768), "max_output_tokens": min(out_tokens, 8192)}
+                                                google_free[g_name] = {
+                                                    "strict_limits": strict_f,
+                                                    "working_limits": compute_working_limits(strict_f, margin_pct, think)
+                                                }
+                    except urllib.error.HTTPError as he:
+                        # Cleanly handle HTTP 400 or other errors when keys are mock/invalid
+                        log_action("GOVERNOR", "GOOGLE_LIVE_SYNC_HTTP_SKIP", {"code": he.code, "msg": str(he)})
+                    except Exception as he_err:
+                        log_action("GOVERNOR", "GOOGLE_LIVE_SYNC_SKIP", {"reason": str(he_err)})
             except Exception as e:
                 log_action("GOVERNOR", "GOOGLE_LIVE_SYNC_SKIP", {"reason": str(e)})
 
@@ -1236,9 +1299,13 @@ class HierarchicalTokenGovernor:
 
             # Daily RPD check
             m_usage = self.ledger["model_usage"].setdefault(model_name, {"rpd": 0})
-            if m_usage.get("rpd", 0) >= limits["rpd"]:
-                log_action("GOVERNOR", "HARD_RPD_LIMIT_HIT", {"model": model_name, "rpd": m_usage["rpd"]})
-                return False
+            if not is_unlimited(limits.get("rpd")):
+                try:
+                    if m_usage.get("rpd", 0) >= int(limits["rpd"]):
+                        log_action("GOVERNOR", "HARD_RPD_LIMIT_HIT", {"model": model_name, "rpd": m_usage["rpd"]})
+                        return False
+                except (ValueError, TypeError):
+                    pass
 
             # Rolling window calculations
             rw = self.ledger["rolling_window"].setdefault(model_name, [])
@@ -1247,14 +1314,23 @@ class HierarchicalTokenGovernor:
             current_tpm = sum(pair[1] for pair in rt)
 
             # RPM Cooling Check
-            if current_rpm >= (limits["rpm"] - 1) and limits["rpm"] > 5:
-                time.sleep(2)
-                now_ts = time.time()
+            if not is_unlimited(limits.get("rpm")):
+                try:
+                    num_rpm = int(limits["rpm"])
+                    if current_rpm >= (num_rpm - 1) and num_rpm > 5:
+                        time.sleep(2)
+                        now_ts = time.time()
+                except (ValueError, TypeError):
+                    pass
 
             # Financial Shield: 85% TPM Cap
-            if (current_tpm + estimated_tokens) >= (limits["tpm"] * 0.85):
-                log_action("GOVERNOR", "TPM_FINANCIAL_SHIELD_CAP", {"model": model_name, "current_tpm": current_tpm})
-                return False
+            if not is_unlimited(limits.get("tpm")):
+                try:
+                    if (current_tpm + estimated_tokens) >= (float(limits["tpm"]) * 0.85):
+                        log_action("GOVERNOR", "TPM_FINANCIAL_SHIELD_CAP", {"model": model_name, "current_tpm": current_tpm})
+                        return False
+                except (ValueError, TypeError):
+                    pass
 
             # Record in legacy windows & ledger
             rw.append(now_ts)
@@ -1304,8 +1380,21 @@ class HierarchicalTokenGovernor:
             current_tpm = sum(pair[1] for pair in rt)
 
             tpm_formatted = f"{round(current_tpm / 1000, 1)}K"
-            max_tpm_formatted = f"{int(limits['tpm'] / 1000)}K"
-            return f"[RPM: {current_rpm}/{limits['rpm']} | TPM: {tpm_formatted}/{max_tpm_formatted} | RPD: {usage.get('rpd', 0)}/{limits['rpd']}]"
+            tpm_val = limits.get('tpm')
+            if is_unlimited(tpm_val):
+                max_tpm_formatted = "Unlimited"
+            else:
+                try:
+                    max_tpm_formatted = f"{int(float(tpm_val) / 1000)}K"
+                except (ValueError, TypeError):
+                    max_tpm_formatted = "Unlimited"
+
+            rpd_val = limits.get('rpd')
+            max_rpd_formatted = "Unlimited" if is_unlimited(rpd_val) else str(rpd_val)
+            rpm_val = limits.get('rpm')
+            max_rpm_formatted = "Unlimited" if is_unlimited(rpm_val) else str(rpm_val)
+
+            return f"[RPM: {current_rpm}/{max_rpm_formatted} | TPM: {tpm_formatted}/{max_tpm_formatted} | RPD: {usage.get('rpd', 0)}/{max_rpd_formatted}]"
 
 
     def get_cost_and_savings_estimate(self) -> Dict[str, Any]:

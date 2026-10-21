@@ -1461,3 +1461,54 @@ This document tracks all prompt executions, file additions, architecture extensi
     * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
     * Zero Test Pollution: Verified zero state leakage.
 - **Stage Status**: COMPLETED.
+
+### STAGE 18: FIX AGENTHUB CRASH, SUB-8GB LOCAL HARDWARE PROFILE, 6 SLEEK SWARM ROLES & DUAL AI STUDIO MODEL DISCOVERY ENGINE
+- **Date**: 2026-10-21
+- **Scope & Objectives**:
+  - Deliverable 1: Fix Bug A (AgentHub Crash) & Bug B (Governor "Unlimited" TypeError):
+    * `frontend/src/pages/AgentHub.tsx`: Audited all occurrences of `.toFixed()`. Wrapped every numeric format call with safe fallback coercion (`safeFixed`), and handled `"Unlimited"`/null values gracefully across model cards, sub-agent telemetry, and VRAM monitors. Fixed JSX `<8GB` escaping.
+    * `src/config.py`: Updated `compute_working_limits(strict_limits, margin_pct=85)` to safely handle `None`, `"Unlimited"`, `-1`, or `<= 0` without `TypeError`, returning `"Unlimited"` across RPM/TPM/RPD and max input/output tokens.
+    * `src/token_governor.py`: Updated `acquire_lease()`, `inspect_and_cool_allocation()`, and `render_live_telemetry_snippet()` to safely handle models with `"Unlimited"` or `None` values for RPD/TPM without throwing exceptions.
+  - Deliverable 2: Sub-8GB Local Model Hardware Optimization & Sleek 6-Role Swarm Engine:
+    * Demoted 32B models from default local execution profiles in `.agent_memory/swarm_profiles.json`, `src/supervisor.py`, and `src/config.py` to prevent 1-2 TPS CPU/RAM paging on 8GB VRAM GPUs (e.g. RTX 4060).
+    * Prioritized and defaulted local execution exclusively to sub-8GB champions running at 30-70+ TPS:
+      - Flagship Local: `qwen2.5-coder:7b` (pure GPU safe, 60+ TPS)
+      - Reasoning Local: `deepseek-r1:8b` (pure GPU safe, 55+ TPS)
+      - Fast Local: `qwen2.5-coder:1.5b` (pure GPU safe, 90+ TPS)
+      - SQL Local: `sqlcoder:7b` (pure GPU safe, 65+ TPS)
+    * Defined 6 Sleek Swarm Roles in `.agent_memory/sub_agents.json` and `src/config.py`:
+      - **Architect**: High-level system design & Phase 0 decomposition (Cloud Pro/Argon or Local 7B/14B).
+      - **Scaffolder**: File trees, configs, dirs, boilerplate, package setup (Local 7B/1.5B, 0 cloud tokens).
+      - **Coder**: Core feature logic, complex algorithms & routes (Cloud Free / Groq / Local 7B).
+      - **Database**: SQL schemas, migrations, ORM models (Local sqlcoder/7B or Cloud).
+      - **Healer**: Phase 3 syntax fixes, test retry loops, bug fixing (Local 7B/8B, 0 cloud tokens).
+      - **Velocity**: High-throughput batch generation (Gemini 3.5/3.1 Flash-Lite, Gemini 4 Argon, or Local 1.5B).
+    * Updated `src/supervisor.py` to automatically classify blueprint file tasks to their matching sleek role.
+  - Deliverable 3: AI Studio 2026 Model Matrix Refresh in `DEFAULT_PROVIDER_QUOTAS`:
+    * Refreshed `DEFAULT_PROVIDER_QUOTAS` in `src/config.py` and `.agent_memory/provider_quotas.json` using exact live rates from Google AI Studio rate-limit telemetry:
+      - `gemini-4-argon`: Strict 1K RPM | 2M TPM | Unlimited RPD -> 85% Working: 850 RPM | 1.7M TPM | Unlimited RPD
+      - `gemini-3.8-flash`: Strict 1K RPM | 2M TPM | 10K RPD -> 85% Working: 850 RPM | 1.7M TPM | 8,500 RPD
+      - `gemini-3.7-flash`: Strict 1K RPM | 2M TPM | 10K RPD -> 85% Working: 850 RPM | 1.7M TPM | 8,500 RPD
+      - `gemini-3.6-flash`: Strict 1K RPM | 2M TPM | 10K RPD -> 85% Working: 850 RPM | 1.7M TPM | 8,500 RPD
+      - `gemini-3.5-flash-lite`: Strict 4K RPM | 4M TPM | 150K RPD -> 85% Working: 3,400 RPM | 3.4M TPM | 127,500 RPD
+      - `gemini-3.1-flash-lite`: Strict 4K RPM | 4M TPM | 150K RPD -> 85% Working: 3,400 RPM | 3.4M TPM | 127,500 RPD
+      - `gemini-2.5-flash`: Strict 10 RPM | 250K TPM | 250 RPD -> 85% Working: 8 RPM | 212,500 TPM | 212 RPD
+      - `gemini-2.5-pro`: Strict 5 RPM | 250K TPM | 100 RPD -> 85% Working: 4 RPM | 212,500 TPM | 85 RPD
+      - `gemini-omni-1.1-flash` / `gemini-omni-flash`: Strict 4 RPM | Unlimited TPM | 20 RPD -> 85% Working: 3 RPM | Unlimited TPM | 17 RPD
+      - `nano-banana-2`: Strict 100 RPM | 200K TPM | 1K RPD -> 85% Working: 85 RPM | 170K TPM | 850 RPD
+      - `nano-banana-2-lite`: Strict 150 RPM | 100K TPM | 1K RPD -> 85% Working: 127 RPM | 85K TPM | 850 RPD
+      - `gemini-embedding-1` / `gemini-embedding-2`: Strict 3K RPM | 1M TPM | Unlimited RPD -> 85% Working: 2,550 RPM | 850K TPM | Unlimited RPD
+      - Moved `gemini-3.1-pro` to PAID Tier-1 only: Strict 25 RPM | 2M TPM | 250 RPD -> 85% Working: 21 RPM | 1.7M TPM | 212 RPD.
+  - Deliverable 4: Dual Google AI Studio Model Discovery & Rate-Limit Importer Engine:
+    * **Method A**: Implemented `POST /api/governor/import-aistudio-limits` in `src/server.py` supporting copied table text, TSV, CSV, and HTML from `aistudio.google.com/rate-limit`. Normalizes K/M/Unlimited units, applies 85% working limits, and persists into target tier.
+    * Created reusable `frontend/src/components/ImportAiStudioModal.tsx` and integrated "📋 Import AI Studio Limits" modal into both `TokenGovernor.tsx` and `ApiKeyManager.tsx`.
+    * **Method B**: Enhanced `sync_live_and_offline_models()` in `src/token_governor.py` with robust HTTP 400 error skipping for mock/invalid keys, updating context limits and capabilities without overwriting custom rate ceilings.
+  - Deliverable 5: Frontend Swarm Selector & Role UI Updates:
+    * `frontend/src/pages/ExecutionStudio.tsx`: Updated Orchestrator and Ollama model selectors to sub-8GB champions (`qwen2.5-coder:7b`, `deepseek-r1:8b`, `qwen2.5-coder:1.5b`, `sqlcoder:7b`) and added 6 sleek role badge chips with Local ($0) vs Cloud Free indicators.
+    * `frontend/src/pages/AgentHub.tsx`: Added dedicated Sleek Swarm Roles showcase card section to Tab 3 and verified error-free tab navigation.
+    * Verified `tsc --noEmit` compiles with 0 errors and production `vite build` succeeds in 2.06s.
+  - Deliverable 6: Master Test Certification & Core CLI Preservation:
+    * Created dedicated test suite `test/test_scripts/test_stage18_discovery_and_hardware.py` (6/6 checks).
+    * Registered suite in `test/test_scripts/run_all_tests.py`. Executed master harness: **100% PASS (8/8 Suites, 76/76 checks in 12.63s)** with zero state pollution.
+    * Core CLI Preservation: `src/main.py` is **100% UNTOUCHED**.
+- **Stage Status**: COMPLETED.

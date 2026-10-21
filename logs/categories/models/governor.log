@@ -185,3 +185,67 @@
 [2026-10-18 19:40:22.133 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
 [2026-10-18 19:40:22.481 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
 [2026-10-18 19:40:22.505 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_1fab87af:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:24:01.366 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [DAILY_130PM_RESET] [ENV:LOCAL] {"previous_date": "2026-10-18", "new_date": "2026-10-21"}
+[2026-10-21 14:24:01.371 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:24:01.373 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-21 14:24:02.857 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-21 14:24:02.863 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:24:02.864 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-21 14:24:02.864 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:24:06.917 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-21 14:24:10.624 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TIER1_MATRIX_SYNC_ERROR] [ENV:LOCAL] {"error": "unsupported operand type(s) for *: 'NoneType' and 'float'"}
+[2026-10-21 14:24:10.778 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 400: Bad Request"}
+[2026-10-21 14:24:11.080 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 14:24:11.103 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_57c8ff06:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:24:12.517 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [DAILY_130PM_RESET] [ENV:LOCAL] {"previous_date": "2026-10-18", "new_date": "2026-10-21"}
+[2026-10-21 14:42:38.916 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 2, "models": ["gemini-4-argon", "gemini-3.8-flash"]}
+[2026-10-21 14:42:52.928 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-21 14:42:55.412 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 14:42:55.761 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 14:42:55.789 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_aa73c262:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:48:19.386 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:48:19.393 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-21 14:49:49.318 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:49:49.318 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-21 14:49:50.425 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-21 14:49:50.429 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:49:50.430 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-21 14:49:50.431 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:50:00.443 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-21 14:50:00.444 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-21 14:50:01.523 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-21 14:50:01.526 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:50:01.526 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-21 14:50:01.526 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-21 14:50:05.347 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-21 14:50:08.702 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 14:50:09.019 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 14:50:09.047 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_b9b9836a:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-21 15:05:04.598 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:05:04.935 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:05:05.289 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:06:14.078 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:06:14.222 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:06:14.548 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:07:08.795 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:07:09.239 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:07:09.630 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:08:26.022 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:08:26.208 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:08:26.554 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:08:51.254 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:08:51.459 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:08:51.816 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:09:39.264 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:default:gemini-3.1-pro-preview", "effective_rpm": 4, "limit": 4}
+[2026-10-21 15:09:39.267 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PAID_TIER_LOCKED_BY_SHIELD] [ENV:LOCAL] {"model": "gemini-3.1-pro-preview", "provider": "GOOGLE", "tier": "PAID"}
+[2026-10-21 15:09:40.421 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [TPM_FINANCIAL_SHIELD_CAP] [ENV:LOCAL] {"model": "gemini-3.5-flash", "current_tpm": 50000}
+[2026-10-21 15:09:40.428 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "test_build_proj", "paid_tokens_current_build": 0}
+[2026-10-21 15:09:40.429 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [PER_BUILD_PAID_TOKEN_CAP_REACHED] [ENV:LOCAL] {"paid_current_build": 145000, "in_flight": 0, "reserved_total": 9019, "cap": 150000}
+[2026-10-21 15:09:40.429 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "next_proj", "paid_tokens_current_build": 0}
+[2026-10-21 15:09:44.373 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [BUILD_COUNTER_RESET] [ENV:LOCAL] {"project_name": "bp_exec_cert", "paid_tokens_current_build": 0}
+[2026-10-21 15:09:48.286 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:09:48.584 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}
+[2026-10-21 15:09:48.610 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [RPM_LIMIT_EXCEEDED] [ENV:LOCAL] {"bucket": "GOOGLE:FREE:key_7f848870:gemini-2.5-pro", "effective_rpm": 4, "limit": 4}
+[2026-10-21 15:09:51.084 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [AISTUDIO_LIMITS_IMPORTED] [ENV:LOCAL] {"target_tier": "FREE", "models_count": 3, "models": ["gemini-4-argon", "gemini-3.8-flash", "gemini-omni-flash"]}
+[2026-10-21 15:09:51.355 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GOOGLE_LIVE_SYNC_HTTP_SKIP] [ENV:LOCAL] {"code": 400, "msg": "HTTP Error 400: Bad Request"}
+[2026-10-21 15:09:51.695 IST] [MODEL:GOVERNOR] [CAT:GENERAL] [GROQ_LIVE_SYNC_SKIP] [ENV:LOCAL] {"reason": "HTTP Error 401: Unauthorized"}

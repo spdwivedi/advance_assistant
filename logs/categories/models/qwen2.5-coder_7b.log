@@ -188,3 +188,11 @@
 [2026-10-18 19:27:05.408 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
 [2026-10-18 19:40:23.772 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
 [2026-10-18 19:40:23.774 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:24:12.357 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:24:12.359 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:42:56.972 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:42:56.974 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:50:10.214 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-21 14:50:10.216 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}
+[2026-10-21 15:09:49.853 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_OLLAMA_ROSTER_EXECUTE] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "project_name": "test_explicit_dispatch"}
+[2026-10-21 15:09:49.856 IST] [MODEL:QWEN2.5-CODER:7B] [CAT:HIGH] [LOCAL_ROSTER_EXECUTE_SUCCESS] [ENV:LOCAL] {"model": "qwen2.5-coder:7b", "tokens_in": 4, "tokens_out": 17, "project_name": "test_explicit_dispatch"}

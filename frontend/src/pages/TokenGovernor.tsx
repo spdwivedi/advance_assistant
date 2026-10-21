@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ImportAiStudioModal } from '../components/ImportAiStudioModal';
 import {
+  ClipboardList,
   Shield,
   ShieldAlert,
   Lock,
@@ -148,6 +150,27 @@ export interface CostEstimateData {
   breakdown_by_provider: Record<string, number>;
 }
 
+
+const safeFixed = (val: any, digits = 2, fallback = '0.00'): string => {
+  if (typeof val === 'number' && !isNaN(val)) return val.toFixed(digits);
+  if (typeof val === 'string') {
+    if (val.toLowerCase() === 'unlimited') return 'Unlimited';
+    const parsed = parseFloat(val);
+    return !isNaN(parsed) ? parsed.toFixed(digits) : fallback;
+  }
+  return fallback;
+};
+
+const formatLimitVal = (val: any, divisor = 1, unit = ''): string => {
+  if (val === 'Unlimited' || val === 'unlimited' || val === null || val === undefined) {
+    return 'Unlimited';
+  }
+  const n = typeof val === 'number' ? val : parseFloat(val);
+  if (isNaN(n) || n <= 0) return 'Unlimited';
+  const divided = n / divisor;
+  return `${divided >= 1000 ? (divided / 1000).toFixed(1) + 'M' : divided.toFixed(0)}${unit}`;
+};
+
 export const TokenGovernor: React.FC = () => {
   const navigate = useNavigate();
 
@@ -209,6 +232,7 @@ export const TokenGovernor: React.FC = () => {
 
   // Add Provider/Model Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [addProvider, setAddProvider] = useState<string>('GOOGLE');
   const [customProvider, setCustomProvider] = useState<string>('');
   const [addTier, setAddTier] = useState<'FREE' | 'PAID' | 'LOCAL'>('FREE');
@@ -703,17 +727,21 @@ export const TokenGovernor: React.FC = () => {
 
   // Calculate RPM & TPM Progress Percentages
   const getProgressStats = (node: ModelHierarchyNode) => {
-    const rpm = node.rolling_rpm || 0;
-    const maxRpm = node.working_limits?.rpm || node.strict_limits?.rpm || 1;
-    const rpmPct = Math.min(Math.round((rpm / Math.max(maxRpm, 1)) * 100), 100);
+    const rpm = typeof node.rolling_rpm === 'number' && !isNaN(node.rolling_rpm) ? node.rolling_rpm : 0;
+    const rawMaxRpm: any = node.working_limits?.rpm ?? node.strict_limits?.rpm;
+    const isRpmUnlimited = rawMaxRpm === 'Unlimited' || rawMaxRpm === 'unlimited' || rawMaxRpm === null || rawMaxRpm === undefined || Number(rawMaxRpm) <= 0;
+    const maxRpm = isRpmUnlimited ? 'Unlimited' : (typeof rawMaxRpm === 'number' ? rawMaxRpm : parseFloat(String(rawMaxRpm)) || 1);
+    const rpmPct = isRpmUnlimited ? 0 : Math.min(Math.round((rpm / Math.max(Number(maxRpm), 1)) * 100), 100);
 
-    const tpm = node.rolling_tpm || 0;
-    const maxTpm = node.working_limits?.tpm || node.strict_limits?.tpm || 1;
-    const tpmPct = Math.min(Math.round((tpm / Math.max(maxTpm, 1)) * 100), 100);
+    const tpm = typeof node.rolling_tpm === 'number' && !isNaN(node.rolling_tpm) ? node.rolling_tpm : 0;
+    const rawMaxTpm: any = node.working_limits?.tpm ?? node.strict_limits?.tpm;
+    const isTpmUnlimited = rawMaxTpm === 'Unlimited' || rawMaxTpm === 'unlimited' || rawMaxTpm === null || rawMaxTpm === undefined || Number(rawMaxTpm) <= 0;
+    const maxTpm = isTpmUnlimited ? 'Unlimited' : (typeof rawMaxTpm === 'number' ? rawMaxTpm : parseFloat(String(rawMaxTpm)) || 1);
+    const tpmPct = isTpmUnlimited ? 0 : Math.min(Math.round((tpm / Math.max(Number(maxTpm), 1)) * 100), 100);
 
-    const isNearCap = tpmPct >= (hierarchy?.financial_shield?.safety_margin_percent || 85);
+    const isNearCap = !isTpmUnlimited && tpmPct >= (hierarchy?.financial_shield?.safety_margin_percent || 85);
 
-    return { rpm, maxRpm, rpmPct, tpm, maxTpm, tpmPct, isNearCap };
+    return { rpm, maxRpm, rpmPct, tpm, maxTpm, tpmPct, isNearCap, isRpmUnlimited, isTpmUnlimited };
   };
 
   // Provider Breakdown Matrix for Tab 3
@@ -912,6 +940,17 @@ export const TokenGovernor: React.FC = () => {
             </div>
 
             {/* + Add Model Button */}
+            {/* 📋 Import AI Studio Limits Button */}
+            <button
+              id="governor-import-aistudio-limits-btn"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-semibold transition-all shadow-sm"
+              title="Import limits from Google AI Studio rate-limit table"
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span>📋 Import AI Studio Limits</span>
+            </button>
+
             <button
               id="add-model-btn"
               onClick={() => setIsAddModalOpen(true)}
@@ -1003,8 +1042,8 @@ export const TokenGovernor: React.FC = () => {
             <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
               <Coins className="w-3.5 h-3.5 text-emerald-400" />
               <span>
-                Spend: <strong>${costEstimate.actual_paid_spend_usd.toFixed(2)}</strong> (₹{costEstimate.actual_paid_spend_inr}) &bull; Saved:{' '}
-                <strong>${costEstimate.estimated_savings_usd.toFixed(2)}</strong> (₹{costEstimate.estimated_savings_inr})
+                Spend: <strong>${safeFixed(costEstimate.actual_paid_spend_usd, 2)}</strong> (₹{costEstimate.actual_paid_spend_inr}) &bull; Saved:{' '}
+                <strong>${safeFixed(costEstimate.estimated_savings_usd, 2)}</strong> (₹{costEstimate.estimated_savings_inr})
               </span>
             </div>
 
@@ -1134,7 +1173,7 @@ export const TokenGovernor: React.FC = () => {
           <DollarSign className="w-4 h-4 text-emerald-400" />
           <span>Cost & Cloud Savings</span>
           <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-emerald-300 border border-emerald-500/30">
-            ${costEstimate.actual_paid_spend_usd.toFixed(2)}
+            ${safeFixed(costEstimate.actual_paid_spend_usd, 2)}
           </span>
         </button>
       </div>
@@ -1222,13 +1261,13 @@ export const TokenGovernor: React.FC = () => {
                     <div className="flex justify-between text-emerald-400 font-semibold">
                       <span>🛡️ 85% Working Limit:</span>
                       <span>
-                        {item.node.working_limits?.rpm || 12} RPM • {((item.node.working_limits?.tpm || 212500)/1000).toFixed(0)}K TPM • {item.node.working_limits?.rpd || 425} RPD
+                        {item.node.working_limits?.rpm || 12} RPM • {formatLimitVal(item.node.working_limits?.tpm, 1000, 'K')} TPM • {item.node.working_limits?.rpd || 425} RPD
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-400">
                       <span>⚡ 100% Strict API Limit:</span>
                       <span>
-                        {item.node.strict_limits?.rpm || 15} RPM • {((item.node.strict_limits?.tpm || 250000)/1000).toFixed(0)}K TPM • {item.node.strict_limits?.rpd || 500} RPD
+                        {item.node.strict_limits?.rpm || 15} RPM • {formatLimitVal(item.node.strict_limits?.tpm, 1000, 'K')} TPM • {item.node.strict_limits?.rpd || 500} RPD
                       </span>
                     </div>
                   </div>
@@ -1238,7 +1277,7 @@ export const TokenGovernor: React.FC = () => {
                     {/* RPM Bar */}
                     <div>
                       <div className="flex justify-between text-slate-400 text-[10px] mb-0.5">
-                        <span>RPM: {rpm} / {maxRpm}</span>
+                        <span>RPM: {rpm} / {maxRpm === 'Unlimited' ? '∞' : maxRpm}</span>
                         <span>{rpmPct}%</span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
@@ -1253,7 +1292,7 @@ export const TokenGovernor: React.FC = () => {
                     <div>
                       <div className="flex justify-between text-slate-400 text-[10px] mb-0.5">
                         <span className={isNearCap ? 'text-amber-400 font-semibold' : ''}>
-                          TPM: {(tpm / 1000).toFixed(1)}K / {(maxTpm / 1000).toFixed(0)}K
+                          TPM: {(tpm / 1000).toFixed(1)}K / {maxTpm === 'Unlimited' ? '∞' : formatLimitVal(maxTpm, 1000, 'K')}
                         </span>
                         <span className={isNearCap ? 'text-amber-400 font-bold' : ''}>
                           {tpmPct}%
@@ -1295,7 +1334,7 @@ export const TokenGovernor: React.FC = () => {
                           <span className="text-slate-500 block">Input Tokens (Max Cap)</span>
                           <span className="font-bold text-slate-200">
                             {(item.node.input_tokens_today || 0).toLocaleString()} /{' '}
-                            {((item.node.working_limits?.max_input_tokens || 0) / 1000).toFixed(0)}K
+                            {formatLimitVal(item.node.working_limits?.max_input_tokens, 1000, 'K')}
                           </span>
                         </div>
 
@@ -1303,7 +1342,7 @@ export const TokenGovernor: React.FC = () => {
                           <span className="text-slate-500 block">Output Tokens (Max Cap)</span>
                           <span className="font-bold text-slate-200">
                             {(item.node.output_tokens_today || 0).toLocaleString()} /{' '}
-                            {((item.node.working_limits?.max_output_tokens || 0) / 1000).toFixed(0)}K
+                            {formatLimitVal(item.node.working_limits?.max_output_tokens, 1000, 'K')}
                           </span>
                         </div>
 
@@ -1337,8 +1376,8 @@ export const TokenGovernor: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-slate-300">
                           <span>TPM</span>
-                          <span>{((item.node.working_limits?.tpm || 0) / 1000).toFixed(0)}K</span>
-                          <span className="text-slate-500">{((item.node.strict_limits?.tpm || 0) / 1000).toFixed(0)}K</span>
+                          <span>{formatLimitVal(item.node.working_limits?.tpm, 1000, 'K')}</span>
+                          <span className="text-slate-500">{formatLimitVal(item.node.strict_limits?.tpm, 1000, "K")}</span>
                         </div>
                         <div className="flex justify-between text-slate-300">
                           <span>Max Input</span>
@@ -1448,17 +1487,17 @@ export const TokenGovernor: React.FC = () => {
 
                   {/* Element 4: Compact Token Caps Summary */}
                   <div className="flex items-center justify-between text-[11px] font-mono px-2.5 py-1 rounded bg-slate-900 border border-slate-800/80 text-slate-400">
-                    <span>In: <strong className="text-slate-200">{(agentData.max_input_tokens / 1000).toFixed(0)}K</strong></span>
+                    <span>In: <strong className="text-slate-200">{formatLimitVal(agentData.max_input_tokens, 1000, 'K')}</strong></span>
                     <span>&bull;</span>
-                    <span>Out: <strong className="text-slate-200">{(agentData.max_output_tokens / 1000).toFixed(0)}K</strong></span>
+                    <span>Out: <strong className="text-slate-200">{formatLimitVal(agentData.max_output_tokens, 1000, 'K')}</strong></span>
                     <span>&bull;</span>
-                    <span>Think: <strong className="text-purple-300">{(agentData.thinking_budget / 1000).toFixed(0)}K</strong></span>
+                    <span>Think: <strong className="text-purple-300">{formatLimitVal(agentData.thinking_budget, 1000, 'K')}</strong></span>
                   </div>
 
                   {/* Element 5: Expand / Configure Button */}
                   <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] font-mono">
                     <span className="text-slate-400 text-[10px]">
-                      RPM: {agentData.rpm} &bull; TPM: {(agentData.tpm / 1000).toFixed(0)}K
+                      RPM: {agentData.rpm} &bull; TPM: {formatLimitVal(agentData.tpm, 1000, 'K')}
                     </span>
 
                     <button
@@ -1533,7 +1572,7 @@ export const TokenGovernor: React.FC = () => {
                 <span>Actual Paid Spend Today</span>
               </span>
               <div className="text-xl font-bold text-white">
-                ${costEstimate.actual_paid_spend_usd.toFixed(4)}{' '}
+                ${safeFixed(costEstimate.actual_paid_spend_usd, 4)}{' '}
                 <span className="text-xs text-slate-400 font-normal">/ ₹{costEstimate.actual_paid_spend_inr}</span>
               </div>
               <p className="text-[10px] text-slate-500">
@@ -1578,7 +1617,7 @@ export const TokenGovernor: React.FC = () => {
                 <span>Estimated Value Saved</span>
               </span>
               <div className="text-xl font-bold text-emerald-300">
-                ${costEstimate.estimated_savings_usd.toFixed(4)}{' '}
+                ${safeFixed(costEstimate.estimated_savings_usd, 4)}{' '}
                 <span className="text-xs text-emerald-400/80 font-normal">/ ₹{costEstimate.estimated_savings_inr}</span>
               </div>
               <p className="text-[10px] text-emerald-400/70">
@@ -1648,11 +1687,11 @@ export const TokenGovernor: React.FC = () => {
                   </div>
 
                   <div className="col-span-3 sm:col-span-2 text-right font-bold text-amber-300">
-                    ${stat.actualCostUsd.toFixed(4)}
+                    ${safeFixed(stat.actualCostUsd, 4)}
                   </div>
 
                   <div className="col-span-3 sm:col-span-2 text-right font-bold text-emerald-400 hidden sm:block">
-                    +${stat.estimatedSavingsUsd.toFixed(4)}
+                    +${safeFixed(stat.estimatedSavingsUsd, 4)}
                   </div>
                 </div>
               ))}
@@ -2052,6 +2091,14 @@ export const TokenGovernor: React.FC = () => {
           </div>
         </div>
       )}
+      {/* 1-Click AI Studio Limits Importer Modal */}
+      <ImportAiStudioModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportSuccess={() => {
+          fetchHierarchyData();
+        }}
+      />
     </div>
   );
 };

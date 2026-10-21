@@ -993,13 +993,15 @@ export const ExecutionStudio: React.FC = () => {
                     className="bg-transparent text-blue-300 font-bold focus:outline-none cursor-pointer text-xs"
                   >
                     <optgroup label="☁️ Google Free (85% Cap)">
-                      <option value="gemini-2.5-flash">gemini-2.5-flash (Fast)</option>
-                      <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Lite)</option>
-                      <option value="gemini-3.5-flash">gemini-3.5-flash</option>
-                      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
-                      <option value="gemini-3.6-flash">gemini-3.6-flash</option>
-                      <option value="gemini-3.7-flash">gemini-3.7-flash</option>
-                      <option value="gemini-3.8-flash">gemini-3.8-flash</option>
+                      <option value="gemini-4-argon">gemini-4-argon (1K RPM | 2M TPM | Unlimited RPD)</option>
+                      <option value="gemini-3.8-flash">gemini-3.8-flash (1K RPM | 2M TPM)</option>
+                      <option value="gemini-3.7-flash">gemini-3.7-flash (1K RPM | 2M TPM)</option>
+                      <option value="gemini-3.6-flash">gemini-3.6-flash (1K RPM | 2M TPM)</option>
+                      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (4K RPM | 4M TPM)</option>
+                      <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (4K RPM | 4M TPM)</option>
+                      <option value="gemini-2.5-flash">gemini-2.5-flash (Proven Fast)</option>
+                      <option value="gemini-omni-1.1-flash">gemini-omni-1.1-flash (Unlimited TPM)</option>
+                      <option value="nano-banana-2">nano-banana-2 (100 RPM)</option>
                     </optgroup>
                     <optgroup label="💎 Google Paid (85% Cap)">
                       <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Coder)</option>
@@ -1010,12 +1012,13 @@ export const ExecutionStudio: React.FC = () => {
                       <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
                       <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
                     </optgroup>
-                    <optgroup label="💻 Local Ollama (85% Cap)">
-                      <option value="qwen2.5-coder:32b">qwen2.5-coder:32b (Local Flagship)</option>
-                      <option value="qwen2.5-coder:14b">qwen2.5-coder:14b</option>
-                      <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (Compact)</option>
-                      <option value="codestral:22b">codestral:22b</option>
-                      <option value="deepseek-r1:8b">deepseek-r1:8b</option>
+                    <optgroup label="💻 Local Ollama (Pure GPU Safe <8GB)">
+                      <option value="qwen2.5-coder:7b">qwen2.5-coder:7b (Local Flagship - 60+ TPS)</option>
+                      <option value="deepseek-r1:8b">deepseek-r1:8b (Reasoning Champion - 55+ TPS)</option>
+                      <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b (Fast Local - 90+ TPS)</option>
+                      <option value="sqlcoder:7b">sqlcoder:7b (SQL Specialist - 65+ TPS)</option>
+                      <option value="qwen2.5-coder:14b">qwen2.5-coder:14b (Q4 Safe)</option>
+                      <option value="qwen2.5-coder:32b">qwen2.5-coder:32b (Offload 1-2 TPS)</option>
                     </optgroup>
                   </select>
                 </div>
@@ -1067,6 +1070,28 @@ export const ExecutionStudio: React.FC = () => {
                   {showWorkerPicker ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 </button>
               </div>
+            </div>
+
+            {/* 6 Sleek Swarm Roles Summary Chips */}
+            <div className="pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] text-slate-400 font-semibold">6 Sleek Roles:</span>
+              {[
+                { role: 'Architect', cost: 'Cloud Pro', isLocal: false, color: 'text-blue-300 border-blue-800/60 bg-blue-950/40' },
+                { role: 'Scaffolder', cost: 'Local ($0)', isLocal: true, color: 'text-emerald-300 border-emerald-800/60 bg-emerald-950/40' },
+                { role: 'Coder', cost: 'Cloud Free', isLocal: false, color: 'text-indigo-300 border-indigo-800/60 bg-indigo-950/40' },
+                { role: 'Database', cost: 'Local ($0)', isLocal: true, color: 'text-amber-300 border-amber-800/60 bg-amber-950/40' },
+                { role: 'Healer', cost: 'Local ($0)', isLocal: true, color: 'text-purple-300 border-purple-800/60 bg-purple-950/40' },
+                { role: 'Velocity', cost: 'Cloud Free', isLocal: false, color: 'text-cyan-300 border-cyan-800/60 bg-cyan-950/40' }
+              ].map((r) => (
+                <span
+                  key={r.role}
+                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-semibold border ${r.color}`}
+                  title={`${r.role} (${r.cost})`}
+                >
+                  <span>{r.role}:</span>
+                  <span className={r.isLocal ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{r.cost}</span>
+                </span>
+              ))}
             </div>
 
             {/* Collapsible Multi-Model Picker Drawer */}

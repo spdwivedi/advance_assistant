@@ -230,42 +230,139 @@ export const ORCHESTRATOR_OPTIONS = [
     desc: 'Frontier 70B Reasoning on Groq LPUs. 30 RPM, 128K context window.'
   },
   {
-    id: 'qwen2.5-coder:32b',
-    name: 'Qwen 2.5 Coder 32B',
-    tier: 'Local 32B',
-    badge: '⚡ Local Weights',
-    tag: 'Local Ollama',
-    desc: 'Heavyweight Local Architect, Complex AST Refactoring, 19.8 GB Hybrid Paged.'
-  },
-  {
-    id: 'qwen2.5-coder:14b',
-    name: 'Qwen 2.5 Coder 14B',
-    tier: 'Local 14B',
-    badge: '⚡ Local Weights',
-    tag: 'Local Ollama',
-    desc: 'Balanced Local Architect, Fast Syntax Tree Introspection, 9.0 GB Footprint.'
+    id: 'gemini-4-argon',
+    name: 'Gemini 4 Argon',
+    tier: 'Cloud Frontier',
+    badge: '☁️ 1K RPM | 2M TPM',
+    tag: 'Google Cloud',
+    desc: 'Next-Gen Premier Architect, Unlimited RPD, 850 RPM Safe Working Limits.'
   },
   {
     id: 'qwen2.5-coder:7b',
     name: 'Qwen 2.5 Coder 7B',
-    tier: 'Local 7B',
-    badge: '🟢 Pure GPU Safe',
+    tier: 'Local Flagship',
+    badge: '🟢 Pure GPU Safe (60+ TPS)',
     tag: 'Local Ollama',
-    desc: 'Fast Pure-GPU Architect, 0s Latency, Fits Entirely in RTX 4060 8GB VRAM.'
+    desc: 'Primary Sub-8GB Champion. Fits entirely in RTX 4060 8GB VRAM at 60+ TPS.'
   },
   {
     id: 'deepseek-r1:8b',
     name: 'DeepSeek R1 8B',
-    tier: 'Local 8B',
-    badge: '🟢 Pure GPU Safe',
+    tier: 'Local Reasoning',
+    badge: '🟢 Pure GPU Safe (55+ TPS)',
     tag: 'Local Ollama',
-    desc: 'Chain-of-Thought Reasoner, Algorithmic Logic & Root-Cause Proof Steps.'
+    desc: 'Reasoning Champion. Chain-of-thought proofs & zero-cloud-cost debugging at 55+ TPS.'
+  },
+  {
+    id: 'qwen2.5-coder:1.5b',
+    name: 'Qwen 2.5 Coder 1.5B',
+    tier: 'Local Ultra-Fast',
+    badge: '🟢 Pure GPU Safe (90+ TPS)',
+    tag: 'Local Ollama',
+    desc: 'Lightning Fast Boilerplate Champion. 1.2 GB Footprint running at 90+ TPS.'
+  },
+  {
+    id: 'sqlcoder:7b',
+    name: 'SQLCoder 7B',
+    tier: 'Local SQL Champion',
+    badge: '🟢 Pure GPU Safe (65+ TPS)',
+    tag: 'Local Ollama',
+    desc: 'Specialized SQL DDL, migrations, and relational query generator at 65+ TPS.'
+  },
+  {
+    id: 'qwen2.5-coder:32b',
+    name: 'Qwen 2.5 Coder 32B (Offloaded)',
+    tier: 'Local 32B (RAM Paged)',
+    badge: '⚠️ 1-2 TPS Offloading',
+    tag: 'Local Ollama',
+    desc: 'Demoted to non-default. Pages to host RAM on 8GB VRAM, resulting in 1-2 TPS.'
   }
 ];
 
 // Deliverable 1.1: Returns both color and className identically
-export const getVramSafetyTier = (sizeGb: number): { tier: string; badge: string; color: string; className: string } => {
-  if (sizeGb <= 5.2) {
+export const safeFixed = (val: any, digits: number = 2, fallback: string = '0.00'): string => {
+  if (val === null || val === undefined) return fallback;
+  const num = typeof val === 'number' ? val : parseFloat(val);
+  return !isNaN(num) && isFinite(num) ? num.toFixed(digits) : fallback;
+};
+
+export const formatLimitVal = (val: any): string => {
+  if (val === null || val === undefined) return 'Unlimited';
+  if (typeof val === 'string') {
+    if (val.toLowerCase() === 'unlimited') return 'Unlimited';
+    const parsed = parseFloat(val);
+    if (isNaN(parsed)) return val;
+    val = parsed;
+  }
+  if (typeof val === 'number') {
+    if (val <= 0) return 'Unlimited';
+    if (val >= 1000000) return `${(val / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (val >= 1000) return `${(val / 1000).toFixed(0)}k`;
+    return val.toString();
+  }
+  return String(val);
+};
+
+export const SLEEK_SWARM_ROLES_META = [
+  {
+    role: 'Architect',
+    tier: 'HIGH',
+    costBadge: 'Cloud Pro/Argon',
+    isLocal: false,
+    color: 'border-blue-500/40 bg-blue-950/30 text-blue-300',
+    desc: 'High-level system design & Phase 0 decomposition',
+    preferred: ['gemini-4-argon', 'gemini-2.5-flash', 'qwen2.5-coder:7b']
+  },
+  {
+    role: 'Scaffolder',
+    tier: 'LOCAL',
+    costBadge: 'Local ($0)',
+    isLocal: true,
+    color: 'border-emerald-500/40 bg-emerald-950/30 text-emerald-300',
+    desc: 'File trees, configs, dirs, boilerplate, package setup',
+    preferred: ['qwen2.5-coder:7b', 'qwen2.5-coder:1.5b']
+  },
+  {
+    role: 'Coder',
+    tier: 'AUTO',
+    costBadge: 'Cloud Free / Auto',
+    isLocal: false,
+    color: 'border-indigo-500/40 bg-indigo-950/30 text-indigo-300',
+    desc: 'Core feature logic, complex algorithms & routes',
+    preferred: ['gemini-3.6-flash', 'gemini-2.5-flash', 'qwen2.5-coder:7b']
+  },
+  {
+    role: 'Database',
+    tier: 'AUTO',
+    costBadge: 'Local / Auto ($0)',
+    isLocal: true,
+    color: 'border-amber-500/40 bg-amber-950/30 text-amber-300',
+    desc: 'SQL schemas, migrations, ORM models',
+    preferred: ['sqlcoder:7b', 'qwen2.5-coder:7b', 'gemini-2.5-flash']
+  },
+  {
+    role: 'Healer',
+    tier: 'LOCAL',
+    costBadge: 'Local ($0)',
+    isLocal: true,
+    color: 'border-purple-500/40 bg-purple-950/30 text-purple-300',
+    desc: 'Phase 3 syntax fixes, test retry loops, bug fixing',
+    preferred: ['deepseek-r1:8b', 'qwen2.5-coder:7b']
+  },
+  {
+    role: 'Velocity',
+    tier: 'FAST',
+    costBadge: 'Cloud Free / Fast',
+    isLocal: false,
+    color: 'border-cyan-500/40 bg-cyan-950/30 text-cyan-300',
+    desc: 'High-throughput batch generation & documentation',
+    preferred: ['gemini-4-argon', 'gemini-3.5-flash-lite', 'qwen2.5-coder:1.5b']
+  }
+];
+
+export const getVramSafetyTier = (sizeGb: any): { tier: string; badge: string; color: string; className: string } => {
+  const safeSize = (typeof sizeGb === 'number' && !isNaN(sizeGb)) ? sizeGb : 0;
+  if (safeSize <= 5.2) {
     const cls = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
     return { tier: 'SAFE_GPU', badge: '🟢 Pure GPU Safe', color: cls, className: cls };
   } else if (sizeGb <= 8.0) {
@@ -889,7 +986,7 @@ export const AgentHub: React.FC = () => {
   }, [simContextOverhead]);
 
   const totalSimFootprint = useMemo(() => {
-    return +(orchestratorFootprint + workerFootprint + contextFootprint).toFixed(2);
+    const sumFp = (orchestratorFootprint || 0) + (workerFootprint || 0) + (contextFootprint || 0); return +(safeFixed(sumFp, 2, "0.00"));
   }, [orchestratorFootprint, workerFootprint, contextFootprint]);
 
   // Deliverable 1.1: simVerdict returns both badgeColor and className identically
@@ -1231,7 +1328,7 @@ export const AgentHub: React.FC = () => {
             <span>2. VRAM Arbitrator (8GB)</span>
             {vramData && (
               <span className="bg-black/40 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                {vramData.used_gb.toFixed(1)} / 8.0 GB
+                {safeFixed(vramData?.used_gb, 1, "0.0")} / 8.0 GB
               </span>
             )}
           </button>
@@ -1548,11 +1645,11 @@ export const AgentHub: React.FC = () => {
                   <span>NVIDIA RTX 4060 8.0 GB Hardware VRAM Arbitrator</span>
                 </h3>
                 <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                  <span>Used: <strong className="text-amber-400">{vramData ? vramData.used_gb.toFixed(2) : '0.00'} GB</strong></span>
+                  <span>Used: <strong className="text-amber-400">{safeFixed(vramData?.used_gb, 2, "0.00")} GB</strong></span>
                   <span>•</span>
-                  <span>Free Headroom: <strong className="text-emerald-400">{vramData ? vramData.free_gb.toFixed(2) : '8.00'} GB</strong></span>
+                  <span>Free Headroom: <strong className="text-emerald-400">{safeFixed(vramData?.free_gb, 2, "8.00")} GB</strong></span>
                   <span>•</span>
-                  <span>Resident Models: <strong className="text-white">{vramData ? vramData.loaded_models.length : 0}</strong></span>
+                  <span>Resident Models: <strong className="text-white">{vramData?.loaded_models?.length || 0}</strong></span>
                 </div>
               </div>
 
@@ -1590,7 +1687,7 @@ export const AgentHub: React.FC = () => {
                   >
                     <span className="font-mono text-white font-medium">{mod.name}</span>
                     <span className="text-[10px] text-amber-400 font-mono font-bold">
-                      {(mod.size_vram_gb || (mod.size_vram ? mod.size_vram / 1073741824 : 0)).toFixed(1)} GB
+                      {safeFixed(mod.size_vram_gb ?? (mod.size_vram ? mod.size_vram / 1073741824 : 0), 1, "0.0")} GB
                     </span>
                     <button
                       onClick={() => handleUnloadModel(mod.name)}
@@ -1615,7 +1712,7 @@ export const AgentHub: React.FC = () => {
                 </h4>
                 {/* Live Verdict Pill in Header */}
                 <span className={`px-2.5 py-0.5 rounded-full border text-xs font-semibold ${simVerdict.className}`}>
-                  {totalSimFootprint.toFixed(2)} / 8.00 GB • {simVerdict.badge.split('(')[0].trim()}
+                  {safeFixed(totalSimFootprint, 2, "0.00")} / 8.00 GB • {simVerdict.badge.split('(')[0].trim()}
                 </span>
               </div>
 
@@ -1778,7 +1875,7 @@ export const AgentHub: React.FC = () => {
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono text-[11px] text-slate-300 font-semibold">
-                          {tagMod.size_gb.toFixed(1)} GB
+                          {safeFixed(tagMod.size_gb, 1, "0.0")} GB
                         </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded border font-mono ${safety.className}`}>
                           {safety.badge}
@@ -1944,6 +2041,61 @@ export const AgentHub: React.FC = () => {
             </div>
           </div>
 
+                    {/* Section 1.5: 6 Sleek Swarm Roles (<8GB Local Hardware Optimized) */}
+          <div className="bg-slate-900/90 border border-indigo-900/40 rounded-xl p-5 shadow-xl shadow-black/20 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  <span>6 Sleek Swarm Roles (&lt;8GB Local Hardware Optimized &amp; Zero Cloud Cost)</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  High-volume file, test, and dependency operations delegated to 100% free local models running at 30-70+ TPS
+                </p>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-mono font-bold self-start sm:self-auto">
+                ⚡ RTX 4060 8GB Ready
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {SLEEK_SWARM_ROLES_META.map((r) => (
+                <div
+                  key={r.role}
+                  className={`p-3.5 rounded-xl border ${r.color} flex flex-col justify-between space-y-2.5 transition-all hover:border-slate-600`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-xs text-white">{r.role}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono border ${
+                        r.isLocal
+                          ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50'
+                          : 'bg-blue-950/80 text-blue-300 border-blue-500/50'
+                      }`}>
+                        {r.costBadge}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-snug">{r.desc}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/60">
+                    <span className="text-[10px] text-slate-400 block mb-1 font-semibold">Preferred Models:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {r.preferred.map((pm, pIdx) => (
+                        <span
+                          key={pIdx}
+                          className="text-[10px] px-1.5 py-0.2 rounded bg-slate-900/90 border border-slate-700/80 text-slate-200 font-mono"
+                        >
+                          {pm}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Section 2: Phase 0 Master Orchestrator Selector & Worker Concurrency Slider */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl shadow-black/20 space-y-5">
             <div>
@@ -2091,12 +2243,12 @@ export const AgentHub: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto p-1">
               {filteredCatalogModels.map((m) => {
                 const isSelected = activeWorkerModels.includes(m.model_name);
-                const sRpm = m.strict_limits?.rpm || 15;
-                const sTpm = (m.strict_limits?.tpm || 250000) >= 1000 ? `${((m.strict_limits?.tpm || 250000)/1000).toFixed(0)}k` : m.strict_limits?.tpm;
-                const sRpd = m.strict_limits?.rpd || 500;
-                const wRpm = m.working_limits?.rpm || 12;
-                const wTpm = (m.working_limits?.tpm || 212500) >= 1000 ? `${((m.working_limits?.tpm || 212500)/1000).toFixed(0)}k` : m.working_limits?.tpm;
-                const wRpd = m.working_limits?.rpd || 425;
+                const sRpm = formatLimitVal(m.strict_limits?.rpm);
+                const sTpm = formatLimitVal(m.strict_limits?.tpm);
+                const sRpd = formatLimitVal(m.strict_limits?.rpd);
+                const wRpm = formatLimitVal(m.working_limits?.rpm);
+                const wTpm = formatLimitVal(m.working_limits?.tpm);
+                const wRpd = formatLimitVal(m.working_limits?.rpd);
 
                 return (
                   <div
